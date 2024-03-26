@@ -2016,19 +2016,18 @@ export class UtilNative {
   }
   //████Generales████████████████████████████████████████████████████
   /**
-   * clonacion de objetos JSON o Arrays de JSONs a diferentes
-   * niveles de profundidad
+   * Realiza la clonación de objetos JSON o Arrays de JSONs a diferentes niveles de profundidad.
    *
-   * **IMPORTANTE:**
-   * No debe ser un objeto con muchos niveles (No muy profundo) por
-   * que crashea el stack
+   * @param {T} objOrArray El objeto a clonar. El tipo `T` se asume implícitamente al enviar el parámetro.
+   * @param {"stringify" | "structuredClone"} driver `= "structuredClone"` el driver o libreria para hacer clonación.
+   * @returns {T} Retorna el objeto (o array) clonado. Si no es un objeto (o array), el retorno es el mismo valor.
    *
-   * ____
-   * @param objOrArray el objeto a clonar, tiene un T que se asume
-   * implicitamente al enviar el parametro
-   * @param driver ="lodash" la opcion de clonacion
-   * ____
-   * @return el objeto (o array) clonado, si no es un objeto (o array) el retorno es el mismo valor
+   * @example
+   * ```typescript
+   * const obj = { a: 1, b: 2 };
+   * const clonedObj = clone(obj);
+   * console.log(clonedObj); // salida: { a: 1, b: 2 }
+   * ```
    */
   public clone<T>(
     objOrArray: T,
