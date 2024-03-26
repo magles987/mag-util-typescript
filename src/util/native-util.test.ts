@@ -2345,6 +2345,21 @@ describe("Util Pure", async () => {
         expect(recived).toMatchObject(vExp);
       });
     });
+    describe("method: findArrayIntoArray", async () => {
+      it("case: serach", async () => {
+        const aData = [
+          { code: "A", age: 12, name: "Pedro" },
+          { code: "B", age: 13, name: "Juan" },
+          { code: "C", age: 15, name: "Ana" },
+          { code: "B", age: 8, name: "Miguel" },
+          { code: "D", age: 15, name: "Jorge" },
+        ];
+        const aSearch = [{ code: "B" }];
+        const vExp = [];
+        const recived = util.findArrayIntoArray(aData, aSearch, {});
+        expect(recived).toMatchObject(vExp);
+      });
+    });
   });
   describe("group: General", async () => {
     describe("method: clone", async () => {

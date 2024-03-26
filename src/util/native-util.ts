@@ -1955,17 +1955,7 @@ export class UtilNative {
   public findArrayIntoArray<TArray extends Array<any>>(
     rootArray: TArray,
     searchArray: TArray,
-    config: {
-      /**
-       * Array opcional con las rutas identificadoras de las propiedades a usar como criterio de comparación. Ejemplo (se asume que el caracter separador de ruta es "."):
-       *   - `["p1", "p2",..., "pn"]` - Claves identificadoras para el primer nivel de profundidad.
-       *   - `["p1", "p2.21"]` - "p1" de primer nivel, "p2.p21" de segundo nivel de profundidad.
-       *   - `["p1.p11.p111"]` - Claves identificadoras para el tercer nivel de profundidad.
-       *
-       * ⚠ Solo para array de objetos
-       */
-      keyOrKeysPath?: string | string[];
-    }
+    config: Omit<IConfigEqGtLt, "isAllowEquivalent"> & {}
   ): TArray {
     if (!this.isArray(rootArray))
       throw new Error(`${rootArray} is not root array valid`);
@@ -1979,7 +1969,14 @@ export class UtilNative {
       !this.isArray(config.keyOrKeysPath, true) //❗Obligario permitir array vacio❗
     )
       throw new Error(`${config.keyOrKeysPath} is not key path valid`);
-    const { keyOrKeysPath } = config;
+    const {
+      keyOrKeysPath,
+      isCaseSensitiveForString,
+      isCompareLength,
+      isCompareSize,
+      isCompareStringToNumber,
+      isStringLocaleMode,
+    } = config;
     let keysPath = this.isArray(keyOrKeysPath, true)
       ? ([...keyOrKeysPath] as string[])
       : this.isNotUndefinedAndNotNull(keyOrKeysPath)
@@ -1987,17 +1984,13 @@ export class UtilNative {
       : [];
     let findArray = rootArray.filter((mAi) => {
       const r = searchArray.find((sAi) => {
-        if (this.isObject(mAi, true) && this.isObject(sAi, true)) {
-          keysForObj = Object.keys(sAi).filter((key) => {
-            const r =
-              Array.isArray(keysForObj) && keysForObj.length > 0
-                ? keysForObj.includes(key)
-                : true;
-            return r;
-          });
-        }
         let r = this.isEquivalentTo([mAi, sAi], {
           keyOrKeysPath: keysPath,
+          isCaseSensitiveForString,
+          isCompareLength,
+          isCompareSize,
+          isCompareStringToNumber,
+          isStringLocaleMode,
         });
         return r;
       });
@@ -2005,114 +1998,6 @@ export class UtilNative {
     });
     return findArray as TArray;
   }
-  //-----------------------------
-  /**
-   * reubica o reorganiza una seccion de un
-   * array colocando dicha seccion antes
-   * o despues de los demas elementos que
-   * no seran reorganizados
-   *
-   * ⚠ Los elementos que esten en el array a ordenar
-   * y no esten en `aToLocal`, se dejan ordenados
-   * de acuerdo a como se configure el parametro `at`
-   * y su orden depende de `aBase` originalmente.
-   *
-   * ____
-   * ➡Ejemplo (array de string)
-   * ````
-   * const a = ["mango", "pera", "guayaba", "banana", "maracuya", "mora", "zapote", "melon"];
-   * const l = ["mora", "pera", "banana"]; //⚠ No es criterio de orden de salida
-   * const r = this.util.arrayLocateSection(a, l);
-   * //output:
-   * // [
-   * //  'pera', //ubicado de acuerdo al orden de `a`
-   * //  'banana', //ubicado de acuerdo al orden de `a`
-   * //  'mora', //ubicado de acuerdo al orden de `a`
-   * //  'mango',
-   * //  'guayaba',
-   * //  'maracuya',
-   * //  'zapote',
-   * //  'melon'
-   * // ]
-   *
-   * ````
-   * ➡Ejemplo (Objetos con clave identificadora y su valor)
-   * ````
-   * const a = [{a:1, b:5}, {a:34, b:8}, {a:-3, b:3}, {a:2, b:3}, {a:34, b:16},];
-   * const l = [{a:34}, {a:2}]; //organizará los objetos que tengan estos valores
-   * const r = this.util.arrayLocateSection(a, l, "before", ["a"]);
-   * // output:
-   * //[
-   * // {a: 34, b: 8}, //ubicado de acuerdo al orden de `a`
-   * // {a: 2, b: 3}, //ubicado de acuerdo al orden de `a`
-   * // {a: 34, b: 16}, //ubicado de acuerdo al orden de `a`
-   * // {a: 1, b: 5},
-   * // {a: -3, b: 3},
-   * //]
-   * ````
-   * ____
-   * @param aBase array a reorganizar
-   *
-   * @param aToLocate el array con los
-   * elementos a reordenar
-   *
-   * ⚠ NO es un criterio de orden de salida,
-   * por lo que el orden del array resultante
-   * dependerá del orden ya preestablecido en
-   * el array base.
-   *
-   * @param at (predefinido `"before"`) lugar
-   * donde se colocaran los elementos a reorganiar
-   *
-   * @param keysForObj (predefinido `[]`) si `aBase`
-   * es un array de objetos y se desea reorganizar
-   * en base a los valores de propiedades especificas
-   * en este parametro de envia las claves identificadoras
-   * de las propiedades que se desean comparar su valor
-   *
-   * ⚠ Solo permite 1 nivel de profundidad
-   * ____
-   * @returns el array ya ordenado
-   * ____
-   */
-  public arrayLocateSection<TArray>(
-    aBase: TArray,
-    aToLocate: TArray,
-    at: "before" | "after" = "before",
-    keysForObj: string[] = []
-  ): TArray {
-    if (!this.isArray(aBase, true) || !this.isArray(aToLocate, true)) {
-      return aBase;
-    }
-    let aMissing = <any[]>[];
-    let cloneBase = <any[]>this.clone(aBase);
-    let offset = 0; //nivelador para cada eliminacion del original
-    let aResult = <TArray>cloneBase.filter((itemBase, idx) => {
-      let r: boolean;
-      r = (<any[]>aToLocate).some((itemlLocate) => {
-        let r: boolean;
-        r = this.isEquivalentTo([itemBase, itemlLocate], keysForObj);
-        return r;
-      });
-      if (r === true) {
-        //acumulacion de los elementos a reorganizar
-        aMissing = [...aMissing, ...(<any[]>cloneBase).slice(idx, idx + 1)];
-        //eliminia del original
-        (<any[]>aBase).splice(idx - offset, 1);
-        offset++;
-      }
-      return !r; //❗ selecciona los NO equivalentes
-    });
-    //concatena interseccion de acuerdo a la posicion deseada (antes o despues)
-    if (at === "before") {
-      aResult = <TArray>[...aMissing, ...(<any[]>aBase)];
-    }
-    if (at === "after") {
-      aResult = <TArray>[...(<any[]>aBase), ...aMissing];
-    }
-    return aResult;
-  }
-  //-----------------------------
   //████Fechas███████████████████████████████████████████████████████
   /** convierte de string de fecha a timestamp
    *
