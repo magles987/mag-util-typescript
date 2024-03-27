@@ -1,7 +1,7 @@
 import { describe, expect, test, it } from "vitest";
 import { UtilNative } from "./native-util";
 //████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
-const util = UtilNative.getInstance();
+const util = UtilNative.getInstance(undefined);
 describe("Util Pure", async () => {
   describe("group: boolean", async () => {
     describe("method: castBoolean", async () => {

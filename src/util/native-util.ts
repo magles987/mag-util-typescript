@@ -56,18 +56,26 @@ export class UtilNative {
    * ____
    */
   private static UtilNative_instance: UtilNative;
-  /**... */
-  constructor() {}
+  /**
+   * @param _dfValue es el valor que se va a asumir
+   * como valor predefinido cuando haya ausencia de valor
+   */
+  constructor(
+    /**es el valor que se va a asumir como valor
+     * predefinido cuando haya ausencia de valor */
+    public readonly dfValue: null | undefined
+  ) {}
   /**
    * devuelve la instancia única de esta clase
    * ya sea que la crea o la que ya a sido creada
-   * ____
+   * @param dfValue es el valor que se va a asumir como valor
+   * predefinido cuando haya ausencia de valor
    */
-  public static getInstance(): UtilNative {
+  public static getInstance(defaultValue: null | undefined): UtilNative {
     UtilNative.UtilNative_instance =
       UtilNative.UtilNative_instance === undefined ||
       UtilNative.UtilNative_instance === null
-        ? new UtilNative()
+        ? new UtilNative(defaultValue)
         : UtilNative.UtilNative_instance;
     return UtilNative.UtilNative_instance;
   }

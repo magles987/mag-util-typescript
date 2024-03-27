@@ -20,19 +20,20 @@ export class UtilExtension extends UtilNative {
    */
   private static UtilExtension_instance: UtilExtension;
   /** */
-  constructor() {
-    super();
+  constructor(dfValue: null | undefined) {
+    super(dfValue);
   }
   /**
    * devuelve la instancia única de esta clase
    * ya sea que la crea o la que ya a sido creada
-   * ____
+   * @param dfValue es el valor que se va a asumir como valor
+   * predefinido cuando haya ausencia de valor
    */
-  public static getInstance(): UtilExtension {
+  public static getInstance(dfValue: null | undefined): UtilExtension {
     UtilExtension.UtilExtension_instance =
       UtilExtension.UtilExtension_instance === undefined ||
       UtilExtension.UtilExtension_instance === null
-        ? new UtilExtension()
+        ? new UtilExtension(dfValue)
         : UtilExtension.UtilExtension_instance;
     return UtilExtension.UtilExtension_instance;
   }
@@ -97,7 +98,7 @@ export class UtilExtension extends UtilNative {
     }
     let dataCopia: T;
     if (driver === "lodash") {
-      dataCopia = JSON.parse(JSON.stringify(objOrArray)); //metodo antiguo
+      dataCopia = this.lodash.cloneDeep(objOrArray);
     } else {
       dataCopia = super.clone(objOrArray, driver);
     }
