@@ -221,7 +221,7 @@ export class UtilNative {
    * Redondea un número y ajusta los decimales. Esta implementación se basa en la documentación oficial de Mozilla:
    * MDN Web Docs - Math.round
    *
-   * @param {TRonudType} type - Define el tipo de redondeo:
+   * @param {"round" | "floor" | "ceil"} type - Define el tipo de redondeo:
    * - `"none"`: Sin redondeo.
    * - `"round"`: Redondeo estándar (arriba si es >=5 y abajo si es <5).
    * - `"floor"`: Redondeo hacia abajo.
@@ -386,14 +386,17 @@ export class UtilNative {
    * ````typescript
    * let num;
    * let r;
+   *
    * //Dentro del rango:
    * num = 5;
    * r = adaptNumberByRange(num, [0,10]);
    * console.log(r);// Salida: 5
+   *
    * //Fuera del rango, por encima:
    * num = 11;
    * r = adaptNumberByRange(num, [0,10]);
    * console.log(r);// Salida: 10
+   *
    * //Fuera del rango, por debajo:
    * num = -2;
    * r = adaptNumberByRange(num, [0,10]);
@@ -1220,7 +1223,7 @@ export class UtilNative {
    *
    * ⚠ **No** aplica para profundidad en arrays (ni en propiedades ni subpropiedades).
    *
-   * @param {T} tObjToMerge - Tupla que representa:
+   * @param {[T, T?]} tObjToMerge - Tupla que representa:
    *   - `tObjToMerge[0]`: Objeto base al cual se fusionará el nuevo objeto.
    *   - `tObjToMerge[1]`: Objeto a fusionar con el objeto base.
    * @param {object} config - Configuración para el proceso de fusión:
@@ -1412,16 +1415,16 @@ export class UtilNative {
   /**
    * permite ordenar un array de booleanos, numeros, cadenas de texto o objetos, con opciones de direccion, eliminacion de duplicados entre otras
    *
-   * para poder realizar la eliminacion es necesario tener presente los pesos de  los diferentes tipos de valores que puede recibir
+   * **⚠⚠ Importante los pesos de los tipos ⚠⚠**
    *
-   * Tabla de pesos (de menor a mayor peso):
+   * Lista de pesos (de menor a mayor peso):
    *
    * - `undefined`
    * - `null`
    * - `function`
    * - `boolean`
    * - `number`
-   * - `string-number`
+   * - `string-number` cuando esta activada `isCompareStringToNumber`
    * - `string`
    * - `object`
    * - `array`
@@ -1437,6 +1440,7 @@ export class UtilNative {
    * @param {object} config configuracion para el ordenamiento
    * - `direction = "asc"`, direccion de ordenamiento
    * - `isRemoveDuplicate = fasle`, si se desea eliminar duplicados antes de retornar el array ordenado
+   * - `keyOrKeysPath` (solo para elementos de tipo objeto) rutas de claves identificadoras para las propiedades que se usaran como base para la comparación
    * - `isCompareLength = false`, determina si debe comprar tamaños de lso arrays
    * - `isCompareSize = false`, determina si debe comparar cantidad de propiedades de los objetos
    * - `isCompareStringToNumber = false`, determina si debe comparar strings numericos como numeros
@@ -1620,162 +1624,169 @@ export class UtilNative {
     return arrayToSortClone;
   }
   /**
-   * recibe un array y retira los elementos repetidos
-   * segun criterio:
    *
-   * **Criterio primitivos**
-   * determina si son iguales en contenido y tipo.
-   * teniendo en cuenta que:
-   * ` 2 === "2"` es falso
+   * Elimina los elementos duplicados de un array.
    *
-   * **Criterio funtions**
-   * usando tecnica de conversion de string (se
-   * eliminan caracteres innecesarios)
+   * @param {Array} arrayToRemove El array del cual se eliminarán los duplicados.
+   * @param {object} config configuracion para el metodo
+   * - `itemConflictMode` al encontrar un elemento repetido define el modo de resolver el conflicto de si se queda con el primero o el ultimo de los repetidos
+   * - `keyOrKeysPath` (solo para elementos de tipo objeto) rutas de claves identificadoras para las propiedades que se usaran como base para la comparacion
+   * - `isCompareLength = false`, determina si debe comprar tamaños de lso arrays
+   * - `isCompareSize = false`, determina si debe comparar cantidad de propiedades de los objetos
+   * - `isCompareStringToNumber = false`, determina si debe comparar strings numericos como numeros
+   * - `isCaseSensitiveForString = false`, determina si la comparacion es sensitiva a minusculas y mayusculas (solo string)
+   * - `isStringLocaleMode = false`, determina si la comparacion de strings es en modo region del sistema
+   * @param {"first" | "last"} [itemConflictMode = "last"] - En caso de encontrar un duplicado, determina con cuál elemento se queda. Por defecto es `"last"`.
+   * @returns {Array} - Retorna un nuevo array con los elementos repetidos o duplicados eliminados.
    *
-   * Ejemplo:
-   * ````
-   * const ar = [
-   *   ()=>{let c = "1"},
-   *   ()=>{let c = "1"}, //es repetido
-   *   ()=>{let c = 1} // es diferente
+   * @example
+   *
+   * ````typescript
+   * let a;
+   * let r;
+   *
+   * //caso primitivos sencillos (modo "first")
+   * a = [
+   *   true,
+   *   false,
+   *   true,
+   *   null,
+   *   2,
+   *   undefined,
+   *   2,
+   *   undefined,
+   *   1,
+   *   "Juan",
+   *   "juan",
+   *   null,
    * ];
-   * const r = arrayRemoveDuplicate(ar);
-   * console.log(r); //imprime [()=>{let c = "1"}, ()=>{let c = 1}]
-   * ````
-   * ⚠ La forma en que se haya definido la funcion
-   * influye ya que si se escribio en arrowFunction
-   * o function tradicional asi ejecuten el mismo proceso,
-   * se consideraran diferentes, esto tambien influye
-   * en si tiene llaves de apertura y cierre.
-   *
-   * **Criterio objeto**
-   * se comparan las propiedades del objeto (segun las
-   * enviadas en el parametro `keysToCompare` o se
-   * comparan completamente los objetos con tecnica
-   * de conversion a string a 1 solo nivel de profundidad)
-   *
-   * ⚠ las propiedades recibidas en `keysToCompare` se
-   * aplicaran a **TODOS** los objetos contenidos en el
-   * array, si las propiedades no pertenecen a un objeto
-   * en especifico y seran ignoradas, si ninguna
-   * corresponde al objeto este objeto será comparado
-   * con todas su propiedades
-   *
-   * Ejemplo 1:
-   * ````
-   * const ar = [
-   *   {a:1, b:2},
-   *   {a:1, b:2}, //es repetido
-   *   {a:1, b:2, c:3},  // es diferente (en tamaño)
-   *   {a:"1", b:2, c:3} // es diferente (en tipos y valor)
-   * ];
-   * const r = arrayRemoveDuplicate(ar);
-   * console.log(r); //imprime [{a:1, b:2}, {a:1, b:2, c:3}, {a:"1", b:2, c:3}]
-   * ````
-   *
-   * Ejemplo 2:
-   * ````
-   * const ar = [
-   *   {a:1, b:2},
-   *   {a:1, b:2}, //es igual
-   *   {a:1, b:2, c:3},  // es repetido (la propiedad `a` es igual)
-   *   {a:"1", b:2, c:3} // es diferente (la propiedad `a` es diferente tipo)
-   * ];
-   * const r = arrayRemoveDuplicate(ar, ["a"]); // propiedad a comparar
-   * console.log(r); //imprime [{a:1, b:2}, {a:"1", b:2, c:3}]
-   * ````
-   *
-   * Ejemplo 3:
-   * ````
-   * const ar = [
-   *   {a:1, b:2}, //la propiedad `z` es `undefined`
-   *   {a:1, b:2}, //es repetido (la propiedad `z` es `undefined`)
-   *   {a:1, b:2, c:3},  // es repetido (la propiedad `z` es `undefined`)
-   *   {a:"1", b:2, c:3} // es repetido (la propiedad `z` es `undefined`)
-   * ];
-   * const r = arrayRemoveDuplicate(ar, ["z"]); // propiedad a comparar
-   * console.log(r);
-   * //imprime
+   * r = arrayRemoveDuplicate(a, {
+   *   itemConflictMode: "first"
+   * });
+   * console.log(r) //Salida:
    * //[
-   * //  {a:1, b:2},
-   * //  {a:1, b:2},
-   * //  {a:1, b:2, c:3},
-   * //  {a:"1", b:2, c:3}
+   * //  true,
+   * //  false,
+   * //  null,
+   * //  2,
+   * //  undefined,
+   * //  1,
+   * //  "Juan", //son diferentes si es sensitivo
+   * //  "juan", //son diferentes si es sensitivo
+   * //]
+   *
+   * //caso primitivos sencillos (modo "last")
+   * a = [
+   *   true,
+   *   false,
+   *   true,
+   *   null,
+   *   2,
+   *   undefined,
+   *   2,
+   *   undefined,
+   *   1,
+   *   "Juan",
+   *   "juan",
+   *   null,
+   * ];
+   * r = arrayRemoveDuplicate(a, {
+   *   itemConflictMode: "last"
+   * });
+   * console.log(r) //Salida:
+   * //[
+   * //  false,
+   * //  true,
+   * //  2,
+   * //  undefined,
+   * //  1,
+   * //  "Juan", //son diferentes si es sensitivo
+   * //  "juan", //son diferentes si es sensitivo
+   * //  null
+   * //]
+   *
+   * //caso strings (modo "first", no sensitivo)
+   * a = ["a","A","B","C","A","B"];
+   * r = arrayRemoveDuplicate(a, {
+   *   itemConflictMode: "first"
+   * });
+   * console.log(r) //Salida: ["a","B","C"]
+   *
+   * //caso strings (modo "last", no sensitivo)
+   * a = ["a","A","B","C","A","B"];
+   * r = arrayRemoveDuplicate(a, {
+   *   itemConflictMode: "last"
+   * });
+   * console.log(r) //Salida: ["C","A","B"]
+   *
+   * //caso strings (modo "first", sensitivo)
+   * a = ["a","A","B","C","A","B"];
+   * r = arrayRemoveDuplicate(a, {
+   *   itemConflictMode: "first",
+   *   isCaseSensitiveForString
+   * });
+   * console.log(r) //Salida: ["a","A","B","C"]
+   *
+   * //caso strings (modo "last", sensitivo)
+   * a = ["a","A","B","C","A","B"];
+   * r = arrayRemoveDuplicate(a, {
+   *   itemConflictMode: "last"
+   * });
+   * console.log(r) //Salida: ["a","C","A","B"]
+   *
+   * //caso object (modo "first", sin keysPath)
+   * a = [
+   *   {name: "Ana", age:12},
+   *   {name: "Juan", age:13},
+   *   {name: "Ana", age:13},
+   *   {name: "Juan", age:12},
+   * ];
+   * r = arrayRemoveDuplicate(a, {
+   *   itemConflictMode: "first"
+   * });
+   * console.log(r) //Salida: (no hay repetidos porque no hubo keysPath)
+   * //[
+   * //  {name: "Ana", age:12},
+   * //  {name: "Juan", age:13},
+   * //  {name: "Ana", age:13},
+   * //  {name: "Juan", age:12},
+   * //]
+   *
+   * //caso object (modo "first", con keysPath)
+   * a = [
+   *   {name: "Ana", age:12},
+   *   {name: "Juan", age:13},
+   *   {name: "Ana", age:13},
+   *   {name: "Juan", age:12},
+   * ];
+   * r = arrayRemoveDuplicate(a, {
+   *   itemConflictMode: "first",
+   *   keyOrKeysPath: ["name"]
+   * });
+   * console.log(r) //Salida:
+   * //[
+   * //  {name: "Ana", age:12},
+   * //  {name: "Juan", age:13},
+   * //]
+   *
+   * //caso object (modo "last", con keysPath)
+   * a = [
+   *   {name: "Ana", age:12},
+   *   {name: "Juan", age:13},
+   *   {name: "Ana", age:13},
+   *   {name: "Juan", age:12},
+   * ];
+   * r = arrayRemoveDuplicate(a, {
+   *   itemConflictMode: "last",
+   *   keyOrKeysPath: ["name"]
+   * });
+   * console.log(r) //Salida:
+   * //[
+   * //  {name: "Ana", age:13},
+   * //  {name: "Juan", age:12},
    * //]
    * ````
    *
-   * **Criterio array**
-   * se compara sus elementos (1 solo nivel de
-   * profundidad), si sus elementos son de tipo
-   * objeto, se pueden usar las claves `keysToCompare`
-   * para comparar dichos objetos-elementos entre
-   * cada arrya (de igual manera a solo 1 nivel
-   * de profundidad), si no se reciben las claves
-   * `keysToCompare` compara que cada arrya de
-   * objetos sea exacto con tecnica de conversion
-   * a string
-   *
-   * Ejemplo1:
-   * ````
-   * const ar = [
-   *   [1,2,3],
-   *   [1,2,3], //es repetido
-   *   [1,2] // es diferente (en tamaño)
-   *   ["1","2","3"] // es diferente (en tipos)
-   * ];
-   * const r = arrayRemoveDuplicate(ar);
-   * console.log(r); //imprime [[1,2,3], [1,2], ["1","2","3"]]
-   * ````
-   *
-   * Ejemplo2:
-   * ````
-   * const ar = [
-   *   [{a:1, b:4},{a:2, b:5},{a:3, b:6}],
-   *   [{a:1, b:4},{a:2, b:5},{a:3, b:6}], //es repetido
-   *   [{a:1, b:4},{a:2, b:5}], // es diferente (en tamaño)
-   *   [{a:6, b:1},{a:5, b:2},{a:4, b:3}] // es diferente (en valores de propiedad)
-   * ];
-   * const r = arrayRemoveDuplicate(ar);
-   * console.log(r);
-   * //imprime:
-   * //[
-   * //  [{a:1, b:4},{a:2, b:5},{a:3, b:6}],
-   * //  [{a:1, b:4},{a:2, b:5}],
-   * //  [{a:6, b:1},{a:5, b:2},{a:4, b:3}],
-   * //]
-   * ````
-   *
-   * Ejemplo3:
-   * ````
-   * const ar = [
-   *   [{a:1, b:4},{a:1, b:5},{a:3, b:6}],
-   *   [{a:1, b:9},{a:1, b:8},{a:3, b:7}], //es repetido (la propiedad `a` tienen el mismo valor)
-   *   [{a:6, b:4},{a:2, b:5},{a:4, b:6}] // es diferente (la propiedad `a` NO tienen el mismo valor)
-   * ];
-   * const r = arrayRemoveDuplicate(ar, ["a"]);
-   * console.log(r);
-   * //imprime:
-   * //[
-   * //  [{a:1, b:4},{a:1, b:5},{a:3, b:6}],
-   * //  [{a:6, b:4},{a:2, b:5},{a:4, b:6}],
-   * //]
-   * ````
-   * ___
-   *
-   * @param arrayToRemove el array a remover los duplicados
-   *
-   * @param keyOrKeysPath (opcional solo cuando el array
-   * contenga elementos de tipo objetos), las key de las
-   * propiedades para poder comparar los objetos,
-   * si no se recibe keys se comparan con **todas** las
-   * propiedades
-   *
-   * @param itemConflictMode (predefinido `"last"`)
-   * en caso de encontrar un duplicado determina
-   * con cual elemento se queda
-   * ____
-   * @returns un nuevo array con los elementos
-   * repetidos o duplicados eliminados
    */
   public arrayRemoveDuplicate<T extends Array<any>>(
     arrayToRemove: T,
@@ -2026,6 +2037,11 @@ export class UtilNative {
   /**
    * Realiza la clonación de objetos JSON o Arrays de JSONs a diferentes niveles de profundidad.
    *
+   * xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+   * ⚠ **NO** se puede clonar instancias de clase ⚠
+   * xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+   *
+   *
    * @param {T} objOrArray El objeto a clonar. El tipo `T` se asume implícitamente al enviar el parámetro.
    * @param {"stringify" | "structuredClone"} driver `= "structuredClone"` el driver o libreria para hacer clonación.
    * @returns {T} Retorna el objeto (o array) clonado. Si no es un objeto (o array), el retorno es el mismo valor.
@@ -2225,83 +2241,64 @@ export class UtilNative {
   /**
    * Comprueba si un valor corresponde a un tipo definido.
    *
-   * ⚠ Importante: Aunque permite comprobar tipos primitivos,
-   * su uso esta mas pensado para objeto y especificamente
-   * arrays y sus elementos.
+   * ❗Aunque puede comparar valores primitivos (y objetos), su eso es
+   * mas enfocado para arrays❗
    *
-   * ⚠ Solo puede comprobar los elementos de un array maximo
-   *  hasta un nivel 2 de profundidad.
-   *
-   * ⚠ no puede comprobar el tipo de propiedades .
-   *
-   * - Caso primitivos (incluye string):
-   * Comparación sencilla de valores.
-   *
-   * Ejemplo comprobar primitivo:
-   * ```typescript
-   * const value = 3;
-   * const r = testType(value, "is", "string");
-   * console.log(r); //-> false, porque `3` es un `"number"` no un `"string"`
-   * ```
-   *
-   * Ejemplo comprobar primitivo de múltiples tipos:
-   * ```typescript
-   * const value = 3;
-   * const r = testType(value, "is", ["string", "number"]);
-   * console.log(r); //-> true, porque `3` es un `"number"`
-   * ```
-   *
-   * - Caso Objetos (no incluye array):
-   * Comprueba si corresponde a un objeto (sin el legendario bug de `null`).
-   *
-   * **⚠** Comprobación a un nivel de profundidad.
-   *
-   * Ejemplo comprobar objeto:
-   * ```typescript
-   * const value = [];
-   * const r = testType(value, "is", "object", "allow-empty");
-   * console.log(r); //-> false, porque `[]` es un `"array"`, no un objeto literal
-   * ```
-   *
-   * Ejemplo comprobar objeto vacío:
-   * ```typescript
-   * const value = {};
-   * const r = testType(value, "is", "object", "deny-empty");
-   * console.log(r); //-> false, porque es un objeto vacío
-   * ```
-   *
-   * - Caso Arrays:
-   * Comprueba el tipo array y con la opción de comprobar sus elementos.
-   *
-   * **⚠** Importante: Puede comprobar n niveles `[[[[[[[[]]]]]]]]` de profundidad en busca de un elemento que corresponda al subtipo, usar con **precaución**.
-   *
-   * Ejemplo comprobar no array y vacío denegado:
-   * ```typescript
-   * const value = [];
-   * const r = testType(value, "is-not", "array", "deny-empty");
-   * console.log(r); //-> true, porque `[]` es un `"array"`, pero se deniega que esté vacío, esta lógica negativa hace que sea *is not array*, por lo tanto es `true`
-   * ```
-   *
-   * ➡ Ejemplo comprobar de tipos en cada elemento:
-   * ```typescript
-   * const value = [{p1:1}, "hola", true];
-   * const r = testType(value, "is", "array", "deny-empty", "string");
-   * console.log(r); //-> false, porque `value` es un `"array"` pero solo uno de sus elementos es de tipo `"string"`
-   * ```
-   *
-   * ➡ Ejemplo comprobar de tipos múltiples en cada elemento:
-   * ```typescript
-   * const value = [{p1:1}, "hola", true];
-   * const r = testType(value, "is", "array", "deny-empty", ["string", "boolean", "object"]);
-   * console.log(r); //-> true, porque `value` es un `array` y sus elementos corresponden a los tipos especificados
-   * ```
-   *
-   * @param {any} anyValue - Valor a comprobar el tipo.
-   * @param {"is" | "is-not"} condition - `"is"`  Determina si corresponde al tipo o a uno de los tipos, `"is-not"` determina que no es ninguno de los tipos.
-   * @param {TExtPrimitiveTypes | TExtPrimitiveTypes[]} types - Los tipos a comprobar.
-   * @param {"allow-empty" | "deny-empty"} [emptyMode = "allow-empty"] - Solo se aplica a valores estructurados (objetos o arrays), determina si se consideran los objetos o arrays vacíos. Para el caso de la condición `"is"`, es lógica positiva mientras que para la condición `"is-not"`, la configuración `"deny-empty"` indicaría que un valor como `[]` no corresponde a un array válido.
-   * @param {TExtPrimitiveTypes[] | TExtPrimitiveTypes | undefined} [subTypes] - (Opcional y solo para estructuras objeto o arrays) Determina qué subtipos debe comprobar en cada elemento (para los arrays) o cada propiedad (para los objetos).
+   * @param {any} anyValue Valor a comprobar el tipo.
+   * @param {"is" | "is-not"} condition `= "is"`  Determina si corresponde al tipo o a uno de los tipos, `"is-not"` determina que no es ninguno de los tipos.
+   * @param {TExtPrimitiveTypes | TExtPrimitiveTypes[]} types Los tipos a comprobar.
+   * @param {"allow-empty" | "deny-empty"} emptyMode `= "allow-empty"` Solo se aplica a valores estructurados (objetos o arrays), determina si se consideran los objetos o arrays vacíos. Para el caso de la condición `"is"`, es lógica positiva mientras que para la condición `"is-not"`, la configuración `"deny-empty"` indicaría que un valor como `[]` no corresponde a un array válido.
+   * @param {TExtPrimitiveTypes[] | TExtPrimitiveTypes | undefined} subTypes (Opcional y solo para estructuras objeto o arrays) Determina qué subtipos debe comprobar en cada elemento (para los arrays) o cada propiedad (para los objetos).
    * @returns {boolean} - Retorna un booleano indicando si corresponde al tipo y sus características.
+   *
+   * @example
+   *
+   * ````typescript
+   * let v;
+   * let r;
+   *
+   * //primitivos basicos
+   * v = 2;
+   * r = isValueType(v, "is-not", "number");
+   * console.log(r); //Salida: false (por que numero)
+   *
+   * //primitivos basicos (string-number)
+   * v = "2";
+   * r = isValueType(v, "is", "number");
+   * console.log(r); //Salida: false (por que es un string, antes que un numero)
+   *
+   * //primitivos basicos (varios tipos)
+   * v = "hola";
+   * r = isValueType(v, "is", ["number", "string"]); //funciona como OR
+   * console.log(r); //Salida: true (por que es string)
+   *
+   * //objetos
+   * v = {id:1, name: "juan"};
+   * r = isValueType(v, "is", ["boolean", "number", "string"]); //funciona como OR
+   * console.log(r); //Salida: false
+   *
+   * //array (de numeros)
+   * v = [1, 2];
+   * r = isValueType(v, "is", "array", "allow-empty", ["boolean", "string"]); //funciona como OR
+   * console.log(r); //Salida: false (es un array de numbers)
+   *
+   * //array (vacio)
+   * v = [];
+   * r = isValueType(v, "is", "array", "allow-empty", ["boolean", "string"]); //funciona como OR
+   * console.log(r); //Salida: true (se permite vacio)
+   *
+   * //array (varios tipos)
+   * v = [1, "hola"];
+   * r = isValueType(v, "is", "array", "allow-empty", ["number", "string"]); //funciona como OR
+   * console.log(r); //Salida: true (es un arryay de numeros o strings)
+   *
+   * //array (varios tipos (2))
+   * v = [1, "hola", false];
+   * r = isValueType(v, "is", "array", "allow-empty", ["number", "string"]); //funciona como OR
+   * console.log(r); //Salida: false (uno o mas de los elementos no es number o string)
+   *
+   * ````
+   *
    */
   public isValueType(
     anyValue: any,
@@ -2414,109 +2411,147 @@ export class UtilNative {
   /**
    * Permite comparar dos valores para determinar si son equivalentes.
    *
-   * ⚠ Importante: En valores no primitivos, la equivalencia no es igualdad en referencia.
+   * ⚠ funciona en base a equivalencia (no igualdad),
+   * porque los objetos no se igualan `{} === {}` ya que eso
+   * compara referencia no contenido.
    *
-   * **🔍 Caso Primitivos**
-   * Determina si son equivalentes en cuanto a valor y tipo (en este caso es igualdad absoluta).
+   * **⚠⚠ Importante los pesos de los tipos ⚠⚠**
    *
-   * **🔍 Caso Objetos**
-   * Determina si cada uno de los valores de cada propiedad son equivalentes entre sí en cuanto a valor y tipo (en modo `"keys-values"`), o si al menos existe la propiedad (en modo `"only-keys"`). También se permite seleccionar qué propiedades se desean comparar (esta selección puede ser profunda usando ruta de propiedad con el carácter separado asignado, ejemplo: `"propiedad1.supropiedad11.subpropiedad111"`).
+   * Lista de pesos (de menor a mayor peso):
    *
-   * **🔍 Caso Arrays**
-   * Determina si cada uno de los ítems es equivalente en cuanto a valor y tipo. Puede seleccionarse si se desea comparar tamaños de los arrays (predefinido que sí comparar tamaños).
+   * - `undefined`
+   * - `null`
+   * - `function`
+   * - `boolean`
+   * - `number`
+   * - `string-number` cuando esta activada `isCompareStringToNumber`
+   * - `string`
+   * - `object`
+   * - `array`
    *
-   * ⚠ Los arrays a comparar deben siempre estar **ordenados** con el mismo criterio (ambos, y esto también debe cumplirse si son arrays embebidos en otros arrays u objetos), porque a diferencia de los objetos, en los arrays siempre se van a comparar **todos** los ítems. Si los arrays son de tamaños diferentes (y se acepta no comparar tamaños), el array más pequeño (sus ítems) se comparará con el más grande.
+   * los pesos son estrictos y tienen en cuenta el tipo. Ejemplo:
+   *  - `A` es mas pesado que `a` //cuando es case sensitive
+   *  - `0` es mas pesado que `true`.
+   *  - `true` es mas pesado que `false`.
+   *  - `false` es mas pesado que null
+   *  - `null` es mas pesado que `undefined`
    *
-   * ⚠ Importante (objetos y arrays): Usar comparación profunda en muchos niveles puede desbordar fácilmente la pila de llamada (stack).
-   * _____
-   *
-   * Ejemplo primitivos:
-   * ````
-   * const a = 2;
-   * const b = "2";
-   * const r = isEquivalentTo([a, b]); //los demas parametros de configuracion
-   *                                   //adicional no aplican en primitivos
-   * console.log(r); //salida `false` , porque son de diferente tipo
-   * ````
-   *
-   * Ejemplo 2.1 Objetos (sin claves identificadoras):
-   * ````
-   * const a = {c1:1, c2:2};
-   * const b = {c1:1, c2:5};
-   * const r = isEquivalentTo([a, b]);//sin claves identificadoras
-   *                                //puede omitirse, o enviar
-   *                                //`undefined` o enviar `[]`
-   * console.log(r); //salida `false` , porque `c2` es diferente en cada objeto
-   * ````
-   *
-   * Ejemplo 2.2 Objetos (sin claves identificadoras):
-   * ````
-   * const a = {c1:1, c2:undefined};
-   * const b = {c1:1};
-   * let r = isEquivalentTo([a, b], [], "keys-values");
-   * console.log(r);//salida `true` , porque `c2` no existe en objeto `b` por
-   *                //   lo tanto es como comparar `undefined === undefined`
-   * r = isEquivalentTo([a, b], [], "only-keys");
-   * console.log(r);//salida `false` , porque `c2` no existe en objeto `b` y
-   *                //se solicita explicitamente que se analice por propiedades
-   *                //que existen.
-   * ````
-   *
-   * Ejemplo 2.3 Objetos (con claves identificadoras):
-   * ````
-   * const a = {c1:1, c2:2};
-   * const b = {c1:1, c2:3};
-   * const diccOrkeysToCompare = ["c2"];
-   * let r = isEquivalentTo([a, b], diccOrkeysToCompare, "keys-values");
-   * console.log(r); //salida `false`, porque `c2` tiene un valor diferente
-   *                 //en los objetos a y b
-   * r = isEquivalentTo([a, b], diccOrkeysToCompare, "only-keys");
-   * console.log(r);//salida `true`, aunque `c2` tenga valor diferente el
-   *                //analisis es que ambos tengan esa propiedad sin importar
-   *                //su valor.
-   * ````
-   *
-   * Ejemplo 2.4 Objetos (con claves identificadoras profundo):
-   * ````
-   * const a = {c1:1, c2:{c21:10}};
-   * const b = {c1:1, c2:{c21:20}};
-   * const diccOrkeysToCompare = {c2:["c21"]}; //❗las propiedades profundas en un array de string❗
-   * let r = isEquivalentTo([a, b], diccOrkeysToCompare, "keys-values");
-   * console.log(r);//salida `false`, porque `c21` tiene un valor diferente
-   *                //en la propiedad `c2` de los objetos a y b
-   * r = isEquivalentTo([a, b], diccOrkeysToCompare, "only-keys");
-   * console.log(r); //salida `true`, aunque `c21` tenga valor diferente el
-   *                 //analisis es que ambos subobjetos tengan esa
-   *                 //propiedad sin importar su valor.
-   * ````
-   *
-   * Ejemplo 3.1 Array de cualquier tipo (tamaño):
-   * ````
-   * const a = [1,2,3]; //❗Ordenado❗
-   * const b = [1,2]; //❗Ordenado❗
-   * const r = isEquivalentTo([a, b]);
-   * console.log(r);//salida `false`, porque el array `b` tiene menos elementos
-   *                //(predefinido siempre comparará tamaños)
-   * ````
-   *
-   * Ejemplo 3.2 Array de objetos (sin claves identificadoras profundo):
-   * ````
-   * const a = [{c1:1, c2:2}, {c1:10, c2:20}]; //❗Ordenado❗
-   * const b = [{c1:10, c2:20}, {c1:1, c2:2}]; //❗Ordenado❗
-   * let r = isEquivalentTo([a, b], [], "keys-values");
-   * console.log(r);//salida `false`, porque los arrays `a`, `b` son del
-   *                //mismo tamaño pero los elementos no son
-   *                //equivalentes (se comparan de acuerdo a la
-   *                //**posicion** de cada elemento)
-   * r = isEquivalentTo([a, b], [], "only-keys");
-   * console.log(r);//salida `true`, porque los arrays `a` y `b` son del
-   *                //mismo tamaño y contiene las mismas claves
-   *                //identificadoras en sus propiedades (se comparan
-   *                //de acuerdo a la **posicion** de cada elemento)
-   * ````
-   * @param {[any, any]} compareValues tupla con los valores a comparar.
-   * @param {object} config
+   * @param {[any, any]} compareValues Tupla con los valores a comparar.
+   * @param {object} config Configuración para realizar la comparación:
+   *   - `keyOrKeysPath`: (solo para objetos o array de objetos) claves identificadoras de las propiedades que se usarán para comparar.
+   *   - `isCompareLength`: (solo arrays) determina si se compara el tamaño de los arrays.
+   *   - `isCompareSize`: (solo para objetos) determina si se comparan la cantidad de objetos.
+   *   - `isCompareStringToNumber`: (solo para string posiblemente numérico) determina que en la comparación los string numéricos sean comparados como si fueran números (`2` sería equivalente a `"2"`).
+   *   - `isCaseSensitiveForString`: (solo para string) si la comparación es sensitiva a mayúsculas y minúsculas.
+   *   - `isStringLocaleMode`: (solo para string) si se usan métodos de comparación asumiendo la configuración regional del sistema.
    * @returns {boolean} Retorna `true` si los valores son equivalentes según los criterios definidos, `false` de lo contrario.
+   *
+   * @example
+   * ````typescript
+   * let a;
+   * let b;
+   * let r;
+   *
+   * //comparacion basica de primitivos (mismo tipo (1))
+   * a = 1;
+   * b = 1;
+   * r = isEquivalentTo([a, b], {}); //sin configuracion
+   * console.log(r); // Salida: true
+   *
+   * //comparacion basica de primitivos (mismo tipo (2))
+   * a = -1;
+   * b = 1;
+   * r = isEquivalentTo([a, b], {}); //sin configuracion
+   * console.log(r); // Salida: false
+   *
+   * //comparacion basica de primitivos (mismo tipo (3))
+   * a = ()=>"hola";
+   * b = (p)=>p;
+   * r = isEquivalentTo([a, b], {}); //sin configuracion
+   * console.log(r); // Salida: false (son diferentes funciones)
+   *
+   * //comparacion basica de primitivos (diferente tipo (1))
+   * a = undefined;
+   * b = null;
+   * r = isEquivalentTo([a, b], {}); //sin configuracion
+   * console.log(r); // Salida: false
+   *
+   * //comparacion basica de primitivos (diferente tipo (2))
+   * a = "1";
+   * b = 1;
+   * r = isEquivalentTo([a, b], {}); //sin configuracion
+   * console.log(r); // Salida: false ("1" es string y es diferente a number)
+   *
+   * //comparacion basica de primitivos
+   * //(diferente tipo, con `isCompareStringToNumber` (3))
+   * a = "1";
+   * b = 1;
+   * r = isEquivalentTo([a, b], {
+   *   isCompareStringToNumber: true
+   * });
+   * console.log(r); // Salida: true
+   *
+   * //comparacion basica de objetos
+   * a = {a: "hola", b:31};
+   * b = {a: "hola", b:15};
+   * r = isEquivalentTo([a, b], {}); //sin configuracion
+   * console.log(r); // Salida: false (la propiedad `b` es diferente)
+   *
+   * //comparacion basica de objetos (con keysOrKeysPath)
+   * a = {a: "hola", b:31};
+   * b = {a: "hola", b:15};
+   * r = isEquivalentTo([a, b], {
+   *   keyOrKeysPath: "a" //comparar por esta propiedad
+   * }); //sin configuracion
+   * console.log(r); // Salida: true (la propiedad `b` es diferente,
+   * //pero se esta comparando solo por la propiedad `a`)
+   *
+   * //comparacion de objetos (con keysOrKeysPath y profundidad)
+   * a = {a: "hola", b:{c: 31, d: 15}};
+   * b = {a: "hola", b:{c: 0, d: 15}};
+   * r = isEquivalentTo([a, b], {
+   *   keyOrKeysPath: ["a", "b.d"] //comparar por estas propiedades (recordar "b.d" es la ruta a la propiedad profunda)
+   * });
+   * console.log(r); // Salida: true
+   *
+   * //comparacion basica de arrays
+   * a = ["a", 1, false];
+   * b = ["a", 1, true];
+   * r = isEquivalentTo([a, b], {}); //sin configuracion
+   * console.log(r); // Salida: false (el ultimo elemento es diferente)
+   *
+   * //comparacion basica de arrays
+   * a = ["a", 1, false];
+   * b = ["a", 1, false];
+   * r = isEquivalentTo([a, b], {}); //sin configuracion
+   * console.log(r); // Salida: true
+   *
+   * //comparacion basica de arrays (no tamaños)
+   * a = ["a", 1, false, 2];
+   * b = ["a", 1, false];
+   * r = isEquivalentTo([a, b], {}); //sin configuracion
+   * console.log(r); // Salida: true (porque no se esta comprando tamaños y
+   * //se compararán los elementos del array mas pequeño con el mas grande
+   * //en la misma posicion donde estan)
+   *
+   * //comparacion basica de arrays (no tamaños)
+   * a = ["a", 1, 2, false,];
+   * b = ["a", 1, false];
+   * r = isEquivalentTo([a, b], {}); //sin configuracion
+   * console.log(r); // Salida: false (porque no se esta comprando tamaños pero
+   * //se compararán los elementos del array mas pequeño con el mas grande
+   * //en la misma posicion donde estan (`2` es diferente a `false`))
+   *
+   * //comparacion basica de arrays (si tamaños)
+   * a = ["a", 1, false, 2];
+   * b = ["a", 1, false];
+   * r = isEquivalentTo([a, b], {
+   *   isCompareLength: true
+   * }); //sin configuracion
+   * console.log(r); // Salida: fasle (los tamaños son difernetes,
+   * //las demas comparaciones internas se ignoran)
+   *
+   * ````
    */
   public isEquivalentTo(
     compareValues: [any, any],
@@ -2694,7 +2729,250 @@ export class UtilNative {
     }
     return isEquivalent;
   }
-  /** */
+  /**
+   * Permite comparar dos valores para determinar si el primero es mayor que el segundo.
+   *
+   * ⚠ funciona en base a equivalencia (no igualdad),
+   * porque los objetos no se comparan como `{} > {}` ya que eso
+   * compara que una referencia sea mayor a la otra, mas no su contenido.
+   *
+   * **⚠⚠ Importante los pesos de los tipos ⚠⚠**
+   *
+   * Lista de pesos (de menor a mayor peso):
+   *
+   * - `undefined`
+   * - `null`
+   * - `function`
+   * - `boolean`
+   * - `number`
+   * - `string-number` cuando esta activada `isCompareStringToNumber`
+   * - `string`
+   * - `object`
+   * - `array`
+   *
+   * los pesos son estrictos y tienen en cuenta el tipo. Ejemplo:
+   *  - `A` es mas pesado que `a` //cuando es case sensitive
+   *  - `0` es mas pesado que `true`.
+   *  - `true` es mas pesado que `false`.
+   *  - `false` es mas pesado que null
+   *  - `null` es mas pesado que `undefined`
+   *
+   * @param {[any, any]} compareValues Tupla con los valores a comparar donde:
+   * - `compareValues[0]` el supuesto valor mayor.
+   * - `compareValues[1]` el supuesto valor menor.
+   * @param {object} config Configuración para realizar la comparación:
+   *   - `isAllowEquivalent` (**Obligatorio**) determina si se permite la equivalencia en la compracion
+   *   - `keyOrKeysPath`: (solo para objetos o array de objetos) claves identificadoras de las propiedades que se usarán para comparar.
+   *   - `isCompareLength`: (solo arrays) determina si se compara el tamaño de los arrays.
+   *   - `isCompareSize`: (solo para objetos) determina si se comparan la cantidad de objetos.
+   *   - `isCompareStringToNumber`: (solo para string posiblemente numérico) determina que en la comparación los string numéricos sean comparados como si fueran números (`2` sería equivalente a `"2"`).
+   *   - `isCaseSensitiveForString`: (solo para string) si la comparación es sensitiva a mayúsculas y minúsculas.
+   *   - `isStringLocaleMode`: (solo para string) si se usan métodos de comparación asumiendo la configuración regional del sistema.
+   * @returns {boolean} Retorna `true` si los valores son equivalentes según los criterios definidos, `false` de lo contrario.
+   *
+   * @example
+   * ````typescript
+   * let a;
+   * let b;
+   * let r;
+   *
+   * //comparacion basica de primitivos (mismo tipo (1))
+   * a = 1;
+   * b = -1;
+   * r = isGreaterTo([a, b], {
+   *   isAllowEquivalent: false
+   * });
+   * console.log(r); // Salida: true
+   *
+   * //comparacion basica de primitivos
+   * //(mismo tipo (2), sin permitir equivalencia)
+   * a = 1;
+   * b = 1;
+   * r = isGreaterTo([a, b], {
+   *   isAllowEquivalent: false
+   * });
+   * console.log(r); // Salida: false (la equivalencia no esta permitida)
+   *
+   * //comparacion basica de primitivos
+   * //(mismo tipo (2), con permitir equivalencia)
+   * a = 1;
+   * b = 1;
+   * r = isGreaterTo([a, b], {
+   *   isAllowEquivalent: true
+   * });
+   * console.log(r); // Salida: true (la equivalencia si esta permitida)
+   *
+   * //comparacion basica de primitivos (mismo tipo (3))
+   * a = ()=>"hola";
+   * b = (p)=>p;
+   * r = isGreaterTo([a, b], {
+   *   isAllowEquivalent: false
+   * });
+   * console.log(r); // Salida: true (internamente las
+   * //funciones se comparan transformandolas en
+   * //string y comparando sus tamaños, esta trasformacion
+   * //elimina caracteres no necesarios para la comparacion
+   * //(saltos de linea, tabulaciones y demas))
+   *
+   * //comparacion basica de primitivos (mismo tipo (4))
+   * a = "Edificio";
+   * b = "Casa";
+   * r = isGreaterTo([a, b], {
+   *   isAllowEquivalent: false
+   * });
+   * console.log(r); // Salida: true (`"E"` de `"Edificio"` pesa mas que `"C"` de casa)
+   *
+   * //comparacion de primitivos (mismo tipo (5))
+   * a = "Edificio";
+   * b = "Edificacion";
+   * r = isGreaterTo([a, b], {
+   *   isAllowEquivalent: false
+   * });
+   * console.log(r); // Salida: true
+   * // (`"Edifici"` pesa mas que `"Edifica"`)
+   *
+   * //comparacion de primitivos (mismo tipo (6), si sensitivo)
+   * a = "juan";
+   * b = "Juan";
+   * r = isGreaterTo([a, b], {
+   *   isAllowEquivalent: false,
+   *   isCaseSensitiveForString: true,
+   * });
+   * console.log(r); // Salida: false (`"j"` pesa menos que `"J"`)
+   *
+   * //comparacion de primitivos (mismo tipo (7),si equivalencia y no sensitivo)
+   * a = "juan";
+   * b = "Juan";
+   * r = isGreaterTo([a, b], {
+   *   isAllowEquivalent: true,
+   *   isCaseSensitiveForString: false,
+   * });
+   * console.log(r); // Salida: true (`"j"` pesa menos que `"J"`
+   * //pero al no se sensitivo, se asume que pesan igual)
+   *
+   * //comparacion basica de primitivos (diferente tipo (1))
+   * a = undefined;
+   * b = null;
+   * r = isGreaterTo([a, b], {
+   *   isAllowEquivalent: false
+   * });
+   * console.log(r); // Salida: false (por que undefined es menos pesado que null)
+   *
+   * //comparacion basica de primitivos (diferente tipo (2))
+   * a = "1";
+   * b = 2;
+   * r = isGreaterTo([a, b], {
+   *   isAllowEquivalent: false,
+   * });
+   * console.log(r); // Salida: true (`"1"` es string es mas pesado que `2` number)
+   *
+   * //comparacion basica de primitivos
+   * //(diferente tipo, con `isCompareStringToNumber` (3))
+   * a = "1";
+   * b = 2;
+   * r = isGreaterTo([a, b], {
+   *   isCompareStringToNumber: true
+   * });
+   * console.log(r); // Salida: false (`"1"` se comparará a`2` como si ambos fueran number)
+   *
+   * //comparacion basica de objetos
+   * a = {a: "hola", b:31};
+   * b = {a: "hola", b:15};
+   * r = isGreaterTo([a, b], {
+   *   isAllowEquivalent: false,
+   * });
+   * console.log(r); // Salida: true (la propiedad `b` es mayor en el primer objeto)
+   *
+   * //comparacion basica de objetos (con keysOrKeysPath)
+   * a = {a: "hola", b:31};
+   * b = {a: "hola", b:15};
+   * r = isGreaterTo([a, b], {
+   *   isAllowEquivalent: false,
+   *   keyOrKeysPath: "a" //comparar por esta propiedad
+   * });
+   * console.log(r); // Salida: false (la propiedad `b` es mayor
+   * //pero se esta comparando solo por la propiedad `a`)
+   *
+   * //comparacion basica de objetos (con keysOrKeysPath y equivalencia permitida)
+   * a = {a: "hola", b:15, c:1};
+   * b = {a: "hola", b:15, c:6};
+   * r = isGreaterTo([a, b], {
+   *   isAllowEquivalent: true,
+   *   keyOrKeysPath: ["a", "b"] //comparar por estas propiedades
+   * });
+   * console.log(r); // Salida: true (las propiedades `a` y `b` que
+   * //se estan comparando son equivalentes)
+   *
+   * //comparacion basica de objetos (con keysOrKeysPath y equivalencia permitida)
+   * a = {a: "adios", b:15000, c: 1000};
+   * b = {a: "hola", b:15, c: 6};
+   * r = isGreaterTo([a, b], {
+   *   isAllowEquivalent: true,
+   *   keyOrKeysPath: ["a", "b"] //comparar por estas propiedades ❗El orden es IMPORTANTE❗
+   * });
+   * console.log(r); // Salida: false (si bien la propiedad `b` es mayor en el primer objeto
+   * //la primera comparacion se hace en la propiedad `a` y la letra `"a"` es pesa menos que la letra `"h"`)
+   *
+   * //comparacion de objetos (con keysOrKeysPath y profundidad)
+   * a = {a: "Que Mas", b:{c: 31, d: 15}};
+   * b = {a: "hola", b:{c: 0, d: 15}};
+   * r = isGreaterTo([a, b], {
+   *   isAllowEquivalent: false,
+   *   keyOrKeysPath: ["a", "b.d"] //comparar por estas propiedades (recordar "b.d" es la ruta a la propiedad profunda)
+   *                               //❗el orden es IMPORTANTE❗
+   * });
+   * console.log(r); // Salida: true
+   *
+   * //comparacion basica de arrays
+   * a = ["a", 1, false];
+   * b = ["a", 1, true];
+   * r = isGreaterTo([a, b], {
+   *   isAllowEquivalent: false,
+   * });
+   * console.log(r); // Salida: false (el ultimo elemento `false`
+   * //del primer array pesa menos que el ultimo elemento `true`
+   * //del segundo array)
+   *
+   * //comparacion basica de arrays
+   * a = ["a", 1, false];
+   * b = ["a", 1, false];
+   * r = isGreaterTo([a, b], {
+   *   isAllowEquivalent: false,
+   * });
+   * console.log(r); // Salida: false (no se permite la equivalencia)
+   *
+   * //comparacion basica de arrays (no tamaños)
+   * a = ["a", 1, true];
+   * b = ["a", 1, false, 2];
+   * r = isGreaterTo([a, b], {
+   *   isAllowEquivalent: false,
+   * });
+   * console.log(r); // Salida: true (porque no se esta comparando tamaños y
+   * //se compararán los elementos del array mas pequeño con el mas grande
+   * //en la misma posicion donde se encuentran)
+   *
+   * //comparacion basica de arrays (no tamaños)
+   * a = ["a", 1, null, false];
+   * b = ["a", 1, false];
+   * r = isGreaterTo([a, b], {
+   *   isAllowEquivalent: false,
+   * });
+   * console.log(r); // Salida: false (porque no se esta comprando tamaños pero
+   * //se compararán los elementos del array mas pequeño con el mas grande
+   * //en la misma posicion donde se encuentran (`null` pesa menos que `false`))
+   *
+   * //comparacion basica de arrays (si tamaños)
+   * a = ["a", 1, false, 2];
+   * b = ["a", 1, false];
+   * r = isGreaterTo([a, b], {,
+   *   isAllowEquivalent: false,
+   *   isCompareLength: true
+   * }); //sin configuracion
+   * console.log(r); // Salida: true (el primer array es mas grande que el segundo,
+   * //las demas comparaciones internas se ignoran)
+   *
+   * ````
+   */
   public isGreaterTo(
     compareValues: [any, any],
     config: IConfigEqGtLt
@@ -3008,7 +3286,250 @@ export class UtilNative {
     }
     return isGreater;
   }
-  /** */
+  /**
+   * Permite comparar dos valores para determinar si el primero es menor que el segundo.
+   *
+   * ⚠ funciona en base a equivalencia (no igualdad),
+   * porque los objetos no se comparan como `{} < {}` ya que eso
+   * compara que una referencia sea menor a la otra, mas no su contenido.
+   *
+   * **⚠⚠ Importante los pesos de los tipos ⚠⚠**
+   *
+   * Lista de pesos (de menor a mayor peso):
+   *
+   * - `undefined`
+   * - `null`
+   * - `function`
+   * - `boolean`
+   * - `number`
+   * - `string-number` cuando esta activada `isCompareStringToNumber`
+   * - `string`
+   * - `object`
+   * - `array`
+   *
+   * los pesos son estrictos y tienen en cuenta el tipo. Ejemplo:
+   *  - `A` es mas pesado que `a` //cuando es case sensitive
+   *  - `0` es mas pesado que `true`.
+   *  - `true` es mas pesado que `false`.
+   *  - `false` es mas pesado que null
+   *  - `null` es mas pesado que `undefined`
+   *
+   * @param {[any, any]} compareValues Tupla con los valores a comparar donde:
+   * - `compareValues[0]` el supuesto valor menor.
+   * - `compareValues[1]` el supuesto valor mayor.
+   * @param {object} config Configuración para realizar la comparación:
+   *   - `isAllowEquivalent` (**Obligatorio**) determina si se permite la equivalencia en la compracion
+   *   - `keyOrKeysPath`: (solo para objetos o array de objetos) claves identificadoras de las propiedades que se usarán para comparar.
+   *   - `isCompareLength`: (solo arrays) determina si se compara el tamaño de los arrays.
+   *   - `isCompareSize`: (solo para objetos) determina si se comparan la cantidad de objetos.
+   *   - `isCompareStringToNumber`: (solo para string posiblemente numérico) determina que en la comparación los string numéricos sean comparados como si fueran números (`2` sería equivalente a `"2"`).
+   *   - `isCaseSensitiveForString`: (solo para string) si la comparación es sensitiva a mayúsculas y minúsculas.
+   *   - `isStringLocaleMode`: (solo para string) si se usan métodos de comparación asumiendo la configuración regional del sistema.
+   * @returns {boolean} Retorna `true` si los valores son equivalentes según los criterios definidos, `false` de lo contrario.
+   *
+   * @example
+   * ````typescript
+   * let a;
+   * let b;
+   * let r;
+   *
+   * //comparacion basica de primitivos (mismo tipo (1))
+   * a = -1;
+   * b = 1;
+   * r = isLesserTo([a, b], {
+   *   isAllowEquivalent: false
+   * });
+   * console.log(r); // Salida: true
+   *
+   * //comparacion basica de primitivos
+   * //(mismo tipo (2), sin permitir equivalencia)
+   * a = 1;
+   * b = 1;
+   * r = isLesserTo([a, b], {
+   *   isAllowEquivalent: false
+   * });
+   * console.log(r); // Salida: false (la equivalencia no esta permitida)
+   *
+   * //comparacion basica de primitivos
+   * //(mismo tipo (2), con permitir equivalencia)
+   * a = 1;
+   * b = 1;
+   * r = isLesserTo([a, b], {
+   *   isAllowEquivalent: true
+   * });
+   * console.log(r); // Salida: true (la equivalencia si esta permitida)
+   *
+   * //comparacion basica de primitivos (mismo tipo (3))
+   * a = ()=>"hola";
+   * b = (p)=>p;
+   * r = isLesserTo([a, b], {
+   *   isAllowEquivalent: false
+   * });
+   * console.log(r); // Salida: false (internamente las
+   * //funciones se comparan transformandolas en
+   * //string y comparando sus tamaños, esta trasformacion
+   * //elimina caracteres no necesarios para la comparacion
+   * //(saltos de linea, tabulaciones y demas))
+   *
+   * //comparacion basica de primitivos (mismo tipo (4))
+   * a = "Casa";
+   * b = "Edificio";
+   * r = isLesserTo([a, b], {
+   *   isAllowEquivalent: false
+   * });
+   * console.log(r); // Salida: true (`"C"` de casa` pesa menos que "E"` de `"Edificio"`)
+   *
+   * //comparacion de primitivos (mismo tipo (5))
+   * a = "Edificio";
+   * b = "Edificacion";
+   * r = isLesserTo([a, b], {
+   *   isAllowEquivalent: false
+   * });
+   * console.log(r); // Salida: false
+   * // (`"Edifici"` pesa mas que `"Edifica"`)
+   *
+   * //comparacion de primitivos (mismo tipo (6), si sensitivo)
+   * a = "Juan";
+   * b = "juan";
+   * r = isLesserTo([a, b], {
+   *   isAllowEquivalent: false,
+   *   isCaseSensitiveForString: true,
+   * });
+   * console.log(r); // Salida: false (`"J"` pesa mas que `"j"`)
+   *
+   * //comparacion de primitivos (mismo tipo (7),si equivalencia y no sensitivo)
+   * a = "Juan";
+   * b = "juan";
+   * r = isLesserTo([a, b], {
+   *   isAllowEquivalent: true,
+   *   isCaseSensitiveForString: false,
+   * });
+   * console.log(r); // Salida: true (`"J"` pesa mas que `"j"`
+   * //pero al no se sensitivo, se asume que pesan igual)
+   *
+   * //comparacion basica de primitivos (diferente tipo (1))
+   * a = undefined;
+   * b = null;
+   * r = isLesserTo([a, b], {
+   *   isAllowEquivalent: false
+   * });
+   * console.log(r); // Salida: true (por que `undefined` es pesa menos que `null`)
+   *
+   * //comparacion basica de primitivos (diferente tipo (2))
+   * a = "1";
+   * b = 2;
+   * r = isLesserTo([a, b], {
+   *   isAllowEquivalent: false,
+   * });
+   * console.log(r); // Salida: false (`"1"` es string es mas pesado que `2` number)
+   *
+   * //comparacion basica de primitivos
+   * //(diferente tipo, con `isCompareStringToNumber` (3))
+   * a = "1";
+   * b = 2;
+   * r = isLesserTo([a, b], {
+   *   isCompareStringToNumber: true
+   * });
+   * console.log(r); // Salida: true (`"1"` se comparará a`2` como si ambos fueran number)
+   *
+   * //comparacion basica de objetos
+   * a = {a: "hola", b:31};
+   * b = {a: "hola", b:15};
+   * r = isLesserTo([a, b], {
+   *   isAllowEquivalent: false,
+   * });
+   * console.log(r); // Salida: false (la propiedad `b` es mayor en el primer objeto)
+   *
+   * //comparacion basica de objetos (con keysOrKeysPath)
+   * a = {a: "hola", b:15};
+   * b = {a: "hola", b:31};
+   * r = isLesserTo([a, b], {
+   *   isAllowEquivalent: false,
+   *   keyOrKeysPath: "a" //comparar por esta propiedad
+   * });
+   * console.log(r); // Salida: false (la propiedad `b` es menor
+   * //pero se esta comparando solo por la propiedad `a`)
+   *
+   * //comparacion basica de objetos (con keysOrKeysPath y equivalencia permitida)
+   * a = {a: "hola", b:15, c:1};
+   * b = {a: "hola", b:15, c:6};
+   * r = isLesserTo([a, b], {
+   *   isAllowEquivalent: true,
+   *   keyOrKeysPath: ["a", "b"] //comparar por estas propiedades
+   * });
+   * console.log(r); // Salida: true (las propiedades `a` y `b` que
+   * //se estan comparando son equivalentes)
+   *
+   * //comparacion basica de objetos (con keysOrKeysPath y equivalencia permitida)
+   * a = {a: "adios", b:15000, c: 1000};
+   * b = {a: "hola", b:15, c: 6};
+   * r = isLesserTo([a, b], {
+   *   isAllowEquivalent: true,
+   *   keyOrKeysPath: ["a", "b"] //comparar por estas propiedades ❗El orden es IMPORTANTE❗
+   * });
+   * console.log(r); // Salida: true (si bien la propiedad `b` es mayor en el primer objeto
+   * //la primera comparacion se hace en la propiedad `a` y la letra `"a"` es pesa menos que la letra `"h"`)
+   *
+   * //comparacion de objetos (con keysOrKeysPath y profundidad)
+   * a = {a: "hola", b:{c: 31, d: 15}};
+   * b = {a: "que Mas", b:{c: 0, d: 15}};
+   * r = isLesserTo([a, b], {
+   *   isAllowEquivalent: false,
+   *   keyOrKeysPath: ["a", "b.d"] //comparar por estas propiedades (recordar "b.d" es la ruta a la propiedad profunda)
+   *                               //❗el orden es IMPORTANTE❗
+   * });
+   * console.log(r); // Salida: true
+   *
+   * //comparacion basica de arrays
+   * a = ["a", 1, false];
+   * b = ["a", 1, true];
+   * r = isLesserTo([a, b], {
+   *   isAllowEquivalent: false,
+   * });
+   * console.log(r); // Salida: true (el ultimo elemento `false`
+   * //del primer array pesa menos que el ultimo elemento `true`
+   * //del segundo array)
+   *
+   * //comparacion basica de arrays
+   * a = ["a", 1, false];
+   * b = ["a", 1, false];
+   * r = isLesserTo([a, b], {
+   *   isAllowEquivalent: false,
+   * });
+   * console.log(r); // Salida: false (no se permite la equivalencia)
+   *
+   * //comparacion basica de arrays (no tamaños)
+   * a = ["a", 1, true];
+   * b = ["a", 1, false, 2];
+   * r = isLesserTo([a, b], {
+   *   isAllowEquivalent: false,
+   * });
+   * console.log(r); // Salida: true (porque no se esta comparando tamaños y
+   * //se compararán los elementos del array mas pequeño con el mas grande
+   * //en la misma posicion donde se encuentran)
+   *
+   * //comparacion basica de arrays (no tamaños)
+   * a = ["a", 1, null, false];
+   * b = ["a", 1, false];
+   * r = isLesserTo([a, b], {
+   *   isAllowEquivalent: false,
+   * });
+   * console.log(r); // Salida: true (porque no se esta comprando tamaños pero
+   * //se compararán los elementos del array mas pequeño con el mas grande
+   * //en la misma posicion donde se encuentran (`null` pesa menos que `false`))
+   *
+   * //comparacion basica de arrays (si tamaños)
+   * a = ["a", 1, false, 2];
+   * b = ["a", 1, false];
+   * r = isLesserTo([a, b], {,
+   *   isAllowEquivalent: false,
+   *   isCompareLength: true
+   * }); //sin configuracion
+   * console.log(r); // Salida: false (el primer array es mas grande que el segundo,
+   * //las demas comparaciones internas se ignoran)
+   *
+   * ````
+   */
   public isLesserTo(compareValues: [any, any], config: IConfigEqGtLt): boolean {
     if (!this.isArray(compareValues, true) || compareValues.length > 2)
       throw new Error(`${config} is not tuple of compare values valid`);

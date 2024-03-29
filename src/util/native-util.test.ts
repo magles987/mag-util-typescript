@@ -2355,7 +2355,10 @@ describe("Util Pure", async () => {
           { code: "D", age: 15, name: "Jorge" },
         ];
         const aSearch = [{ code: "B" }];
-        const vExp = [];
+        const vExp = [
+          { code: "B", age: 13, name: "Juan" },
+          { code: "B", age: 8, name: "Miguel" },
+        ];
         const recived = util.findArrayIntoArray(aData, aSearch, {});
         expect(recived).toMatchObject(vExp);
       });
@@ -3089,6 +3092,24 @@ describe("Util Pure", async () => {
           "allow-empty",
           "string"
         );
+        expect(recived).toBe(vExp);
+      });
+      it("case: is array with fake sub types  (string or number and allow empty)", async () => {
+        const data = ["loquesea", 31, "hola"];
+        const vExp = true;
+        const recived = util.isValueType(data, "is", "array", "allow-empty", [
+          "string",
+          "number",
+        ]);
+        expect(recived).toBe(vExp);
+      });
+      it("case: is array with fake sub types  (string or number and allow empty (2))", async () => {
+        const data = ["loquesea", 31, "hola", true]; //❗uno de sus elementos no es string o number❗
+        const vExp = false;
+        const recived = util.isValueType(data, "is", "array", "allow-empty", [
+          "string",
+          "number",
+        ]);
         expect(recived).toBe(vExp);
       });
       it("case: is array with sub types (objet and allow empty)", async () => {
