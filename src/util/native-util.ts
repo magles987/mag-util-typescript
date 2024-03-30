@@ -2004,13 +2004,21 @@ export class UtilNative {
    *
    * @example
    * ```typescript
-   * let arr;
+   * let arrA;
+   * let arrB;
    * let r;
    *
-   * //union:
-   * arr = [[1, 2, 3], [3, 4, 5]];
-   * r = getArrayUnion(arrays);
-   * console.log(r); // salida: [1, 2, 3, 4, 5]
+   * //diferencia *A*:
+   * arrA = [1, 2, 3];
+   * arrB = [3, 4, 5];
+   * r = getArrayDifference([arrA, arrB], "difference_A");
+   * console.log(r); // salida: [1, 2]
+   *
+   * //diferencia *B*:
+   * arrA = [1, 2, 3];
+   * arrB = [3, 4, 5];
+   * r = getArrayDifference([arrA, arrB], "difference_B");
+   * console.log(r); // salida: [4, 5]
    * ```
    *
    */
