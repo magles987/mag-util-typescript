@@ -1894,6 +1894,155 @@ export class UtilNative {
     return fArray as T;
   }
   /**
+   * Obtiene la unión de dos arrays, eliminando los elementos duplicados.
+   *
+   * @param {[TArray, TArray]} tArraysToUnion Tupla con los dos arrays a unir, donde:
+   * - `tArraysToUnion[0]` es el array "A" a unir.
+   * - `tArraysToUnion[1]` es el array "B" a unir.
+   * @param {object} config Configuración para el proceso de eliminación de duplicados. Las opciones son las mismas que para el método `arrayRemoveDuplicate`.
+   * - `itemConflictMode` al encontrar un elemento repetido define el modo de resolver el conflicto de si se queda con el primero o el ultimo de los repetidos
+   * - `keyOrKeysPath` (solo para elementos de tipo objeto) rutas de claves identificadoras para las propiedades que se usaran como base para la comparacion
+   * - `isCompareLength = false`, determina si debe comprar tamaños de lso arrays
+   * - `isCompareSize = false`, determina si debe comparar cantidad de propiedades de los objetos
+   * - `isCompareStringToNumber = false`, determina si debe comparar strings numericos como numeros
+   * - `isCaseSensitiveForString = false`, determina si la comparacion es sensitiva a minusculas y mayusculas (solo string)
+   * - `isStringLocaleMode = false`, determina si la comparacion de strings es en modo region del sistema
+   * @returns {TArray} Retorna un nuevo array que es la unión de los dos arrays de entrada, sin duplicados.
+   * @throws {Error} Lanza un error si `tArraysToUnion` no es un array de dos elementos.
+   *
+   * @example
+   * ```typescript
+   * let arrA;
+   * let arrB;
+   * let r;
+   *
+   * //union:
+   * arrA = [1, 2, 3];
+   * arrB = [3, 4, 5];
+   * r = getArrayUnion([arrA, arrB], {});
+   * console.log(r); // salida: [1, 2, 3, 4, 5]
+   * ```
+   *
+   */
+  public getArrayUnion<TArray extends Array<any>>(
+    tArraysToUnion: [TArray, TArray],
+    config: Parameters<typeof this.arrayRemoveDuplicate>[1] = {}
+  ): TArray {
+    if (!this.isArray(tArraysToUnion) || tArraysToUnion.length > 2)
+      throw new Error(`${tArraysToUnion} is not array of set valid`);
+    let [aAU, bAU] = tArraysToUnion;
+    let aR = [...aAU, ...bAU] as TArray;
+    aR = this.arrayRemoveDuplicate(aR, config);
+    return aR;
+  }
+  /**
+   * Obtiene la intersección de dos arrays, eliminando los elementos duplicados.
+   *
+   * @param {[TArray, TArray]} tArraysToUnion Tupla con los dos arrays a unir, donde:
+   * - `tArraysToUnion[0]` es el array "A" a unir.
+   * - `tArraysToUnion[1]` es el array "B" a unir.
+   * @param {object} config Configuración para el proceso de eliminación de duplicados. Las opciones son las mismas que para el método `arrayRemoveDuplicate`.
+   * - `itemConflictMode` al encontrar un elemento repetido define el modo de resolver el conflicto de si se queda con el primero o el ultimo de los repetidos
+   * - `keyOrKeysPath` (solo para elementos de tipo objeto) rutas de claves identificadoras para las propiedades que se usaran como base para la comparacion
+   * - `isCompareLength = false`, determina si debe comprar tamaños de lso arrays
+   * - `isCompareSize = false`, determina si debe comparar cantidad de propiedades de los objetos
+   * - `isCompareStringToNumber = false`, determina si debe comparar strings numericos como numeros
+   * - `isCaseSensitiveForString = false`, determina si la comparacion es sensitiva a minusculas y mayusculas (solo string)
+   * - `isStringLocaleMode = false`, determina si la comparacion de strings es en modo region del sistema
+   * @returns {TArray} Retorna un nuevo array que es la unión de los dos arrays de entrada, sin duplicados.
+   * @throws {Error} Lanza un error si `tArraysToUnion` no es un array de dos elementos.
+   *
+   * @example
+   * ```typescript
+   * let arrA;
+   * let arrB;
+   * let r;
+   *
+   * //intersección:
+   * arrA = [1, 2, 3, 4, 5];
+   * arrB = [3, 4, 5, 6, 7, 8, 9];
+   * r = getArrayIntersection([arrA, arrB], {});
+   * console.log(r); // salida: [3, 4, 5]
+   * ```
+   *
+   */
+  public getArrayIntersection<T extends Array<any>>(
+    tArraysToIntersection: [T, T],
+    config: Parameters<typeof this.arrayRemoveDuplicate>[1] = {}
+  ): T {
+    if (
+      !this.isArray(tArraysToIntersection) ||
+      tArraysToIntersection.length > 2
+    )
+      throw new Error(`${tArraysToIntersection} is not array of set valid`);
+    let [aAI, bAI] = tArraysToIntersection;
+    let aR = aAI.filter((a) => {
+      const r = bAI.some((b) => this.isEquivalentTo([a, b], config));
+      return r;
+    }) as T;
+    aR = this.arrayRemoveDuplicate(aR, config);
+    return aR;
+  }
+  /**
+   *
+   * Obtiene la diferencia de dos arrays, eliminando los elementos duplicados.
+   *
+   * @param {[TArray, TArray]} tArraysToUnion Tupla con los dos arrays a unir, donde:
+   * - `tArraysToUnion[0]` es el array *A* a unir.
+   * - `tArraysToUnion[1]` es el array *B* a unir.
+   * @param {"difference_A" | "difference_B"} selector seleccion de array al cual se le aplica la diferencia (al array `tArraysToUnion[0]` que representa *A* o al array `tArraysToUnion[1]` que representa *B*).
+   * @param {object} config Configuración para el proceso de eliminación de duplicados. Las opciones son las mismas que para el método `arrayRemoveDuplicate`.
+   * - `itemConflictMode` al encontrar un elemento repetido define el modo de resolver el conflicto de si se queda con el primero o el ultimo de los repetidos
+   * - `keyOrKeysPath` (solo para elementos de tipo objeto) rutas de claves identificadoras para las propiedades que se usaran como base para la comparacion
+   * - `isCompareLength = false`, determina si debe comprar tamaños de lso arrays
+   * - `isCompareSize = false`, determina si debe comparar cantidad de propiedades de los objetos
+   * - `isCompareStringToNumber = false`, determina si debe comparar strings numericos como numeros
+   * - `isCaseSensitiveForString = false`, determina si la comparacion es sensitiva a minusculas y mayusculas (solo string)
+   * - `isStringLocaleMode = false`, determina si la comparacion de strings es en modo region del sistema
+   * @returns {TArray} Retorna un nuevo array que es la unión de los dos arrays de entrada, sin duplicados.
+   * @throws {Error} Lanza un error si `tArraysToUnion` no es un array de dos elementos.
+   *
+   * @example
+   * ```typescript
+   * let arr;
+   * let r;
+   *
+   * //union:
+   * arr = [[1, 2, 3], [3, 4, 5]];
+   * r = getArrayUnion(arrays);
+   * console.log(r); // salida: [1, 2, 3, 4, 5]
+   * ```
+   *
+   */
+  public getArrayDifference<T extends Array<any>>(
+    tArraysToDifference: [T, T],
+    selector: "difference_A" | "difference_B",
+    config: Parameters<typeof this.arrayRemoveDuplicate>[1] = {}
+  ): T {
+    if (!this.isArray(tArraysToDifference) || tArraysToDifference.length > 2)
+      throw new Error(`${tArraysToDifference} is not array of set valid`);
+    if (!this.isString(selector)) {
+      throw new Error(`${selector} is not selector valid`);
+    }
+    let [aAD, bAD] = tArraysToDifference;
+    let aR = [] as T;
+    if (selector === "difference_A") {
+      aR = aAD.filter((a) => {
+        const r = !bAD.some((b) => this.isEquivalentTo([a, b], config));
+        return r;
+      }) as T;
+    } else if (selector === "difference_B") {
+      aR = bAD.filter((b) => {
+        const r = !aAD.some((a) => this.isEquivalentTo([a, b], config));
+        return r;
+      }) as T;
+    } else {
+      throw new Error(`${selector} is not selector valid`);
+    }
+    aR = this.arrayRemoveDuplicate(aR, config);
+    return aR;
+  }
+  /**
    * busca elementos de un array
    * dentro de otro
    *

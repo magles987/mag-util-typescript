@@ -2345,6 +2345,182 @@ describe("Util Pure", async () => {
         expect(recived).toMatchObject(vExp);
       });
     });
+    describe("method: getArrayUnion", async () => {
+      it("case: union array of boolean", async () => {
+        const arrA = [true, false, true, true];
+        const arrB = [false, false, true, true];
+        const data = [arrA, arrB] as [any, any];
+        const vExp = [false, true];
+        const recived = util.getArrayUnion(data);
+        expect(recived).toMatchObject(vExp);
+      });
+      it("case: union array of number", async () => {
+        const arrA = [1, 2, 3];
+        const arrB = [3, 4, 5];
+        const data = [arrA, arrB] as [any, any];
+        const vExp = [1, 2, 3, 4, 5];
+        const recived = util.getArrayUnion(data);
+        expect(recived).toMatchObject(vExp);
+      });
+      it("case: union array of string", async () => {
+        const arrA = ["ana", "juan", "pedro"];
+        const arrB = ["juan", "jacobo", "jose"];
+        const data = [arrA, arrB] as [any, any];
+        const vExp = ["ana", "pedro", "juan", "jacobo", "jose"];
+        const recived = util.getArrayUnion(data);
+        expect(recived).toMatchObject(vExp);
+      });
+      it("case: union array of string (is no sensitive)", async () => {
+        const arrA = ["ana", "juan", "pedro"];
+        const arrB = ["juan", "Ana", "jose"];
+        const data = [arrA, arrB] as [any, any];
+        const vExp = ["pedro", "juan", "Ana", "jose"];
+        const recived = util.getArrayUnion(data, {
+          isCaseSensitiveForString: false,
+        });
+        expect(recived).toMatchObject(vExp);
+      });
+      it("case: union array of string (mode last, is no sensitive)", async () => {
+        const arrA = ["ana", "juan", "pedro"];
+        const arrB = ["juan", "Ana", "jose"];
+        const data = [arrA, arrB] as [any, any];
+        const vExp = ["pedro", "juan", "Ana", "jose"];
+        const recived = util.getArrayUnion(data, {
+          isCaseSensitiveForString: false,
+          itemConflictMode: "last",
+        });
+        expect(recived).toMatchObject(vExp);
+      });
+      it("case: union array of string (mode, first, is no sensitive)", async () => {
+        const arrA = ["ana", "juan", "pedro"];
+        const arrB = ["juan", "Ana", "jose"];
+        const data = [arrA, arrB] as [any, any];
+        const vExp = ["ana", "juan", "pedro", "jose"];
+        const recived = util.getArrayUnion(data, {
+          isCaseSensitiveForString: false,
+          itemConflictMode: "first",
+        });
+        expect(recived).toMatchObject(vExp);
+      });
+      it("case: union array of string (is sensitive)", async () => {
+        const arrA = ["ana", "juan", "pedro"];
+        const arrB = ["juan", "Ana", "jose"];
+        const data = [arrA, arrB] as [any, any];
+        const vExp = ["ana", "pedro", "juan", "Ana", "jose"];
+        const recived = util.getArrayUnion(data, {
+          isCaseSensitiveForString: true,
+        });
+        expect(recived).toMatchObject(vExp);
+      });
+    });
+    describe("method: getArrayIntersection", async () => {
+      it("case: union array of boolean", async () => {
+        const arrA = [true, false, true, true];
+        const arrB = [false, false, false, false];
+        const data = [arrA, arrB] as [any, any];
+        const vExp = [false];
+        const recived = util.getArrayIntersection(data);
+        expect(recived).toMatchObject(vExp);
+      });
+      it("case: union array of number", async () => {
+        const arrA = [1, 2, 3];
+        const arrB = [3, 4, 5];
+        const data = [arrA, arrB] as [any, any];
+        const vExp = [3];
+        const recived = util.getArrayIntersection(data);
+        expect(recived).toMatchObject(vExp);
+      });
+      it("case: union array of string", async () => {
+        const arrA = ["Juan", "ana", "Diana"];
+        const arrB = ["Ana", "Pedro", "Andres"];
+        const data = [arrA, arrB] as [any, any];
+        const vExp = []; //interseccion vacio ("ana" no es equivalente a "Ana" es case sensitive predefinidamente)
+        const recived = util.getArrayIntersection(data, {});
+        expect(recived).toMatchObject(vExp);
+      });
+      it("case: union array of string (no sensitive)", async () => {
+        const arrA = ["Juan", "ana", "Diana"];
+        const arrB = ["Ana", "Pedro", "Andres"];
+        const data = [arrA, arrB] as [any, any];
+        const vExp = ["ana"]; //si no hay un orden establecido,
+        //la interseccion retorna el elemento del array que representa *A*
+        const recived = util.getArrayIntersection(data, {
+          isCaseSensitiveForString: false,
+        });
+        expect(recived).toMatchObject(vExp);
+      });
+    });
+    describe("method: getArrayIntersection", async () => {
+      it("case: intersection array of boolean", async () => {
+        const arrA = [true, false, true, true];
+        const arrB = [false, false, false, false];
+        const data = [arrA, arrB] as [any, any];
+        const vExp = [false];
+        const recived = util.getArrayIntersection(data);
+        expect(recived).toMatchObject(vExp);
+      });
+      it("case: intersection array of number", async () => {
+        const arrA = [1, 2, 3];
+        const arrB = [3, 4, 5];
+        const data = [arrA, arrB] as [any, any];
+        const vExp = [3];
+        const recived = util.getArrayIntersection(data);
+        expect(recived).toMatchObject(vExp);
+      });
+      it("case: intersection array of string", async () => {
+        const arrA = ["Juan", "ana", "Diana"];
+        const arrB = ["Ana", "Pedro", "Andres"];
+        const data = [arrA, arrB] as [any, any];
+        const vExp = []; //interseccion vacio ("ana" no es equivalente a "Ana" es case sensitive predefinidamente)
+        const recived = util.getArrayIntersection(data, {});
+        expect(recived).toMatchObject(vExp);
+      });
+      it("case: intersection array of string (no sensitive)", async () => {
+        const arrA = ["Juan", "ana", "Diana"];
+        const arrB = ["Ana", "Pedro", "Andres"];
+        const data = [arrA, arrB] as [any, any];
+        const vExp = ["ana"]; //si no hay un orden establecido,
+        //la interseccion retorna el elemento del array que representa *A*
+        const recived = util.getArrayIntersection(data, {
+          isCaseSensitiveForString: false,
+        });
+        expect(recived).toMatchObject(vExp);
+      });
+    });
+    describe("method: getArrayDifference", async () => {
+      it("case: difference array of boolean (A)", async () => {
+        const arrA = [true, false, true, true];
+        const arrB = [false, false, false, false];
+        const data = [arrA, arrB] as [any, any];
+        const vExp = [true];
+        const recived = util.getArrayDifference(data, "difference_A");
+        expect(recived).toMatchObject(vExp);
+      });
+      it("case: difference array of boolean (B)", async () => {
+        const arrA = [true, false, true, true];
+        const arrB = [false, false, false, false];
+        const data = [arrA, arrB] as [any, any];
+        const vExp = [];
+        const recived = util.getArrayDifference(data, "difference_B");
+        expect(recived).toMatchObject(vExp);
+      });
+      it("case: difference array of number (A)", async () => {
+        const arrA = [1, 2, 3];
+        const arrB = [3, 4, 5];
+        const data = [arrA, arrB] as [any, any];
+        const vExp = [1, 2];
+        const recived = util.getArrayDifference(data, "difference_A");
+        expect(recived).toMatchObject(vExp);
+      });
+      it("case: difference array of number (B)", async () => {
+        const arrA = [1, 2, 3];
+        const arrB = [3, 4, 5];
+        const data = [arrA, arrB] as [any, any];
+        const vExp = [4, 5];
+        const recived = util.getArrayDifference(data, "difference_B");
+        expect(recived).toMatchObject(vExp);
+      });
+    });
     describe("method: findArrayIntoArray", async () => {
       it("case: serach", async () => {
         const aData = [
