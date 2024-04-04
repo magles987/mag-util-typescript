@@ -4058,39 +4058,9 @@ describe("Util Pure", async () => {
       it('case: strings ("a" > "1")', async () => {
         const data1 = "a";
         const data2 = "1";
-        const vExp = true; //segun tabla ascii "a" pesa mas que "1"
+        const vExp = true; //segun localCompare "a" pesa mas que "1"
         const recived = util.isGreaterTo([data1, data2], {
           isAllowEquivalent: false,
-        });
-        expect(recived).toBe(vExp);
-      });
-      it("case: strings (local case)", async () => {
-        const data1 = "piña";
-        const data2 = "pinz";
-        const vExp = true; // localmente "ñ" pesa mas que "n"
-        const recived = util.isGreaterTo([data1, data2], {
-          isAllowEquivalent: false,
-          isStringLocaleMode: true,
-        });
-        expect(recived).toBe(vExp);
-      });
-      it("case: strings (is locale mode)", async () => {
-        const data1 = "piña";
-        const data2 = "pipa";
-        const vExp = false; // con locale "ñ" pesa menos que "p" (segun el idioma español)
-        const recived = util.isGreaterTo([data1, data2], {
-          isAllowEquivalent: false,
-          isStringLocaleMode: true, //activo la comprobacion locale
-        });
-        expect(recived).toBe(vExp);
-      });
-      it("case: strings (is not locale mode)", async () => {
-        const data1 = "piña";
-        const data2 = "pipa";
-        const vExp = true; // sin locale "ñ" pesa mas que "p" (segun la tabla ascii)
-        const recived = util.isGreaterTo([data1, data2], {
-          isAllowEquivalent: false,
-          isStringLocaleMode: false, //desactivado la comprobacion locale
         });
         expect(recived).toBe(vExp);
       });
@@ -4703,39 +4673,9 @@ describe("Util Pure", async () => {
       it('case: strings ("1" < "a")', async () => {
         const data1 = "1";
         const data2 = "a";
-        const vExp = true; //segun tabla ascii "1" pesa menos que "a"
+        const vExp = true; //segun localCompare "1" pesa menos que "a"
         const recived = util.isLesserTo([data1, data2], {
           isAllowEquivalent: false,
-        });
-        expect(recived).toBe(vExp);
-      });
-      it("case: strings (local case)", async () => {
-        const data1 = "pinz";
-        const data2 = "piña";
-        const vExp = true; // con locale "n" pesa mas que "ñ"
-        const recived = util.isLesserTo([data1, data2], {
-          isAllowEquivalent: false,
-          isStringLocaleMode: true,
-        });
-        expect(recived).toBe(vExp);
-      });
-      it("case: strings (is locale mode)", async () => {
-        const data1 = "pipa";
-        const data2 = "piña";
-        const vExp = false; // con locale "p" pesa mas que "ñ" (segun el idioma español)
-        const recived = util.isLesserTo([data1, data2], {
-          isAllowEquivalent: false,
-          isStringLocaleMode: true, //activo la comprobacion locale
-        });
-        expect(recived).toBe(vExp);
-      });
-      it("case: strings (is not locale mode)", async () => {
-        const data1 = "pipa";
-        const data2 = "piña";
-        const vExp = true; // sin locale "p" pesa menos que "ñ" (segun la tabla ascii)
-        const recived = util.isLesserTo([data1, data2], {
-          isAllowEquivalent: false,
-          isStringLocaleMode: false, //desactivado la comprobacion locale
         });
         expect(recived).toBe(vExp);
       });

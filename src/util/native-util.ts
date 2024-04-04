@@ -1445,7 +1445,6 @@ export class UtilNative {
    * - `isCompareSize = false`, determina si debe comparar cantidad de propiedades de los objetos
    * - `isCompareStringToNumber = false`, determina si debe comparar strings numericos como numeros
    * - `isCaseSensitiveForString = false`, determina si la comparacion es sensitiva a minusculas y mayusculas (solo string)
-   * - `isStringLocaleMode = false`, determina si la comparacion de strings es en modo region del sistema
    * @returns el array ya ordenado
    *
    * @example
@@ -1552,7 +1551,6 @@ export class UtilNative {
       isCompareLength,
       isCompareSize,
       isCompareStringToNumber,
-      isStringLocaleMode,
       keyOrKeysPath,
     } = config;
     isRemoveDuplicate = this.anyToBoolean(isRemoveDuplicate);
@@ -1571,7 +1569,6 @@ export class UtilNative {
             isCompareLength,
             isCompareStringToNumber,
             isRemoveDuplicate,
-            isStringLocaleMode,
             keyOrKeysPath,
           })
         );
@@ -1598,7 +1595,6 @@ export class UtilNative {
           isCompareLength,
           isCompareSize,
           isCompareStringToNumber,
-          isStringLocaleMode,
           keyOrKeysPath,
         });
       }
@@ -1618,7 +1614,6 @@ export class UtilNative {
         isCompareLength,
         isCompareSize,
         isCompareStringToNumber,
-        isStringLocaleMode,
       });
     }
     return arrayToSortClone;
@@ -1830,7 +1825,6 @@ export class UtilNative {
       isCompareLength,
       isCompareSize,
       isCompareStringToNumber,
-      isStringLocaleMode,
     } = config;
     let fArray = arrayToRemove.filter((itemBase, idxBase) => {
       let idx: number;
@@ -1854,7 +1848,6 @@ export class UtilNative {
             isCompareLength,
             isCompareSize,
             isCompareStringToNumber,
-            isStringLocaleMode,
           })
         );
       } else if (itemConflictMode === "last") {
@@ -1879,7 +1872,6 @@ export class UtilNative {
             isCompareLength,
             isCompareSize,
             isCompareStringToNumber,
-            isStringLocaleMode,
           });
           return r;
         });
@@ -2151,7 +2143,6 @@ export class UtilNative {
       isCompareLength,
       isCompareSize,
       isCompareStringToNumber,
-      isStringLocaleMode,
     } = config;
     let keysPath = this.isArray(keyOrKeysPath, true)
       ? ([...keyOrKeysPath] as string[])
@@ -2166,7 +2157,6 @@ export class UtilNative {
           isCompareLength,
           isCompareSize,
           isCompareStringToNumber,
-          isStringLocaleMode,
         });
         return r;
       });
@@ -2734,7 +2724,6 @@ export class UtilNative {
       keyOrKeysPath,
       isCompareStringToNumber = false, //predefinido
       isCaseSensitiveForString = true, //predefinido
-      isStringLocaleMode = true, //predefinido
     } = config;
     //Inicio de proceso
     const [valueBase, valueToCompare] = compareValues;
@@ -2747,7 +2736,6 @@ export class UtilNative {
     isCompareSize = this.anyToBoolean(isCompareSize);
     isCompareStringToNumber = this.anyToBoolean(isCompareStringToNumber);
     isCaseSensitiveForString = this.anyToBoolean(isCaseSensitiveForString);
-    isStringLocaleMode = this.anyToBoolean(isStringLocaleMode);
     let isEquivalent = true; //obligatorio iniciar con true
     //eliminar claves identificadoras repetidas
     const isKPTCArray = this.isArray(keysPath, false); //❗no se aceptan vacios
@@ -2775,7 +2763,6 @@ export class UtilNative {
             isCompareSize,
             isCaseSensitiveForString,
             isCompareStringToNumber,
-            isStringLocaleMode,
           });
           if (isEquivalent === false) break;
         }
@@ -2806,7 +2793,6 @@ export class UtilNative {
               isCompareSize,
               isCaseSensitiveForString,
               isCompareStringToNumber,
-              isStringLocaleMode,
             });
             if (isEquivalent === false) break;
           }
@@ -2832,7 +2818,6 @@ export class UtilNative {
               isCompareSize,
               isCaseSensitiveForString,
               isCompareStringToNumber,
-              isStringLocaleMode,
             });
             if (isEquivalent === false) break;
           }
@@ -2858,12 +2843,8 @@ export class UtilNative {
       let strVB = valueBase;
       let strVC = valueToCompare;
       if (!isCaseSensitiveForString) {
-        strVB = isStringLocaleMode
-          ? (valueBase as string).toLocaleUpperCase()
-          : (valueBase as string).toUpperCase();
-        strVC = isStringLocaleMode
-          ? (valueToCompare as string).toLocaleUpperCase()
-          : (valueToCompare as string).toUpperCase();
+        strVB = (valueBase as string).toLocaleLowerCase();
+        strVC = (valueToCompare as string).toLocaleLowerCase();
       }
       isEquivalent = strVB === strVC;
     }
@@ -3159,7 +3140,6 @@ export class UtilNative {
       isAllowEquivalent = false, //predefinidos
       isCompareStringToNumber = false, //predefinidos
       isCaseSensitiveForString = true, //predefinidos
-      isStringLocaleMode = true, //predefinidos
     } = config;
     //Inicio de proceso
     const [valueBase, valueToCompare] = compareValues;
@@ -3172,7 +3152,6 @@ export class UtilNative {
     isCompareSize = this.anyToBoolean(isCompareSize);
     isAllowEquivalent = this.anyToBoolean(isAllowEquivalent);
     isCompareStringToNumber = this.anyToBoolean(isCompareStringToNumber);
-    isStringLocaleMode = this.anyToBoolean(isStringLocaleMode);
     let isGreater = true; //obligatorio iniciar con true
     //eliminar claves identificadoras repetidas
     const isKPTCArray = this.isArray(keysPath, false); //❗no se aceptan vacios
@@ -3205,7 +3184,6 @@ export class UtilNative {
               isCompareLength,
               isCompareSize,
               isCompareStringToNumber,
-              isStringLocaleMode,
               keyOrKeysPath: keysPath,
             }
           );
@@ -3222,7 +3200,6 @@ export class UtilNative {
             isCompareSize,
             isCompareStringToNumber,
             isCaseSensitiveForString,
-            isStringLocaleMode,
           });
           break;
         }
@@ -3257,7 +3234,6 @@ export class UtilNative {
                 isCompareLength,
                 isCompareSize,
                 isCompareStringToNumber,
-                isStringLocaleMode,
                 keyOrKeysPath: subKeysPathToCompare,
               }
             );
@@ -3275,7 +3251,6 @@ export class UtilNative {
               isCompareSize,
               isCompareStringToNumber,
               isCaseSensitiveForString,
-              isStringLocaleMode,
             });
             break;
           }
@@ -3304,7 +3279,6 @@ export class UtilNative {
                 isCompareLength,
                 isCompareSize,
                 isCompareStringToNumber,
-                isStringLocaleMode,
                 keyOrKeysPath,
               }
             );
@@ -3321,7 +3295,6 @@ export class UtilNative {
               isCompareSize,
               isCaseSensitiveForString,
               isCompareStringToNumber,
-              isStringLocaleMode,
             });
             break;
           }
@@ -3333,22 +3306,10 @@ export class UtilNative {
       let strVB = valueBase;
       let strVC = valueToCompare;
       if (!isCaseSensitiveForString) {
-        strVB = isStringLocaleMode
-          ? (valueBase as string).toLocaleUpperCase()
-          : (valueBase as string).toUpperCase();
-        strVC = isStringLocaleMode
-          ? (valueToCompare as string).toLocaleUpperCase()
-          : (valueToCompare as string).toUpperCase();
+        strVB = (valueBase as string).toLocaleLowerCase();
+        strVC = (valueToCompare as string).toLocaleLowerCase();
       }
-      //comara 2 string sin usar locale
-      const stringCompareNotLocaleFn = (a, b) => {
-        if (a > b) return 1;
-        else if (a < b) return -1;
-        else return 0;
-      };
-      const modulus = isStringLocaleMode
-        ? (strVB as string).localeCompare(strVC)
-        : stringCompareNotLocaleFn(strVB, strVC);
+      const modulus = (strVB as string).localeCompare(strVC);
       isGreater = modulus > 0 ? true : isAllowEquivalent && modulus === 0;
     }
     //comparar number
@@ -3710,7 +3671,6 @@ export class UtilNative {
       isAllowEquivalent = false, //predefinidos
       isCompareStringToNumber = false, //predefinidos
       isCaseSensitiveForString = true, //predefinidos
-      isStringLocaleMode = true, //predefinidos
     } = config;
     //Inicio de proceso
     const [valueBase, valueToCompare] = compareValues;
@@ -3723,7 +3683,6 @@ export class UtilNative {
     isCompareSize = this.anyToBoolean(isCompareSize);
     isAllowEquivalent = this.anyToBoolean(isAllowEquivalent);
     isCompareStringToNumber = this.anyToBoolean(isCompareStringToNumber);
-    isStringLocaleMode = this.anyToBoolean(isStringLocaleMode);
     let isLesser = true; //obligatorio iniciar con true
     //eliminar claves identificadoras repetidas
     const isKPTCArray = this.isArray(keysPath, false); //❗no se aceptan vacios
@@ -3756,7 +3715,6 @@ export class UtilNative {
               isCompareLength,
               isCompareSize,
               isCompareStringToNumber,
-              isStringLocaleMode,
               keyOrKeysPath: keysPath,
             }
           );
@@ -3773,7 +3731,6 @@ export class UtilNative {
             isCompareSize,
             isCompareStringToNumber,
             isCaseSensitiveForString,
-            isStringLocaleMode,
           });
           break;
         }
@@ -3808,7 +3765,6 @@ export class UtilNative {
                 isCompareLength,
                 isCompareSize,
                 isCompareStringToNumber,
-                isStringLocaleMode,
                 keyOrKeysPath: subKeysPathToCompare,
               }
             );
@@ -3826,7 +3782,6 @@ export class UtilNative {
               isCompareSize,
               isCompareStringToNumber,
               isCaseSensitiveForString,
-              isStringLocaleMode,
             });
             break;
           }
@@ -3855,7 +3810,6 @@ export class UtilNative {
                 isCompareLength,
                 isCompareSize,
                 isCompareStringToNumber,
-                isStringLocaleMode,
                 keyOrKeysPath,
               }
             );
@@ -3872,7 +3826,6 @@ export class UtilNative {
               isCompareSize,
               isCaseSensitiveForString,
               isCompareStringToNumber,
-              isStringLocaleMode,
             });
             break;
           }
@@ -3884,22 +3837,10 @@ export class UtilNative {
       let strVB = valueBase;
       let strVC = valueToCompare;
       if (!isCaseSensitiveForString) {
-        strVB = isStringLocaleMode
-          ? (valueBase as string).toLocaleUpperCase()
-          : (valueBase as string).toUpperCase();
-        strVC = isStringLocaleMode
-          ? (valueToCompare as string).toLocaleUpperCase()
-          : (valueToCompare as string).toUpperCase();
+        strVB = (valueBase as string).toLocaleLowerCase();
+        strVC = (valueToCompare as string).toLocaleLowerCase();
       }
-      //comara 2 string sin usar locale
-      const stringCompareNotLocaleFn = (a, b) => {
-        if (a > b) return 1;
-        else if (a < b) return -1;
-        else return 0;
-      };
-      const modulus = isStringLocaleMode
-        ? (strVB as string).localeCompare(strVC)
-        : stringCompareNotLocaleFn(strVB, strVC);
+      const modulus = (strVB as string).localeCompare(strVC);
       isLesser = modulus < 0 ? true : isAllowEquivalent && modulus === 0;
     }
     //comparar number

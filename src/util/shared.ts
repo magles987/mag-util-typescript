@@ -65,29 +65,4 @@ export interface IConfigEqGtLt {
    * ````
    */
   isCaseSensitiveForString?: boolean;
-  /**
-   * Predefinido en `true`
-   *
-   * determina si los tipos string entre si deben ser tratados en configuracion regional del sistema.
-   *
-   *
-   * @example
-   * ````typescript
-   *
-   * //interamente se usaran metodos string como:
-   * isStringLocaleMode = false;
-   * value.toUpperCase();
-   * value.toLowerCase();
-   * valueA > valueB
-   * valueA < valueB
-   *
-   * //interamente se usaran metodos string como:
-   * isStringLocaleMode = true;
-   * value.toLocaleUpperCase();
-   * value.toLocaleLowerCase();
-   * valueA.localeCompare(valueB) //reeemplza los operadores lógicos
-   * ````
-   *
-   */
-  isStringLocaleMode?: boolean;
 }
