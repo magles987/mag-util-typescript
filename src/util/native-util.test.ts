@@ -4064,6 +4064,15 @@ describe("Util Pure", async () => {
         });
         expect(recived).toBe(vExp);
       });
+      it("case: strings (similar words)", async () => {
+        const data1 = "Edificio";
+        const data2 = "Edificacion";
+        const vExp = true; //segun localCompare "Edifici" pesa mas que "Edifica" ("i" es mas pesado que "a")
+        const recived = util.isGreaterTo([data1, data2], {
+          isAllowEquivalent: false,
+        });
+        expect(recived).toBe(vExp);
+      });
       it("case: object > string", async () => {
         const data1 = {};
         const data2 = "1";
@@ -4674,6 +4683,15 @@ describe("Util Pure", async () => {
         const data1 = "1";
         const data2 = "a";
         const vExp = true; //segun localCompare "1" pesa menos que "a"
+        const recived = util.isLesserTo([data1, data2], {
+          isAllowEquivalent: false,
+        });
+        expect(recived).toBe(vExp);
+      });
+      it("case: strings (similar words)", async () => {
+        const data1 = "Edificio";
+        const data2 = "Edificacion";
+        const vExp = false; //segun localCompare "Edifici" pesa mas que "Edifica" ("i" es mas pesado que "a")
         const recived = util.isLesserTo([data1, data2], {
           isAllowEquivalent: false,
         });

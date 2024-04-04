@@ -3309,7 +3309,9 @@ export class UtilNative {
         strVB = (valueBase as string).toLocaleLowerCase();
         strVC = (valueToCompare as string).toLocaleLowerCase();
       }
-      const modulus = (strVB as string).localeCompare(strVC);
+      const modulus = (strVB as string).localeCompare(strVC, undefined, {
+        caseFirst: "lower",
+      });
       isGreater = modulus > 0 ? true : isAllowEquivalent && modulus === 0;
     }
     //comparar number
@@ -3840,7 +3842,9 @@ export class UtilNative {
         strVB = (valueBase as string).toLocaleLowerCase();
         strVC = (valueToCompare as string).toLocaleLowerCase();
       }
-      const modulus = (strVB as string).localeCompare(strVC);
+      const modulus = (strVB as string).localeCompare(strVC, undefined, {
+        caseFirst: "lower",
+      });
       isLesser = modulus < 0 ? true : isAllowEquivalent && modulus === 0;
     }
     //comparar number
