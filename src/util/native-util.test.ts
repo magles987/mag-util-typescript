@@ -1576,6 +1576,86 @@ describe("Util Pure", async () => {
         expect(recived).toMatchObject(vExp);
       });
     });
+    describe("method: arrayOfEntryTupleToObject", async () => {
+      it("case is not array of entry tuple", async () => {
+        const data = 31;
+        const vExpThrow = /is not array of entry tuple valid/;
+        const recivedThrowFn = () =>
+          util.arrayOfEntryTupleToObject(data as any);
+        expect(recivedThrowFn).toThrowError(vExpThrow);
+      });
+      it("case: array contains tuples no valid", async () => {
+        const data = [
+          ["key1", { p1: true, p2: 31 }],
+          ["key2"], //❌No es una tupla que cumpla [key, value]
+          ["key3", 255],
+        ] as Array<[any, any]>;
+        const vExpThrow = /contain tuples not valid/;
+        const recivedThrowFn = () =>
+          util.arrayOfEntryTupleToObject(data as any);
+        expect(recivedThrowFn).toThrowError(vExpThrow);
+      });
+      it("case: is array of entries tuple", async () => {
+        const data = [
+          ["key1", { p1: true, p2: 31 }],
+          ["key2", { q: "hola" }],
+          ["key3", 255],
+        ] as Array<[any, any]>;
+        const vExp = {
+          key1: { p1: true, p2: 31 },
+          key2: { q: "hola" },
+          key3: 255,
+        };
+        const recived = util.arrayOfEntryTupleToObject(data);
+        expect(recived).toMatchObject(vExp);
+      });
+    });
+    describe("method: mapToObject", async () => {
+      it("case: is not map", async () => {
+        const data = 31;
+        const vExpThrow = /is not map valid/;
+        const recivedThrowFn = () => util.mapToObject(data as any);
+        expect(recivedThrowFn).toThrowError(vExpThrow);
+      });
+      it("case: map contains tuples no valid", async () => {
+        const data = new Map<any, any>([
+          ["key1", { p1: true, p2: 31 }],
+          [], //❌No es una tupla que cumpla [key, value]
+          ["key3", 255],
+        ] as any);
+        const vExpThrow = /contain tuples not valid/;
+        const recivedThrowFn = () => util.mapToObject(data as any);
+        expect(recivedThrowFn).toThrowError(vExpThrow);
+      });
+      it("case: map without value tuple ", async () => {
+        const data = new Map<any, any>([
+          ["key1", { p1: true, p2: 31 }],
+          ["key2"], //❗es una tupla incompleta
+          ["key3", 255],
+        ] as any);
+        const vExp = {
+          key1: { p1: true, p2: 31 },
+          key2: undefined, //❗ el value pasa a ser undefined
+          key3: 255,
+        };
+        const recived = util.mapToObject(data);
+        expect(recived).toMatchObject(vExp);
+      });
+      it("case: map ok", async () => {
+        const data = new Map<any, any>([
+          ["key1", { p1: true, p2: 31 }],
+          ["key2", { q: "hola" }],
+          ["key3", 255],
+        ]);
+        const vExp = {
+          key1: { p1: true, p2: 31 },
+          key2: { q: "hola" },
+          key3: 255,
+        };
+        const recived = util.mapToObject(data);
+        expect(recived).toMatchObject(vExp);
+      });
+    });
   });
   describe("group: array", async () => {
     describe("method: isArray", async () => {

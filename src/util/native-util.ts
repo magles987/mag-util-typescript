@@ -1383,6 +1383,84 @@ export class UtilNative {
     }
     return rObj;
   }
+  /**
+   * Convierte un array de tuplas en un objeto.
+   *
+   * @param {Array<[any, any]>} arrayOfEntryTuple - El array de tuplas que se va a convertir en un objeto. Cada tupla consta de dos elementos: una clave y un valor.
+   * @throws {Error} - Lanza un error si `arrayOfEntries` no es un array de tuplas válido.
+   * @throws {Error} - Lanza un error si `arrayOfEntries` contiene tuplas no validas (las tuplas deben ser: `[key, value]`).
+   * @returns {object} - Retorna un nuevo objeto donde cada propiedad es una tupla del array de entrada.
+   *
+   * @example
+   * ```
+   * const arrayOfEntries = [["key1", "value1"], ["key2", "value2"]];
+   * const obj = arrayOfEntriesToObject(arrayOfEntries);
+   * console.log(obj); // salida: { key1: "value1", key2: "value2" }
+   * ```
+   */
+  public arrayOfEntryTupleToObject(
+    arrayOfEntryTuple: Array<[any, any]>
+  ): object {
+    if (!Array.isArray(arrayOfEntryTuple))
+      throw new Error(`${arrayOfEntryTuple} is not array of entry tuple valid`);
+    if (
+      !arrayOfEntryTuple.every((tuple, idx, arr) => {
+        const r =
+          tuple.length === 2 && //❗Debe ser tupla [key, value] 2 elementos
+          this.isNotUndefinedAndNotNull(tuple[0]); // la clave NO puede ser undefined o null
+        return r;
+      })
+    )
+      throw new Error(`${arrayOfEntryTuple} contain tuples not valid`);
+    const obj = arrayOfEntryTuple.reduce((a_obj, [key, value]) => {
+      a_obj[key] = value;
+      return a_obj;
+    }, {});
+    return obj;
+  }
+  /**
+   * Convierte un iterable de tuplas en un objeto.
+   *
+   * @param {IterableIterator<[any, any]>} entries - El iterable de tuplas que se va a convertir en un objeto.
+   * @throws {Error} - Lanza un error si `entries` no es un iterable de tuplas válido.
+   * @returns {object} - Retorna un nuevo objeto donde cada propiedad es una tupla del iterable de entrada.
+   *
+   * @example
+   * ```typescript
+   * const map = new Map([["key1", "value1"], ["key2", "value2"]]);
+   * const entries = map.entries();
+   * const obj = entriesToObject(entries);
+   * console.log(obj); // salida: { key1: "value1", key2: "value2" }
+   * ```
+   */
+  public entriesToObjetc(entries: IterableIterator<[any, any]>): object {
+    //⚠ Obligatorio el testeo primitivo
+    if (typeof entries !== "object")
+      throw new Error(`${entries} is not entries (:IterableIterator) valid`);
+    const arrayOfEntries = Array.from(entries);
+    const obj = this.arrayOfEntryTupleToObject(arrayOfEntries);
+    return obj;
+  }
+  /**
+   * Convierte un objeto Map en un objeto literal.
+   *
+   * @param {Map<any, any>} map - El objeto Map que se va a convertir en un objeto literal.
+   * @throws {Error} - Lanza un error si `map` no es una instancia de Map.
+   * @returns {object} - Retorna un nuevo objeto literal que tiene las mismas propiedades que el objeto Map de entrada.
+   *
+   * @example
+   * ```typescript
+   * const map = new Map([["key1", "value1"], ["key2", "value2"]]);
+   * const obj = mapToObject(map);
+   * console.log(obj); // salida: { key1: "value1", key2: "value2" }
+   * ```
+   */
+  public mapToObject(map: Map<any, any>): object {
+    if (!(map instanceof Map)) throw new Error(`${map} is not map valid`);
+    const entries = map.entries();
+    const obj = this.entriesToObjetc(entries);
+    return obj;
+  }
   //█████Arrays██████████████████████████████████████████████████████
   /**
    * Determina si es un array, con la opción de aceptar o no arrays vacíos.`
