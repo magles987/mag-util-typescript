@@ -2620,6 +2620,44 @@ describe("Util Pure", async () => {
       });
     });
   });
+  describe("group: tuple", async () => {
+    describe("method: isTuple", async () => {
+      it("case: is not tuple", async () => {
+        const data = 10;
+        const vExp = false;
+        const recived = util.isTuple(data as any, 0);
+        expect(recived).toBe(vExp);
+      });
+      it("case: is tuple by two elements", async () => {
+        const data = ["hola", "adios"];
+        const length = 2;
+        const vExp = true;
+        const recived = util.isTuple(data, length);
+        expect(recived).toBe(vExp);
+      });
+      it("case: is tuple but not two elements", async () => {
+        const data = ["hola", "hello", "Salut"]; //3 elementos
+        const length = 2;
+        const vExp = false; //por que se espera una tupla de 2 elementos
+        const recived = util.isTuple(data, length);
+        expect(recived).toBe(vExp);
+      });
+      it("case: is tuple but not one element", async () => {
+        const data = ["hola"]; //1 elementos
+        const length = 2;
+        const vExp = false; //por que se espera una tupla de 2 elementos
+        const recived = util.isTuple(data, length);
+        expect(recived).toBe(vExp);
+      });
+      it("case: is tuple and is range between one and three elements", async () => {
+        const data = ["hola"]; //1 elementos
+        const length = [1, 3] as [number, number]; //rango entre 1 y 3 elementos (siempre es incluyente)
+        const vExp = true;
+        const recived = util.isTuple(data, length);
+        expect(recived).toBe(vExp);
+      });
+    });
+  });
   describe("group: General", async () => {
     describe("method: clone", async () => {
       it("case: clone literal object (without fn prop) by stringify)", async () => {

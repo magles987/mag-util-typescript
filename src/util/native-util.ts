@@ -365,7 +365,7 @@ export class UtilNative {
   ): boolean {
     let r = false;
     if (!this.isNumber(num)) return r;
-    if (!Array.isArray(range) || range.length != 2) return r;
+    if (!Array.isArray(range) || range.length !== 2) return r;
     let [min, max] = range;
     if (!this.isNumber(min) || !this.isNumber(max)) return r;
     r = isInclusive
@@ -2241,6 +2241,34 @@ export class UtilNative {
       return r;
     });
     return findArray as TArray;
+  }
+  //████tuple███████████████████████████████████████████████████████
+  /**
+   * Determina si un valor es una tupla de un tamaño específico o dentro de un rango de tamaños.
+   *
+   * @param {any} tuple - El valor que se va a verificar.
+   * @param {number | [number, number]} length - El tamaño esperado de la tupla o un rango de tamaños válidos. Si es un número, la tupla debe tener exactamente ese tamaño. Si es una tupla de dos números, el tamaño de la tupla debe estar dentro de ese rango (inclusive).
+   * @throws {Error} - Lanza un error si `length` no es un número o una tupla de dos números.
+   * @returns {boolean} - Retorna `true` si el valor es una tupla del tamaño especificado o dentro del rango de tamaños, de lo contrario retorna `false`.
+   *
+   * @example
+   * ```typescript
+   * const value = [1, 2, 3];
+   * const isTuple = isTuple(value, 3);
+   * console.log(isTuple); // salida: true
+   * ```
+   */
+  public isTuple(tuple: any, length: number | [number, number]): boolean {
+    if (!this.isNumber(length) && !this.isTuple(length, 2))
+      throw new Error(`${length} is not number or range tuple number valid`);
+    if (!this.isArray(tuple, true)) return false;
+    const tp = tuple as any[];
+    if (!Array.isArray(length)) {
+      if (tp.length !== length) return false;
+    } else {
+      if (!this.isNumberInRange(tp.length, length, true)) return false;
+    }
+    return true;
   }
   //████Fechas███████████████████████████████████████████████████████
   /** convierte de string de fecha a timestamp
