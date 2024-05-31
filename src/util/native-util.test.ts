@@ -1656,6 +1656,15 @@ describe("Util Pure", async () => {
         expect(recived).toMatchObject(vExp);
       });
     });
+    describe("method: freezeObject", async () => {
+      it("case: freeze object ok", async () => {
+        const data = { p1: "hola" };
+        const vExp = true; //congelamiento exitoso
+        const frozen = util.freezeObject(data); //congelado
+        const recived = Object.isFrozen(frozen); //javascript determina si ha sido congelado
+        expect(recived).toBe(vExp);
+      });
+    });
   });
   describe("group: array", async () => {
     describe("method: isArray", async () => {
@@ -2617,6 +2626,15 @@ describe("Util Pure", async () => {
         ];
         const recived = util.findArrayIntoArray(aData, aSearch, {});
         expect(recived).toMatchObject(vExp);
+      });
+    });
+    describe("method: freezeArray", async () => {
+      it("case: freeze array ok", async () => {
+        const data = ["hola"];
+        const vExp = true; //congelamiento exitoso
+        const frozen = util.freezeArray(data); //congelado
+        const recived = Object.isFrozen(frozen); //javascript determina si ha sido congelado
+        expect(recived).toBe(vExp);
       });
     });
   });

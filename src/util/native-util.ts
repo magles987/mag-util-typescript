@@ -1461,6 +1461,38 @@ export class UtilNative {
     const obj = this.entriesToObjetc(entries);
     return obj;
   }
+  /**
+   * Congela un objeto para prevenir modificaciones en sus propiedades, con opcion de niveles profundos si sus propiedades son a su vez objetos.
+   *
+   * ⚠ Puede ser usado con array pero se aconseja usar el metodo `freezeArray()`
+   *
+   * @param {TObject} obj - El objeto que se va a congelar.
+   * @param {boolean} isAllowDeepLevel - Determina si se debe congelar el objeto a nivel profundo. Por defecto es `true`, lo que significa que se congelarán todas las propiedades del objeto que sean objetos.
+   * @returns {TObject} - Retorna el objeto congelado, si no es un objeto, retorna el valor sin modificaciones.
+   *
+   * @example
+   * ```typescript
+   * const obj = { a: 1, b: { c: 2 } };
+   * const frozenObj = freezeObject(obj);
+   * //verifica si esta congelado
+   * console.log(Object.isFrozen(frozenObj)); // salida: true
+   * console.log(Object.isFrozen(frozenObj.b)); // salida: true
+   * ```
+   */
+  public freezeObject<TObject>(obj: TObject, isAllowDeepLevel = true): TObject {
+    //❗❗❗ debe ser verificacion primitiva❗❗❗ (incluye arrays)
+    if (typeof obj !== "object" || obj === null) return obj; // no hace ningun congelado
+    //profundizar (si es permitido)
+    if (isAllowDeepLevel) {
+      for (let entry of Object.entries(obj)) {
+        const key = entry[0];
+        const value = entry[1];
+        obj[key] = this.freezeObject(value);
+      }
+    }
+    const fObj = Object.freeze(obj);
+    return fObj;
+  }
   //█████Arrays██████████████████████████████████████████████████████
   /**
    * Determina si es un array, con la opción de aceptar o no arrays vacíos.`
@@ -2242,6 +2274,34 @@ export class UtilNative {
     });
     return findArray as TArray;
   }
+  /**
+   * Congela un array para prevenir modificaciones en sus elementos, con opcion de niveles profundos si sus elementos son a su vez arrays.
+   *
+   * @param {TArray} arr - El array que se va a congelar.
+   * @param {boolean} isAllowDeepLevel - Determina si se debe congelar el array a nivel profundo. Por defecto es `true`, lo que significa que se congelarán todos los elementos del array que sean, a su vez, arrays.
+   * @returns {TArray} - Retorna el array congelado, si no es un array, retorna el valor sin modificaciones.
+   *
+   * @example
+   * ```typescript
+   * const arr = ["hola", {b:["1"]}];
+   * const frozenArr = freezeArray(arr);
+   * //verifica si esta congelado
+   * console.log(Object.isFrozen(frozenArr)); // salida: true
+   * console.log(Object.isFrozen(frozenArr[1])); // salida: true
+   * ```
+   */
+  public freezeArray<TArray>(arr: TArray, isAllowDeepLevel = true): TArray {
+    //❗❗❗ debe ser verificacion primitiva ❗❗❗
+    if (!Array.isArray(arr)) return this.freezeObject(arr); //se intentará con tipo objeto
+    //profundizar (si es permitido)
+    if (isAllowDeepLevel) {
+      for (let idx = 0; idx < (arr as any[]).length; idx++) {
+        arr[idx] = this.freezeArray(arr[idx]);
+      }
+    }
+    const fArr = Object.freeze(arr);
+    return fArr;
+  }
   //████tuple███████████████████████████████████████████████████████
   /**
    * Determina si un valor es una tupla de un tamaño específico o dentro de un rango de tamaños.
@@ -2258,7 +2318,10 @@ export class UtilNative {
    * console.log(isTuple); // salida: true
    * ```
    */
-  public isTuple(tuple: any, length: number | [number, number]): boolean {
+  public isTuple<TTuple>(
+    tuple: TTuple,
+    length: number | [number, number]
+  ): boolean {
     if (!this.isNumber(length) && !this.isTuple(length, 2))
       throw new Error(`${length} is not number or range tuple number valid`);
     if (!this.isArray(tuple, true)) return false;
