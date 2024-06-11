@@ -2333,6 +2333,30 @@ export class UtilNative {
     }
     return true;
   }
+  /**
+   * Convierte un objeto literal en un array de tuplas.
+   *
+   * @param {TObj} obj El objeto literal que se va a convertir.
+   * @returns {Array<[keyof TObj, (typeof obj)[keyof TObj]]>} Retorna un array de tuplas. Cada tupla consta de una clave y un valor del objeto de entrada.
+   *
+   * ⚠ si el parametro no es de tipo objeto **literal**  se retornará un array vacio
+   *
+   * @example
+   * ```typescript
+   * const obj = { a: 1, b: 2, c: 3 };
+   * const array = literalObjectToArrayTuple(obj);
+   * console.log(array); // salida: [["a", 1], ["b", 2], ["c", 3]]
+   * ```
+   */
+  public literalObjectToArrayTuple<TObj>(obj: TObj) {
+    if (!this.isObject(obj) || !this.isLiteralObject(obj)) return [];
+    let aT = Object.keys(obj).map((k) => {
+      const key = k as keyof TObj;
+      const r = [key, obj[key]] as [keyof TObj, (typeof obj)[keyof TObj]];
+      return r;
+    });
+    return aT;
+  }
   //████Fechas███████████████████████████████████████████████████████
   /** convierte de string de fecha a timestamp
    *
