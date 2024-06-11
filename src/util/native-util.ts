@@ -2339,7 +2339,7 @@ export class UtilNative {
    * @param {TObj} obj El objeto literal que se va a convertir.
    * @returns {Array<[keyof TObj, (typeof obj)[keyof TObj]]>} Retorna un array de tuplas. Cada tupla consta de una clave y un valor del objeto de entrada.
    *
-   * ⚠ si el parametro no es de tipo objeto **literal**  se retornará un array vacio
+   * ⚠ si el parametro no es de tipo objeto **literal**  se retornará un array vacio, ademas al ser un conversión de objeto a tupla esta siempre será de tipo clave-valor (`[key, value]`)
    *
    * @example
    * ```typescript
@@ -2377,7 +2377,10 @@ export class UtilNative {
   public removeDuplicateOfArrayTupleByKey<TATuple>(
     arrayTupleToRemove: TATuple
   ): TATuple {
-    if (!this.isTuple(arrayTupleToRemove, 2)) {
+    if (
+      !this.isArray(arrayTupleToRemove) ||
+      !(arrayTupleToRemove as any[]).every((t) => this.isTuple(t, 2))
+    ) {
       throw new Error(
         `${arrayTupleToRemove} is not array of tuple to remove duplicates valid`
       );
