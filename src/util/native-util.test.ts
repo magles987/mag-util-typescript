@@ -1579,7 +1579,7 @@ describe("Util Pure", async () => {
     describe("method: arrayOfEntryTupleToObject", async () => {
       it("case is not array of entry tuple", async () => {
         const data = 31;
-        const vExpThrow = /is not array of entry tuple valid/;
+        const vExpThrow = /contain tuples not valid/;
         const recivedThrowFn = () =>
           util.arrayOfEntryTupleToObject(data as any);
         expect(recivedThrowFn).toThrowError(vExpThrow);

@@ -1401,15 +1401,13 @@ export class UtilNative {
   public arrayOfEntryTupleToObject(
     arrayOfEntryTuple: Array<[any, any]>
   ): object {
-    if (!Array.isArray(arrayOfEntryTuple))
-      throw new Error(`${arrayOfEntryTuple} is not array of entry tuple valid`);
     if (
-      !arrayOfEntryTuple.every((tuple, idx, arr) => {
-        const r =
-          tuple.length === 2 && //❗Debe ser tupla [key, value] 2 elementos
-          this.isNotUndefinedAndNotNull(tuple[0]); // la clave NO puede ser undefined o null
-        return r;
-      })
+      !Array.isArray(arrayOfEntryTuple) ||
+      !arrayOfEntryTuple.every(
+        (
+          tuple //se compara que sea tupla y que su clave no sea `undefined` o `null`
+        ) => this.isTuple(tuple, 2) && this.isNotUndefinedAndNotNull(tuple[0])
+      )
     )
       throw new Error(`${arrayOfEntryTuple} contain tuples not valid`);
     const obj = arrayOfEntryTuple.reduce((a_obj, [key, value]) => {
