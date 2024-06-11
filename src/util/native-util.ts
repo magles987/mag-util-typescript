@@ -1314,7 +1314,7 @@ export class UtilNative {
       isNullAsUndefined?: boolean;
     }
   ): T {
-    if (!this.isArray(tObjToMerge) || tObjToMerge.length > 2)
+    if (!this.isTuple(tObjToMerge, 2))
       throw new Error(`${tObjToMerge} is not tuple of objects valid`);
     let [objBase, objNew] = tObjToMerge;
     const isObjBase = this.isObject(objBase, true);
@@ -2356,6 +2356,38 @@ export class UtilNative {
       return r;
     });
     return aT;
+  }
+  /**
+   * Elimina los duplicados de un array de tuplas basándose en la clave de cada tupla.
+   *
+   * **⚠** la tupla **debe** ser de tipo clave-valor (`[key, value]`) obligatoriamente
+   *
+   * @param {TATuple} arrayTupleToRemove El array de tuplas que puede contener duplicados.
+   * @returns {TATuple} Retorna un nuevo array de tuplas sin duplicados.
+   *
+   * **⚠** si se encuentran duplicados, seleccionara el último de los elementos duplicados
+   *
+   * @example
+   * ```typescript
+   * const array = [["key1", "value1"], ["key2", "value2"], ["key1", "value3"]];
+   * const newArray = removeDuplicateOfArrayTupleByKey(array);
+   * console.log(newArray); // salida: [["key1", "value3"], ["key2", "value2"]]
+   * ```
+   */
+  public removeDuplicateOfArrayTupleByKey<TATuple>(
+    arrayTupleToRemove: TATuple
+  ): TATuple {
+    if (!this.isTuple(arrayTupleToRemove, 2)) {
+      throw new Error(
+        `${arrayTupleToRemove} is not array of tuple to remove duplicates valid`
+      );
+    }
+    const mapBf = new Map(arrayTupleToRemove as Array<[any, any]>);
+    let aT = Array.from(mapBf.keys()).map((key) => {
+      const r = [key, mapBf.get(key)];
+      return r;
+    });
+    return aT as TATuple;
   }
   //████Fechas███████████████████████████████████████████████████████
   /** convierte de string de fecha a timestamp
