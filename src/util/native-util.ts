@@ -1223,14 +1223,19 @@ export class UtilNative {
    *
    * ⚠ **No** aplica para profundidad en arrays (ni en propiedades ni subpropiedades).
    *
-   * @param {[T, T?]} tObjToMerge - Tupla que representa:
+   * @param {[T, T?]} tObjToMerge Tupla que representa:
    *   - `tObjToMerge[0]`: Objeto base al cual se fusionará el nuevo objeto.
    *   - `tObjToMerge[1]`: Objeto a fusionar con el objeto base.
    * @param {object} config - Configuración para el proceso de fusión:
    *   - `mode`: Modo de fusión par alos objetos
    *   - `isNullAsUndefined` Determina si se debe asumir que
    *     el valor `null` tiene el mismo peso comparativo que el valor `undefined`.
-   * @returns {T} - Retorna el objeto fusionado.
+   * @returns {T} Retorna el objeto fusionado.
+   *
+   * **⚠** casos especiales de retorno:
+   * - Si el objeto base no es de tipo objeto retorna el objeto a fusionar
+   * - Si el objeto a fusionar no es de tipo objeto retorna el base
+   * - Si ninguno es de tipo objeto, retorna el contenido de objeto base
    *
    * @example
    * ````typescript
@@ -1319,17 +1324,18 @@ export class UtilNative {
     let [objBase, objNew] = tObjToMerge;
     const isObjBase = this.isObject(objBase, true);
     const isObjNew = this.isObject(objNew, true);
-    if (!isObjBase || !isObjNew) {
-      if (!isObjBase && isObjNew) return objNew;
-      if (!isObjNew && isObjBase) return objBase;
-      throw new Error(`${objBase} and ${objNew} is not objects valid`);
-    }
     if (!this.isObject(config, true))
       throw new Error(
         `${config} is not object of configuration to deep merge valid`
       );
     if (!this.isString(config.mode))
       throw new Error(`${config.mode} is not mode for merge valid`);
+    //casos especiales (alguno o ambos no son objetos)
+    if (!isObjBase || !isObjNew) {
+      if (!isObjBase && isObjNew) return objNew;
+      if (!isObjNew && isObjBase) return objBase;
+      return objBase;
+    }
     let {
       mode,
       isNullAsUndefined = false, //predefinido
@@ -1386,7 +1392,7 @@ export class UtilNative {
   /**
    * Convierte un array de tuplas en un objeto.
    *
-   * @param {Array<[any, any]>} arrayOfEntryTuple - El array de tuplas que se va a convertir en un objeto. Cada tupla consta de dos elementos: una clave y un valor.
+   * @param {Array<[any, any]>} arrayOfEntryTuple - El array de tuplas que se va a convertir en un objeto. Cada tupla consta de dos elementos de tipo `[key, value]`.
    * @throws {Error} - Lanza un error si `arrayOfEntries` no es un array de tuplas válido.
    * @throws {Error} - Lanza un error si `arrayOfEntries` contiene tuplas no validas (las tuplas deben ser: `[key, value]`).
    * @returns {object} - Retorna un nuevo objeto donde cada propiedad es una tupla del array de entrada.

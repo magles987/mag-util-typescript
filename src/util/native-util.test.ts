@@ -1338,12 +1338,32 @@ describe("Util Pure", async () => {
           util.objectDeepMerge(data as any, { mode: "soft" });
         expect(recivedThrowFn).toThrowError(vExpThrow);
       });
-      it("case: is not tuple of objects exception", async () => {
-        const data = [10, 10];
-        const vExpThrow = /is not objects valid/;
-        const recivedThrowFn = () =>
-          util.objectDeepMerge(data as any, { mode: "soft" });
-        expect(recivedThrowFn).toThrowError(vExpThrow);
+      it("case: special case is not tuple of objects", async () => {
+        const data = [10, 15] as any as [object, object];
+        const vExp = 10; //retorna supuesto objeto base
+        const recived = util.objectDeepMerge(data, {
+          mode: "soft",
+          isNullAsUndefined: false,
+        });
+        expect(recived).toBe(vExp);
+      });
+      it("case: special case is not base object", async () => {
+        const data = [10, { p1: 31 }] as any as [object, object];
+        const vExp = { p1: 31 }; //retorna el objeto a fusionar
+        const recived = util.objectDeepMerge(data, {
+          mode: "soft",
+          isNullAsUndefined: false,
+        });
+        expect(recived).toMatchObject(vExp);
+      });
+      it("case: special case is not to merge object", async () => {
+        const data = [{ p1: 31 }, 15] as any as [object, object];
+        const vExp = { p1: 31 }; //retorna el objeto base
+        const recived = util.objectDeepMerge(data, {
+          mode: "soft",
+          isNullAsUndefined: false,
+        });
+        expect(recived).toMatchObject(vExp);
       });
       it('case: is merge ("soft")', async () => {
         const data = [
