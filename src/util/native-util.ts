@@ -2396,6 +2396,30 @@ export class UtilNative {
     });
     return aT as TATuple;
   }
+  /**
+   * Determina si es un array de tuplas
+   *
+   * @param {Array<TTuple>} aTuple - El array de tuplas que se va a verificar.
+   * @param {number | [number, number]} length - El tamaño esperado de las tuplas o un rango de tamaños válidos. Si es un número, todas las tuplas deben tener exactamente ese tamaño. Si es una tupla de dos números, el tamaño de las tuplas debe estar dentro de ese rango (inclusivo).
+   * @param {boolean} allowEmpty - Determina si se permite asumir que el array está vacío como válido. Por defecto es `false`, lo que significa que no se permite asumirlo como válido si está vacío.
+   * @returns {boolean} - Retorna `true` si todas las tuplas cumplen con las condiciones de tamaño, de lo contrario retorna `false`.
+   *
+   * @example
+   * ```typescript
+   * const array = [[1, 2], [3, 4], [5, 6]];
+   * const isValid = isArrayTuple(array, 2); //en esta caso, las tuplas deben tener un tamaño exacto de 2 elementos
+   * console.log(isValid); // salida: true
+   * ```
+   */
+  public isArrayTuple<TTuple>(
+    aTuple: Array<TTuple>,
+    length: number | [number, number],
+    allowEmpty = false
+  ) {
+    if (!this.isArray(aTuple, allowEmpty)) return false;
+    const r = aTuple.every((tuple) => this.isTuple(tuple, length));
+    return r;
+  }
   //████Fechas███████████████████████████████████████████████████████
   /** convierte de string de fecha a timestamp
    *

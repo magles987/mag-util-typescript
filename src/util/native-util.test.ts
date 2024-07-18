@@ -2695,6 +2695,60 @@ describe("Util Pure", async () => {
         expect(recived).toBe(vExp);
       });
     });
+    describe("method: isArrayTuple", async () => {
+      it("case: is not array tuple", async () => {
+        const data = 10;
+        const vExp = false;
+        const recived = util.isArrayTuple(data as any, 0);
+        expect(recived).toBe(vExp);
+      });
+      it("case: is empty array tuple", async () => {
+        const data = [];
+        const vExp = true;
+        const isAllowEmpty = true;
+        const recived = util.isArrayTuple(data as any, 0, isAllowEmpty);
+        expect(recived).toBe(vExp);
+      });
+      it("case: is tuple but not array tuple", async () => {
+        const data = ["hola", "adios"]; //tuplas, pero no array de tuplas
+        const length = 2;
+        const vExp = false;
+        const recived = util.isArrayTuple(data, length);
+        expect(recived).toBe(vExp);
+      });
+      it("case: is array tuple by two elements", async () => {
+        const data = [
+          ["hola", "adios"],
+          ["hello", "bye"],
+          ["Kon'nichiwa", "Sayonara"],
+        ];
+        const length = 2;
+        const vExp = true;
+        const recived = util.isArrayTuple(data, length);
+        expect(recived).toBe(vExp);
+      });
+      it("case: is array tuple but some item is not two elements", async () => {
+        const data = [
+          ["hola", "adios", "buenos dias"],
+          ["hello", "bye"],
+        ]; //una de las tuplas tiene 3 elelemntos
+        const length = 2;
+        const vExp = false; //por que se espera que todas las tuplas sean de 2 elementos
+        const recived = util.isArrayTuple(data, length);
+        expect(recived).toBe(vExp);
+      });
+      it("case: is array tuple and is items range between one and three elements", async () => {
+        const data = [
+          ["hola"],
+          ["hello", "bye"],
+          ["Kon'nichiwa", "Sayonara", "Ohayō"],
+        ]; //tuplas entre 1 y 3 elementos
+        const length = [1, 3] as [number, number]; //rango entre 1 y 3 elementos (siempre es incluyente)
+        const vExp = true;
+        const recived = util.isTuple(data, length);
+        expect(recived).toBe(vExp);
+      });
+    });
   });
   describe("group: General", async () => {
     describe("method: clone", async () => {
