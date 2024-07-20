@@ -1390,9 +1390,12 @@ export class UtilNative {
     return rObj;
   }
   /**
-   * Convierte un array de tuplas en un objeto.
+   * Convierte un array de tuplas tipo entry (`[key, value]`) en un objeto.
    *
-   * @param {Array<[any, any]>} arrayOfEntryTuple - El array de tuplas que se va a convertir en un objeto. Cada tupla consta de dos elementos de tipo `[key, value]`.
+   * - la tupla debe ser de tipo `[key, value]` donde `key` es un tipo derivado de string.
+   * - ❗el array de tuplas puede estar vacio❗, en ese caso retorná un objeto literal `{}`
+   *
+   * @param {Array<[any, any]>} aEntryTuple - El array de tuplas que se va a convertir en un objeto. Cada tupla consta de dos elementos de tipo `[key, value]`.
    * @throws {Error} - Lanza un error si `arrayOfEntries` no es un array de tuplas válido.
    * @throws {Error} - Lanza un error si `arrayOfEntries` contiene tuplas no validas (las tuplas deben ser: `[key, value]`).
    * @returns {object} - Retorna un nuevo objeto donde cada propiedad es una tupla del array de entrada.
@@ -1404,22 +1407,17 @@ export class UtilNative {
    * console.log(obj); // salida: { key1: "value1", key2: "value2" }
    * ```
    */
-  public arrayOfEntryTupleToObject(
-    arrayOfEntryTuple: Array<[any, any]>
-  ): object {
-    if (
-      !Array.isArray(arrayOfEntryTuple) ||
-      !arrayOfEntryTuple.every(
-        (
-          tuple //se compara que sea tupla y que su clave no sea `undefined` o `null`
-        ) => this.isTuple(tuple, 2) && this.isNotUndefinedAndNotNull(tuple[0])
-      )
-    )
-      throw new Error(`${arrayOfEntryTuple} contain tuples not valid`);
-    const obj = arrayOfEntryTuple.reduce((a_obj, [key, value]) => {
+  public aEntryTupleToObject(aEntryTuple: Array<[any, any]>): object {
+    //❗ se permite arrays vacios❗
+    if (!this.isArrayTuple(aEntryTuple, 2, true))
+      throw new Error(`${aEntryTuple} contain tuples not valid`);
+    const obj = aEntryTuple.reduce((a_obj, [key, value]) => {
+      // la key debe ser un identificador
+      if (this.isNotUndefinedAndNotNull(key))
+        throw new Error(`${key} contain tuples not valid`);
       a_obj[key] = value;
       return a_obj;
-    }, {});
+    }, {}); //si el array es vacio retornaria un objeto literal vacio
     return obj;
   }
   /**
@@ -1442,7 +1440,7 @@ export class UtilNative {
     if (typeof entries !== "object")
       throw new Error(`${entries} is not entries (:IterableIterator) valid`);
     const arrayOfEntries = Array.from(entries);
-    const obj = this.arrayOfEntryTupleToObject(arrayOfEntries);
+    const obj = this.aEntryTupleToObject(arrayOfEntries);
     return obj;
   }
   /**

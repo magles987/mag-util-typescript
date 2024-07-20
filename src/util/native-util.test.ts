@@ -1600,8 +1600,7 @@ describe("Util Pure", async () => {
       it("case is not array of entry tuple", async () => {
         const data = 31;
         const vExpThrow = /contain tuples not valid/;
-        const recivedThrowFn = () =>
-          util.arrayOfEntryTupleToObject(data as any);
+        const recivedThrowFn = () => util.aEntryTupleToObject(data as any);
         expect(recivedThrowFn).toThrowError(vExpThrow);
       });
       it("case: array contains tuples no valid", async () => {
@@ -1611,8 +1610,7 @@ describe("Util Pure", async () => {
           ["key3", 255],
         ] as Array<[any, any]>;
         const vExpThrow = /contain tuples not valid/;
-        const recivedThrowFn = () =>
-          util.arrayOfEntryTupleToObject(data as any);
+        const recivedThrowFn = () => util.aEntryTupleToObject(data as any);
         expect(recivedThrowFn).toThrowError(vExpThrow);
       });
       it("case: is array of entries tuple", async () => {
@@ -1626,7 +1624,7 @@ describe("Util Pure", async () => {
           key2: { q: "hola" },
           key3: 255,
         };
-        const recived = util.arrayOfEntryTupleToObject(data);
+        const recived = util.aEntryTupleToObject(data);
         expect(recived).toMatchObject(vExp);
       });
     });
