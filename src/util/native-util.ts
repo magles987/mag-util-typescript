@@ -2442,6 +2442,16 @@ export class UtilNative {
     return aT as TATuple;
   }
   //████Fechas███████████████████████████████████████████████████████
+  /**determina si el numero es un timestamp valido
+   * @param {any} timestamp el numero a validar como timestamp, se puede recibir como number o como string-number
+   * @returns si es un timestamp valido
+   */
+  public isTimestamp(timestamp: any): boolean {
+    if (!this.isNumber(timestamp, true)) return false;
+    const timestampReduced = this.stringToNumber(timestamp) / 1000; //reducirlo a segundos para evitar problemas de memoria (en año 2038)
+    if (this.isSignNumber(timestampReduced, "-", false)) return false; //un timestamp SIEMPRE será positivo
+    return true;
+  }
   /** convierte de string de fecha a timestamp
    *
    * @param dateString el string de la fecha en formato dd-mm-yyyy
