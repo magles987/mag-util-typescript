@@ -144,7 +144,7 @@ export class UtilNative {
    * Determina si el valor proporcionado es un número.
    *
    * @param {any} num El valor a verificar.
-   * @param {boolean} allowString = `false` Determina si se permite que el número se reciba en tipo string.
+   * @param {boolean} allowString `= false`. Determina si se permite que el número se reciba en tipo string.
    * @returns {boolean} Retorna `true` si el valor es un número, `false` de lo contrario.
    */
   public isNumber(num: any, allowString = false): boolean {
@@ -154,6 +154,29 @@ export class UtilNative {
       (typeof num === "number" || (typeof num === "string" && allowString)) &&
       !isNaN(parse) &&
       isFinite(parse);
+    return r;
+  }
+  /**dertermina si el número proporcionado corresponde a
+   * la polaridad deseada (positiva o negativa)
+   *
+   * @param {any} num el número a verificar (no se acepta string-number  `"1"`)
+   * @param {"+" | "-"} sign el signo (direccion o polaridad) que deberia tener el número
+   * @param {boolean} isZeroIncluded `= false`. Si se debe incluir el 0 en la verificacion
+   *
+   * @return Retorna `true` si corresponde al signo o `false` si no corresponde a signo o no es un número
+   */
+  public isSignNumber(
+    num: any,
+    sign: "+" | "-",
+    isZeroIncluded = false
+  ): boolean {
+    let r = this.isNumber(num, false);
+    if (!r) return r; //no es numero
+    if (sign === "+") r = isZeroIncluded ? num >= 0 : num > 0;
+    else if (sign === "-") r = isZeroIncluded ? num <= 0 : num < 0;
+    else {
+      throw new Error(`${sign} is not sign valid`);
+    }
     return r;
   }
   /**
@@ -1413,7 +1436,7 @@ export class UtilNative {
       throw new Error(`${aEntryTuple} contain tuples not valid`);
     const obj = aEntryTuple.reduce((a_obj, [key, value]) => {
       // la key debe ser un identificador
-      if (this.isNotUndefinedAndNotNull(key))
+      if (this.isUndefinedOrNull(key))
         throw new Error(`${key} contain tuples not valid`);
       a_obj[key] = value;
       return a_obj;

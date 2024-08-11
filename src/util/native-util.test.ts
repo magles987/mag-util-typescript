@@ -155,6 +155,80 @@ describe("Util Pure", async () => {
         expect(recived).toBe(vExp);
       });
     });
+    describe("method: isSignNumber", async () => {
+      it("case: any boolean", async () => {
+        const data = true;
+        const vExp = false;
+        const recived = util.isSignNumber(data, "+");
+        expect(recived).toBe(vExp);
+      });
+      it("case: any object", async () => {
+        const data = {};
+        const vExp = false;
+        const recived = util.isSignNumber(data, "+");
+        expect(recived).toBe(vExp);
+      });
+      it("case: any array", async () => {
+        const data = [];
+        const vExp = false;
+        const recived = util.isSignNumber(data, "-");
+        expect(recived).toBe(vExp);
+      });
+      it("case: undefined", async () => {
+        const data = undefined;
+        const vExp = false;
+        const recived = util.isSignNumber(data, "+");
+        expect(recived).toBe(vExp);
+      });
+      it("case: null", async () => {
+        const data = null;
+        const vExp = false;
+        const recived = util.isSignNumber(data, "-");
+        expect(recived).toBe(vExp);
+      });
+      it("case: any string", async () => {
+        const data = "loquesea";
+        const vExp = false;
+        const recived = util.isSignNumber(data, "+");
+        expect(recived).toBe(vExp);
+      });
+      it("case: numberString", async () => {
+        const data = "-10";
+        const vExp = false;
+        const recived = util.isSignNumber(data, "-"); //no esta activada permitir string numericos
+        expect(recived).toBe(vExp);
+      });
+      it("case: numberString", async () => {
+        const data = "10";
+        const vExp = false;
+        const recived = util.isSignNumber(data, "+"); //no esta activada permitir string numericos
+        expect(recived).toBe(vExp);
+      });
+      it("case: is not postive", async () => {
+        const data = -10;
+        const vExp = false;
+        const recived = util.isSignNumber(data, "+");
+        expect(recived).toBe(vExp);
+      });
+      it("case: is negative", async () => {
+        const data = -10;
+        const vExp = true;
+        const recived = util.isSignNumber(data, "-");
+        expect(recived).toBe(vExp);
+      });
+      it("case: is negative or 0", async () => {
+        const data = 0;
+        const vExp = true;
+        const recived = util.isSignNumber(data, "+", true);
+        expect(recived).toBe(vExp);
+      });
+      it("case: is not negative or 0", async () => {
+        const data = 0;
+        const vExp = false;
+        const recived = util.isSignNumber(data, "-", false);
+        expect(recived).toBe(vExp);
+      });
+    });
     describe("method: stringToNumber", async () => {
       it("case: number to string exception", async () => {
         const data = "loquesea";
