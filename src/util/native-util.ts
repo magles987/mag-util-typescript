@@ -2398,7 +2398,7 @@ export class UtilNative {
    * ```
    */
   public literalObjectToArrayTuple<TObj>(obj: TObj) {
-    if (!this.isObject(obj) || !this.isLiteralObject(obj)) return [];
+    if (!this.isLiteralObject(obj)) return [];
     let aT = Object.keys(obj).map((k) => {
       const key = k as keyof TObj;
       const r = [key, obj[key]] as [keyof TObj, (typeof obj)[keyof TObj]];
