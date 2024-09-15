@@ -66,3 +66,22 @@ export interface IConfigEqGtLt {
    */
   isCaseSensitiveForString?: boolean;
 }
+/**Utilidad exclusiva de Typescript para capitzalizar la primera letra
+ *
+ * ejemplo:
+ * ````
+ *  // Utilidad para capitalizar la primera letra
+ *  type CapitalizeFirstLetter<S extends string> = S extends `${infer First}${infer Rest}`
+ *    ? `${Uppercase<First>}${Rest}`
+ *    : S;
+ *
+ * //claves de los campos
+ * type TKeyFields = "campo1" | "campo2";
+ * //esquema a partir de los campos:
+ * type TSchema = Record<`prefix${CapitalizeFirstLetter<TKeyFields>}`, string>;
+ *
+ * const s:TSchema = {prefixCampo1: string, prefixCampo2:string}
+ * ````
+ */
+export type TCapitalizeFirstLetter<S extends string> =
+  S extends `${infer First}${infer Rest}` ? `${Uppercase<First>}${Rest}` : S;
