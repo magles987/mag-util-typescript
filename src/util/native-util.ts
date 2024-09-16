@@ -607,6 +607,110 @@ export class UtilNative {
     const r = word.charAt(0).toUpperCase() + word.slice(1);
     return r;
   }
+  /**
+   * construye un string path generico a partir de un array de strings
+   *
+   * @param {string[]} aKeys - El array de strings que se utilizará para construir el path.
+   * @param {object} [option] - Opciones para personalizar la construcción del path:
+   *  - `charSeparator` (string) `= "."`: El carácter separador a utilizar entre los elementos del path.
+   *  - `isInitWithSeparator` (boolean) `= false`: Determina si el path debe iniciar con el carácter separador.
+   *  - `isEndtWithSeparator` (boolean) `= false` : Determina si el path debe terminar con el carácter separador.
+   *  - `pathInit` (string) `= ""`: El prefijo a añadir al inicio del path.
+   *  - `pathEnd` (string) `= ""`: El sufijo a añadir al final del path.
+   * @returns el string del path ya construido
+   * @throws {Error} - Lanza un error si `aKeys` no es un array válido de strings.
+   *
+   * @example
+   * ```typescript
+   * const keys = ["home", "user", "documents"];
+   * let path: string;
+   * //ejemplo 1:
+   * path = buildGenericPathFromArray(keys, { charSeparator: "/", isInitWithSeparator: true });
+   * console.log(path); // salida: "/home/user/documents"
+   *
+   * //ejemplo 2:
+   * path = buildGenericPathFromArray(keys, {
+   *   charSeparator: "/",
+   *   isInitWithSeparator: true,
+   *   isEndtWithSeparator: true
+   * });
+   * console.log(path); // salida: "/home/user/documents/"
+   *
+   * //ejemplo 3:
+   * path = buildGenericPathFromArray(keys, {
+   *   charSeparator: "/",
+   *   isInitWithSeparator: true,
+   *   isEndtWithSeparator: true,
+   *   pathInit: ".."
+   * });
+   * console.log(path); // salida: "../home/user/documents/"
+   * ```
+   */
+  public buildGenericPathFromArray(
+    aKeys: string[],
+    option?: {
+      /** `= "."`: El carácter separador a utilizar entre los elementos del path. */
+      charSeparator?: string;
+      /** `= false`: Determina si el path debe iniciar con el carácter separador. */
+      isInitWithSeparator?: boolean;
+      /** `= false` : Determina si el path debe terminar con el carácter separador. */
+      isEndtWithSeparator?: boolean;
+      /** `= ""`: El prefijo a añadir al inicio del path. */
+      pathInit?: string;
+      /** `= ""`: El sufijo a añadir al final del path.*/
+      pathEnd?: string;
+    }
+  ): string {
+    const dfOp: typeof option = {
+      charSeparator: this.charSeparatorLogicPath,
+      isInitWithSeparator: false, //❗No inicia con caracter separador❗,
+      isEndtWithSeparator: false, //❗No termina con caracter separador❗,
+      pathInit: "",
+      pathEnd: "",
+    };
+    const op = option;
+    if (!this.isArray(aKeys, true))
+      throw new Error(`${aKeys} is not array of keys for path valid`);
+    if (!this.isObject(op)) {
+      option = dfOp;
+    } else {
+      option = {
+        charSeparator: this.isString(op.charSeparator)
+          ? op.charSeparator
+          : dfOp.charSeparator,
+        isInitWithSeparator: this.isBoolean(op.isInitWithSeparator)
+          ? op.isInitWithSeparator
+          : dfOp.isInitWithSeparator,
+        isEndtWithSeparator: this.isBoolean(op.isEndtWithSeparator)
+          ? op.isEndtWithSeparator
+          : dfOp.isEndtWithSeparator,
+        pathInit:
+          this.isString(op.pathInit) || this.isNumber(op.pathInit, true)
+            ? op.pathInit
+            : dfOp.pathInit,
+        pathEnd:
+          this.isString(op.pathEnd) || this.isNumber(op.pathEnd, true)
+            ? op.pathEnd
+            : dfOp.pathEnd,
+      };
+    }
+    const {
+      charSeparator: sp,
+      isInitWithSeparator,
+      isEndtWithSeparator,
+      pathEnd,
+      pathInit,
+    } = option;
+    let path = aKeys.reduce((prePath, cKey, idx) => {
+      let r: string;
+      if (idx === 0 && !isInitWithSeparator) r = `${prePath}${cKey}`;
+      else r = `${prePath}${sp}${cKey}`;
+      return r;
+    }, pathInit);
+    if (pathEnd !== "") path = `${path}${sp}${pathEnd}`;
+    if (isEndtWithSeparator) path = `${path}${sp}`;
+    return path;
+  }
   //████Objetos████████████████████████████████████████████████████
   /**
    * Determina si el valor recibido corresponde a un objeto.

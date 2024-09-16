@@ -634,6 +634,42 @@ describe("Util Pure", async () => {
         expect(recived).toBe(vExp);
       });
     });
+    describe("method: buildGenericPathFromArray", async () => {
+      it("case: default path", async () => {
+        const data = ["ruta1", "ruta2"];
+        const vExp = "ruta1.ruta2";
+        const recived = util.buildGenericPathFromArray(data);
+        expect(recived).toBe(vExp);
+      });
+      it("case: path char separator in init", async () => {
+        const data = ["ruta1", "ruta2"];
+        const vExp = "/ruta1/ruta2"; //"/" al inicio
+        const recived = util.buildGenericPathFromArray(data, {
+          charSeparator: "/",
+          isInitWithSeparator: true,
+        });
+        expect(recived).toBe(vExp);
+      });
+      it("case: path with default init", async () => {
+        const data = ["ruta1", "ruta2"];
+        const pathInit = "initial";
+        const vExp = "initialruta1.ruta2"; //"initial" al inicio de la ruta pero sin el caracter
+        const recived = util.buildGenericPathFromArray(data, {
+          pathInit,
+        });
+        expect(recived).toBe(vExp);
+      });
+      it("case: path with default init and char separator", async () => {
+        const data = ["ruta1", "ruta2"];
+        const pathInit = "initial";
+        const vExp = "initial.ruta1.ruta2"; //"initial" al inicio con separacion
+        const recived = util.buildGenericPathFromArray(data, {
+          pathInit,
+          isInitWithSeparator: true,
+        });
+        expect(recived).toBe(vExp);
+      });
+    });
   });
   describe("group: object", async () => {
     describe("method: isObject", async () => {
