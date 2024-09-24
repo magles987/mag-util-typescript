@@ -467,6 +467,68 @@ export class UtilNative {
     return r;
   }
   /**
+   * Verifica si una cadena contiene otra cadena según el tipo de coincidencia especificado.
+   *
+   * @param {string} str - La cadena completa en la que se buscará.
+   * @param {string} strToSearch - La subcadena que se buscará dentro de `str`.
+   * @param {object} option - Opciones de configuración para la búsqueda:
+   *   - `likeType`: El tipo de coincidencia a utilizar. Puede ser `"start"` para coincidencia al inicio, `"end"` para coincidencia al final, o `"between"` para coincidencia en cualquier parte de la cadena.
+   * @returns {boolean} - Retorna `true` si se encuentra la subcadena según el tipo de coincidencia especificado, de lo contrario retorna `false`.
+   * @throws {Error} - Lanza un error si `likeType` no es válido.
+   *
+   * @example
+   * ```typescript
+   * const str = "Hello, world!";
+   * const strToSearch = "Hello";
+   * const result = isStringWhereLike(str, strToSearch, { likeType: "start" });
+   * console.log(result); // salida: true
+   *
+   * const result2 = isStringWhereLike(str, "world", { likeType: "end" });
+   * console.log(result2); // salida: false , termina en "world!"
+   *
+   * const result3 = isStringWhereLike(str, "lo, wo", { likeType: "between" });
+   * console.log(result3); // salida: true
+   *
+   * const result4 = isStringWhereLike(str, "test", { likeType: "between" });
+   * console.log(result4); // salida: false
+   * ```
+   */
+  public isStringWhereLike(
+    str: string,
+    strToSearch: string,
+    option: { likeType: "start" | "end" | "between" }
+  ): boolean {
+    let r = false;
+    if (!this.isString(str, true) || !this.isString(strToSearch, true))
+      return r;
+    //construir option
+    const dfOp: typeof option = {
+      likeType: "between",
+    };
+    const op = option;
+    if (!this.isObject(op)) {
+      option = dfOp;
+    } else {
+      option = {
+        ...op,
+        likeType: this.isString(op.likeType) ? op.likeType : dfOp.likeType,
+      };
+    }
+    const { likeType } = option;
+    let re: RegExp;
+    if (likeType === "start") {
+      re = new RegExp(`^${strToSearch}`);
+    } else if (likeType === "end") {
+      re = new RegExp(`${strToSearch}$`);
+    } else if (likeType === "between") {
+      re = new RegExp(`${strToSearch}`);
+    } else {
+      throw new Error(`${likeType} is not like-type valid`);
+    }
+    r = re.test(str);
+    return r;
+  }
+  /**
    * Convierte un string a un formato de *case* utilizado en programación para nombrar variables, métodos, clases, interfaces u objetos.
    *
    * @param {string} str El string a convertir.

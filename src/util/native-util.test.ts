@@ -588,6 +588,40 @@ describe("Util Pure", async () => {
         expect(recived).toBe(vExp);
       });
     });
+    describe("method: isStringWhereLike (start)", async () => {
+      it("case: is string", async () => {
+        const data = "loquesea";
+        const strS = "loq";
+        const vExp = true;
+        const recived = util.isStringWhereLike(data, strS, {
+          likeType: "start",
+        });
+        expect(recived).toBe(vExp);
+      });
+      it("case: is not isStringWhereLike (end)", async () => {
+        const data = "loquesea";
+        const strS = "loq";
+        const vExp = false; //no termina con "loq"
+        const recived = util.isStringWhereLike(data, strS, { likeType: "end" });
+        expect(recived).toBe(vExp);
+      });
+      it("case: is isStringWhereLike (between)", async () => {
+        const data = "loquesea";
+        const strS = "loq";
+        const vExp = true; //lo contiene (no importa si es al inicio, al final o en medio)
+        const recived = util.isStringWhereLike(data, strS, {
+          likeType: "between",
+        });
+        expect(recived).toBe(vExp);
+      });
+      it("case: is not isStringWhereLike (end)", async () => {
+        const data = "loquesea!";
+        const strS = "sea";
+        const vExp = false; //no termina con "sea", termina con "sea!"
+        const recived = util.isStringWhereLike(data, strS, { likeType: "end" });
+        expect(recived).toBe(vExp);
+      });
+    });
     describe("method: capitalizeWordFirstLetter", async () => {
       it("case: only word", async () => {
         const data = "loquesea";
