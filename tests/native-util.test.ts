@@ -1,5 +1,5 @@
 import { describe, expect, test, it } from "vitest";
-import { UtilNative } from "./native-util";
+import { UtilNative } from "../src/native-util";
 //████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
 const util = UtilNative.getInstance(undefined);
 describe("Util Pure", async () => {

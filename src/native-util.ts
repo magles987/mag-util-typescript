@@ -3,7 +3,7 @@
  *
  */
 import Util_Node from "util";
-import { TStrCase, TExtPrimitiveTypes, IConfigEqGtLt } from "./shared";
+import { TStrCase, TExtPrimitiveTypes, IConfigEqGtLt } from "./util/shared";
 //████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
 /**
  *
