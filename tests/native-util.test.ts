@@ -1,5 +1,5 @@
 import { describe, expect, test, it } from "vitest";
-import { UtilNative } from "./native-util";
+import { UtilNative } from "../src/native-util";
 //████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
 const util = UtilNative.getInstance(undefined);
 describe("Util Pure", async () => {
@@ -588,6 +588,40 @@ describe("Util Pure", async () => {
         expect(recived).toBe(vExp);
       });
     });
+    describe("method: isStringWhereLike (start)", async () => {
+      it("case: is string", async () => {
+        const data = "loquesea";
+        const strS = "loq";
+        const vExp = true;
+        const recived = util.isStringWhereLike(data, strS, {
+          likeType: "start",
+        });
+        expect(recived).toBe(vExp);
+      });
+      it("case: is not isStringWhereLike (end)", async () => {
+        const data = "loquesea";
+        const strS = "loq";
+        const vExp = false; //no termina con "loq"
+        const recived = util.isStringWhereLike(data, strS, { likeType: "end" });
+        expect(recived).toBe(vExp);
+      });
+      it("case: is isStringWhereLike (between)", async () => {
+        const data = "loquesea";
+        const strS = "loq";
+        const vExp = true; //lo contiene (no importa si es al inicio, al final o en medio)
+        const recived = util.isStringWhereLike(data, strS, {
+          likeType: "between",
+        });
+        expect(recived).toBe(vExp);
+      });
+      it("case: is not isStringWhereLike (end)", async () => {
+        const data = "loquesea!";
+        const strS = "sea";
+        const vExp = false; //no termina con "sea", termina con "sea!"
+        const recived = util.isStringWhereLike(data, strS, { likeType: "end" });
+        expect(recived).toBe(vExp);
+      });
+    });
     describe("method: capitalizeWordFirstLetter", async () => {
       it("case: only word", async () => {
         const data = "loquesea";
@@ -631,6 +665,42 @@ describe("Util Pure", async () => {
         const data = "_Hola como__Estas-_que..bien-";
         const vExp = "HolaComoEstasQueBien";
         const recived = util.convertStringToCase(data, "Pascal");
+        expect(recived).toBe(vExp);
+      });
+    });
+    describe("method: buildGenericPathFromArray", async () => {
+      it("case: default path", async () => {
+        const data = ["ruta1", "ruta2"];
+        const vExp = "ruta1.ruta2";
+        const recived = util.buildGenericPathFromArray(data);
+        expect(recived).toBe(vExp);
+      });
+      it("case: path char separator in init", async () => {
+        const data = ["ruta1", "ruta2"];
+        const vExp = "/ruta1/ruta2"; //"/" al inicio
+        const recived = util.buildGenericPathFromArray(data, {
+          charSeparator: "/",
+          isInitWithSeparator: true,
+        });
+        expect(recived).toBe(vExp);
+      });
+      it("case: path with default init", async () => {
+        const data = ["ruta1", "ruta2"];
+        const pathInit = "initial";
+        const vExp = "initialruta1.ruta2"; //"initial" al inicio de la ruta pero sin el caracter
+        const recived = util.buildGenericPathFromArray(data, {
+          pathInit,
+        });
+        expect(recived).toBe(vExp);
+      });
+      it("case: path with default init and char separator", async () => {
+        const data = ["ruta1", "ruta2"];
+        const pathInit = "initial";
+        const vExp = "initial.ruta1.ruta2"; //"initial" al inicio con separacion
+        const recived = util.buildGenericPathFromArray(data, {
+          pathInit,
+          isInitWithSeparator: true,
+        });
         expect(recived).toBe(vExp);
       });
     });

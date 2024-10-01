@@ -1,5 +1,5 @@
 import { describe, expect, test, it } from "vitest";
-import { UtilExtension } from "./extension-util";
+import { UtilExtension } from "../src/extension-util";
 //████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
 const util = UtilExtension.getInstance(undefined);
 

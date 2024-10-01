@@ -3,7 +3,7 @@
  *
  */
 import Util_Node from "util";
-import { TStrCase, TExtPrimitiveTypes, IConfigEqGtLt } from "./shared";
+import { TStrCase, TExtPrimitiveTypes, IConfigEqGtLt } from "./util/shared";
 //████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
 /**
  *
@@ -467,6 +467,68 @@ export class UtilNative {
     return r;
   }
   /**
+   * Verifica si una cadena contiene otra cadena según el tipo de coincidencia especificado.
+   *
+   * @param {string} str - La cadena completa en la que se buscará.
+   * @param {string} strToSearch - La subcadena que se buscará dentro de `str`.
+   * @param {object} option - Opciones de configuración para la búsqueda:
+   *   - `likeType`: El tipo de coincidencia a utilizar. Puede ser `"start"` para coincidencia al inicio, `"end"` para coincidencia al final, o `"between"` para coincidencia en cualquier parte de la cadena.
+   * @returns {boolean} - Retorna `true` si se encuentra la subcadena según el tipo de coincidencia especificado, de lo contrario retorna `false`.
+   * @throws {Error} - Lanza un error si `likeType` no es válido.
+   *
+   * @example
+   * ```typescript
+   * const str = "Hello, world!";
+   * const strToSearch = "Hello";
+   * const result = isStringWhereLike(str, strToSearch, { likeType: "start" });
+   * console.log(result); // salida: true
+   *
+   * const result2 = isStringWhereLike(str, "world", { likeType: "end" });
+   * console.log(result2); // salida: false , termina en "world!"
+   *
+   * const result3 = isStringWhereLike(str, "lo, wo", { likeType: "between" });
+   * console.log(result3); // salida: true
+   *
+   * const result4 = isStringWhereLike(str, "test", { likeType: "between" });
+   * console.log(result4); // salida: false
+   * ```
+   */
+  public isStringWhereLike(
+    str: string,
+    strToSearch: string,
+    option: { likeType: "start" | "end" | "between" }
+  ): boolean {
+    let r = false;
+    if (!this.isString(str, true) || !this.isString(strToSearch, true))
+      return r;
+    //construir option
+    const dfOp: typeof option = {
+      likeType: "between",
+    };
+    const op = option;
+    if (!this.isObject(op)) {
+      option = dfOp;
+    } else {
+      option = {
+        ...op,
+        likeType: this.isString(op.likeType) ? op.likeType : dfOp.likeType,
+      };
+    }
+    const { likeType } = option;
+    let re: RegExp;
+    if (likeType === "start") {
+      re = new RegExp(`^${strToSearch}`);
+    } else if (likeType === "end") {
+      re = new RegExp(`${strToSearch}$`);
+    } else if (likeType === "between") {
+      re = new RegExp(`${strToSearch}`);
+    } else {
+      throw new Error(`${likeType} is not like-type valid`);
+    }
+    r = re.test(str);
+    return r;
+  }
+  /**
    * Convierte un string a un formato de *case* utilizado en programación para nombrar variables, métodos, clases, interfaces u objetos.
    *
    * @param {string} str El string a convertir.
@@ -606,6 +668,110 @@ export class UtilNative {
       throw new Error(`${word} is not a valid string`);
     const r = word.charAt(0).toUpperCase() + word.slice(1);
     return r;
+  }
+  /**
+   * construye un string path generico a partir de un array de strings
+   *
+   * @param {string[]} aKeys - El array de strings que se utilizará para construir el path.
+   * @param {object} [option] - Opciones para personalizar la construcción del path:
+   *  - `charSeparator` (string) `= "."`: El carácter separador a utilizar entre los elementos del path.
+   *  - `isInitWithSeparator` (boolean) `= false`: Determina si el path debe iniciar con el carácter separador.
+   *  - `isEndtWithSeparator` (boolean) `= false` : Determina si el path debe terminar con el carácter separador.
+   *  - `pathInit` (string) `= ""`: El prefijo a añadir al inicio del path.
+   *  - `pathEnd` (string) `= ""`: El sufijo a añadir al final del path.
+   * @returns el string del path ya construido
+   * @throws {Error} - Lanza un error si `aKeys` no es un array válido de strings.
+   *
+   * @example
+   * ```typescript
+   * const keys = ["home", "user", "documents"];
+   * let path: string;
+   * //ejemplo 1:
+   * path = buildGenericPathFromArray(keys, { charSeparator: "/", isInitWithSeparator: true });
+   * console.log(path); // salida: "/home/user/documents"
+   *
+   * //ejemplo 2:
+   * path = buildGenericPathFromArray(keys, {
+   *   charSeparator: "/",
+   *   isInitWithSeparator: true,
+   *   isEndtWithSeparator: true
+   * });
+   * console.log(path); // salida: "/home/user/documents/"
+   *
+   * //ejemplo 3:
+   * path = buildGenericPathFromArray(keys, {
+   *   charSeparator: "/",
+   *   isInitWithSeparator: true,
+   *   isEndtWithSeparator: true,
+   *   pathInit: ".."
+   * });
+   * console.log(path); // salida: "../home/user/documents/"
+   * ```
+   */
+  public buildGenericPathFromArray(
+    aKeys: string[],
+    option?: {
+      /** `= "."`: El carácter separador a utilizar entre los elementos del path. */
+      charSeparator?: string;
+      /** `= false`: Determina si el path debe iniciar con el carácter separador. */
+      isInitWithSeparator?: boolean;
+      /** `= false` : Determina si el path debe terminar con el carácter separador. */
+      isEndtWithSeparator?: boolean;
+      /** `= ""`: El prefijo a añadir al inicio del path. */
+      pathInit?: string;
+      /** `= ""`: El sufijo a añadir al final del path.*/
+      pathEnd?: string;
+    }
+  ): string {
+    const dfOp: typeof option = {
+      charSeparator: this.charSeparatorLogicPath,
+      isInitWithSeparator: false, //❗No inicia con caracter separador❗,
+      isEndtWithSeparator: false, //❗No termina con caracter separador❗,
+      pathInit: "",
+      pathEnd: "",
+    };
+    const op = option;
+    if (!this.isArray(aKeys, true))
+      throw new Error(`${aKeys} is not array of keys for path valid`);
+    if (!this.isObject(op)) {
+      option = dfOp;
+    } else {
+      option = {
+        charSeparator: this.isString(op.charSeparator)
+          ? op.charSeparator
+          : dfOp.charSeparator,
+        isInitWithSeparator: this.isBoolean(op.isInitWithSeparator)
+          ? op.isInitWithSeparator
+          : dfOp.isInitWithSeparator,
+        isEndtWithSeparator: this.isBoolean(op.isEndtWithSeparator)
+          ? op.isEndtWithSeparator
+          : dfOp.isEndtWithSeparator,
+        pathInit:
+          this.isString(op.pathInit) || this.isNumber(op.pathInit, true)
+            ? op.pathInit
+            : dfOp.pathInit,
+        pathEnd:
+          this.isString(op.pathEnd) || this.isNumber(op.pathEnd, true)
+            ? op.pathEnd
+            : dfOp.pathEnd,
+      };
+    }
+    const {
+      charSeparator: sp,
+      isInitWithSeparator,
+      isEndtWithSeparator,
+      pathEnd,
+      pathInit,
+    } = option;
+    let path = aKeys.reduce((prePath, cKey, idx) => {
+      let r: string;
+      if (idx === 0 && !isInitWithSeparator) r = `${prePath}${cKey}`;
+      else r = `${prePath}${sp}${cKey}`;
+      return r;
+    }, pathInit);
+    if (pathEnd !== "") path = `${path}${sp}${pathEnd}`;
+    if (isEndtWithSeparator) path = `${path}${sp}`;
+    return path;
   }
   //████Objetos████████████████████████████████████████████████████
   /**
