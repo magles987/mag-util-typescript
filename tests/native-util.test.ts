@@ -8,92 +8,92 @@ describe("Util Pure", async () => {
       it("case: any number to boolean", async () => {
         const data = 10;
         const vExp = true;
-        const recived = util.anyToBoolean(data);
+        const recived = util.convertToBoolean(data);
         expect(recived).toBe(vExp);
       });
       it('case: number 0 to boolean (default "isZeroAsTrue")', async () => {
         const data = 0;
         const vExp = true;
-        const recived = util.anyToBoolean(data);
+        const recived = util.convertToBoolean(data);
         expect(recived).toBe(vExp);
       });
       it("case: number 0 to boolean (not isZeroAsTrue)", async () => {
         const data = 0;
         const vExp = false;
         // al estar vacio [], no habilita isZeroAsTrue y 0 es considerado valor falseable
-        const recived = util.anyToBoolean(data, []);
+        const recived = util.convertToBoolean(data, []);
         expect(recived).toBe(vExp);
       });
       it("case: undefined to boolean", async () => {
         const data = undefined; //falseable
         const vExp = false;
-        const recived = util.anyToBoolean(data);
+        const recived = util.convertToBoolean(data);
         expect(recived).toBe(vExp);
       });
       it('case: null to boolean (not "isNullAsTrue")', async () => {
         const data = null; //falseable
         const vExp = false;
-        const recived = util.anyToBoolean(data);
+        const recived = util.convertToBoolean(data);
         expect(recived).toBe(vExp);
       });
       it('case: null to boolean ( "isNullAsTrue")', async () => {
         const data = null;
         const vExp = true; //considerar a null como valor no falseable
-        const recived = util.anyToBoolean(data, ["isNullAsTrue"]);
+        const recived = util.convertToBoolean(data, ["isNullAsTrue"]);
         expect(recived).toBe(vExp);
       });
       it("case: string to boolean", async () => {
         const data = "loquesea";
         const vExp = true;
-        const recived = util.anyToBoolean(data);
+        const recived = util.convertToBoolean(data);
         expect(recived).toBe(vExp);
       });
       it("case: empty string to boolean", async () => {
         const data = "";
         const vExp = false;
-        const recived = util.anyToBoolean(data, ["isNullAsTrue"]);
+        const recived = util.convertToBoolean(data, ["isNullAsTrue"]);
         expect(recived).toBe(vExp);
       });
       it("case: empty string to boolean (isEmptyAsTrue)", async () => {
         const data = "";
         const vExp = true;
-        const recived = util.anyToBoolean(data, ["isEmptyAsTrue"]);
+        const recived = util.convertToBoolean(data, ["isEmptyAsTrue"]);
         expect(recived).toBe(vExp);
       });
       it("case: object to boolean", async () => {
         const data = { p: "loquesea" };
         const vExp = true;
-        const recived = util.anyToBoolean(data);
+        const recived = util.convertToBoolean(data);
         expect(recived).toBe(vExp);
       });
       it("case: empty object to boolean", async () => {
         const data = {};
         const vExp = false;
-        const recived = util.anyToBoolean(data);
+        const recived = util.convertToBoolean(data);
         expect(recived).toBe(vExp);
       });
       it("case: empty object to boolean (isEmptyAsTrue)", async () => {
         const data = {};
         const vExp = true;
-        const recived = util.anyToBoolean(data, ["isEmptyAsTrue"]);
+        const recived = util.convertToBoolean(data, ["isEmptyAsTrue"]);
         expect(recived).toBe(vExp);
       });
       it("case: array to boolean", async () => {
         const data = ["loquesea"];
         const vExp = true;
-        const recived = util.anyToBoolean(data);
+        const recived = util.convertToBoolean(data);
         expect(recived).toBe(vExp);
       });
       it("case: empty array to boolean", async () => {
         const data = [];
         const vExp = false;
-        const recived = util.anyToBoolean(data);
+        const recived = util.convertToBoolean(data);
         expect(recived).toBe(vExp);
       });
       it("case: empty array to boolean (isEmptyAsTrue)", async () => {
         const data = [];
         const vExp = true;
-        const recived = util.anyToBoolean(data, ["isEmptyAsTrue"]);
+        const recived = util.convertToBoolean(data, ["isEmptyAsTrue"]);
         expect(recived).toBe(vExp);
       });
     });
@@ -155,77 +155,77 @@ describe("Util Pure", async () => {
         expect(recived).toBe(vExp);
       });
     });
-    describe("method: isSignNumber", async () => {
+    describe("method: isNumberSign", async () => {
       it("case: any boolean", async () => {
         const data = true;
         const vExp = false;
-        const recived = util.isSignNumber(data, "+");
+        const recived = util.isNumberSign(data, "+");
         expect(recived).toBe(vExp);
       });
       it("case: any object", async () => {
         const data = {};
         const vExp = false;
-        const recived = util.isSignNumber(data, "+");
+        const recived = util.isNumberSign(data, "+");
         expect(recived).toBe(vExp);
       });
       it("case: any array", async () => {
         const data = [];
         const vExp = false;
-        const recived = util.isSignNumber(data, "-");
+        const recived = util.isNumberSign(data, "-");
         expect(recived).toBe(vExp);
       });
       it("case: undefined", async () => {
         const data = undefined;
         const vExp = false;
-        const recived = util.isSignNumber(data, "+");
+        const recived = util.isNumberSign(data, "+");
         expect(recived).toBe(vExp);
       });
       it("case: null", async () => {
         const data = null;
         const vExp = false;
-        const recived = util.isSignNumber(data, "-");
+        const recived = util.isNumberSign(data, "-");
         expect(recived).toBe(vExp);
       });
       it("case: any string", async () => {
         const data = "loquesea";
         const vExp = false;
-        const recived = util.isSignNumber(data, "+");
+        const recived = util.isNumberSign(data, "+");
         expect(recived).toBe(vExp);
       });
       it("case: numberString", async () => {
         const data = "-10";
         const vExp = false;
-        const recived = util.isSignNumber(data, "-"); //no esta activada permitir string numericos
+        const recived = util.isNumberSign(data, "-"); //no esta activada permitir string numericos
         expect(recived).toBe(vExp);
       });
       it("case: numberString", async () => {
         const data = "10";
         const vExp = false;
-        const recived = util.isSignNumber(data, "+"); //no esta activada permitir string numericos
+        const recived = util.isNumberSign(data, "+"); //no esta activada permitir string numericos
         expect(recived).toBe(vExp);
       });
       it("case: is not postive", async () => {
         const data = -10;
         const vExp = false;
-        const recived = util.isSignNumber(data, "+");
+        const recived = util.isNumberSign(data, "+");
         expect(recived).toBe(vExp);
       });
       it("case: is negative", async () => {
         const data = -10;
         const vExp = true;
-        const recived = util.isSignNumber(data, "-");
+        const recived = util.isNumberSign(data, "-");
         expect(recived).toBe(vExp);
       });
       it("case: is negative or 0", async () => {
         const data = 0;
         const vExp = true;
-        const recived = util.isSignNumber(data, "+", true);
+        const recived = util.isNumberSign(data, "+", true);
         expect(recived).toBe(vExp);
       });
       it("case: is not negative or 0", async () => {
         const data = 0;
         const vExp = false;
-        const recived = util.isSignNumber(data, "-", false);
+        const recived = util.isNumberSign(data, "-", false);
         expect(recived).toBe(vExp);
       });
     });
@@ -524,39 +524,39 @@ describe("Util Pure", async () => {
         expect(recived).toBe(vExp);
       });
     });
-    describe("method: adaptNumberByRange", async () => {
+    describe("method: adaptNumberToRange", async () => {
       it("case is not number to exception", async () => {
         const data = "loquesea";
         const vExpThrow = /is not number or string-number valid/;
         const recivedThrowFn = () =>
-          util.adaptNumberByRange(data as any, [0, 1]);
+          util.adaptNumberToRange(data as any, [0, 1]);
         expect(recivedThrowFn).toThrowError(vExpThrow);
       });
       it("case is not range number to exception", async () => {
         const data = ["loquesea"];
         const vExpThrow = /is not tuple \[number, number\] valid/;
-        const recivedThrowFn = () => util.adaptNumberByRange(0, data as any);
+        const recivedThrowFn = () => util.adaptNumberToRange(0, data as any);
         expect(recivedThrowFn).toThrowError(vExpThrow);
       });
       it("case over range", async () => {
         const data = 15;
         const range = [-10, 10] as [number, number];
         const vExp = 10;
-        const recived = util.adaptNumberByRange(data, range);
+        const recived = util.adaptNumberToRange(data, range);
         expect(recived).toBe(vExp);
       });
       it("case below range", async () => {
         const data = -12;
         const range = [-10, 10] as [number, number];
         const vExp = -10;
-        const recived = util.adaptNumberByRange(data, range);
+        const recived = util.adaptNumberToRange(data, range);
         expect(recived).toBe(vExp);
       });
       it("case in range", async () => {
         const data = 2;
         const range = [-10, 10] as [number, number];
         const vExp = 2;
-        const recived = util.adaptNumberByRange(data, range);
+        const recived = util.adaptNumberToRange(data, range);
         expect(recived).toBe(vExp);
       });
     });
@@ -588,57 +588,57 @@ describe("Util Pure", async () => {
         expect(recived).toBe(vExp);
       });
     });
-    describe("method: isStringWhereLike (start)", async () => {
+    describe("method: isStringLike (start)", async () => {
       it("case: is string", async () => {
         const data = "loquesea";
         const strS = "loq";
         const vExp = true;
-        const recived = util.isStringWhereLike(data, strS, {
+        const recived = util.isStringLike(data, strS, {
           likeType: "start",
         });
         expect(recived).toBe(vExp);
       });
-      it("case: is not isStringWhereLike (end)", async () => {
+      it("case: is not isStringLike (end)", async () => {
         const data = "loquesea";
         const strS = "loq";
         const vExp = false; //no termina con "loq"
-        const recived = util.isStringWhereLike(data, strS, { likeType: "end" });
+        const recived = util.isStringLike(data, strS, { likeType: "end" });
         expect(recived).toBe(vExp);
       });
-      it("case: is isStringWhereLike (between)", async () => {
+      it("case: is isStringLike (between)", async () => {
         const data = "loquesea";
         const strS = "loq";
         const vExp = true; //lo contiene (no importa si es al inicio, al final o en medio)
-        const recived = util.isStringWhereLike(data, strS, {
+        const recived = util.isStringLike(data, strS, {
           likeType: "between",
         });
         expect(recived).toBe(vExp);
       });
-      it("case: is not isStringWhereLike (end)", async () => {
+      it("case: is not isStringLike (end)", async () => {
         const data = "loquesea!";
         const strS = "sea";
         const vExp = false; //no termina con "sea", termina con "sea!"
-        const recived = util.isStringWhereLike(data, strS, { likeType: "end" });
+        const recived = util.isStringLike(data, strS, { likeType: "end" });
         expect(recived).toBe(vExp);
       });
     });
-    describe("method: capitalizeWordFirstLetter", async () => {
+    describe("method: capitalizeString", async () => {
       it("case: only word", async () => {
         const data = "loquesea";
         const vExp = "Loquesea";
-        const recived = util.capitalizeWordFirstLetter(data);
+        const recived = util.capitalizeString(data);
         expect(recived).toBe(vExp);
       });
       it("case: many words", async () => {
         const data = "lo que sea";
         const vExp = "Lo que sea";
-        const recived = util.capitalizeWordFirstLetter(data);
+        const recived = util.capitalizeString(data);
         expect(recived).toBe(vExp);
       });
       it("case: 1word", async () => {
         const data = "1palabra";
         const vExp = "1palabra"; //no se puede capitalizar
-        const recived = util.capitalizeWordFirstLetter(data);
+        const recived = util.capitalizeString(data);
         expect(recived).toBe(vExp);
       });
     });
@@ -668,17 +668,17 @@ describe("Util Pure", async () => {
         expect(recived).toBe(vExp);
       });
     });
-    describe("method: buildGenericPathFromArray", async () => {
+    describe("method: buildPath", async () => {
       it("case: default path", async () => {
         const data = ["ruta1", "ruta2"];
         const vExp = "ruta1.ruta2";
-        const recived = util.buildGenericPathFromArray(data);
+        const recived = util.buildPath(data);
         expect(recived).toBe(vExp);
       });
       it("case: path char separator in init", async () => {
         const data = ["ruta1", "ruta2"];
         const vExp = "/ruta1/ruta2"; //"/" al inicio
-        const recived = util.buildGenericPathFromArray(data, {
+        const recived = util.buildPath(data, {
           charSeparator: "/",
           isInitWithSeparator: true,
         });
@@ -688,7 +688,7 @@ describe("Util Pure", async () => {
         const data = ["ruta1", "ruta2"];
         const pathInit = "initial";
         const vExp = "initialruta1.ruta2"; //"initial" al inicio de la ruta pero sin el caracter
-        const recived = util.buildGenericPathFromArray(data, {
+        const recived = util.buildPath(data, {
           pathInit,
         });
         expect(recived).toBe(vExp);
@@ -697,7 +697,7 @@ describe("Util Pure", async () => {
         const data = ["ruta1", "ruta2"];
         const pathInit = "initial";
         const vExp = "initial.ruta1.ruta2"; //"initial" al inicio con separacion
-        const recived = util.buildGenericPathFromArray(data, {
+        const recived = util.buildPath(data, {
           pathInit,
           isInitWithSeparator: true,
         });
@@ -732,55 +732,47 @@ describe("Util Pure", async () => {
         expect(recived).toBe(vExp);
       });
     });
-    describe("method: isObjectAndExistEveryProperty", async () => {
+    describe("method: isObjectWithProperties", async () => {
       it("case: is not object", async () => {
         const data = 10;
         const vExp = false;
-        const recived = util.isObjectAndExistEveryProperty(
-          data as any,
-          false,
-          "p1"
-        );
+        const recived = util.isObjectWithProperties(data as any, false, "p1");
         expect(recived).toBe(vExp);
       });
       it("case: is object (is not key or keys path)", async () => {
         const data = { p1: "hola", p2: 31 };
         const vExp = true; //se comporta como un `this.isObject(data, false)` normal
-        const recived = util.isObjectAndExistEveryProperty(data);
+        const recived = util.isObjectWithProperties(data);
         expect(recived).toBe(vExp);
       });
       it("case: is object (is not key or keys path, is allow empty)", async () => {
         const data = {};
         const vExp = true; //se comporta como un `this.isObject(data, true)` normal
-        const recived = util.isObjectAndExistEveryProperty(data, true);
+        const recived = util.isObjectWithProperties(data, true);
         expect(recived).toBe(vExp);
       });
       it("case: is object (is not key or keys path, is deny empty)", async () => {
         const data = {};
         const vExp = false; //se comporta como un `this.isObject(data, false)` normal
-        const recived = util.isObjectAndExistEveryProperty(data, false);
+        const recived = util.isObjectWithProperties(data, false);
         expect(recived).toBe(vExp);
       });
       it("case: is objetc (is key path valids)", async () => {
         const data = { p1: "loquesea", p2: "otroDato" };
         const vExp = true;
-        const recived = util.isObjectAndExistEveryProperty(data, false, "p1");
+        const recived = util.isObjectWithProperties(data, false, "p1");
         expect(recived).toBe(vExp);
       });
       it("case: is objetc (is not key path valids)", async () => {
         const data = { p1: "loquesea", p2: "otroDato" };
         const vExp = false;
-        const recived = util.isObjectAndExistEveryProperty(
-          data,
-          false,
-          "p3" as any
-        );
+        const recived = util.isObjectWithProperties(data, false, "p3" as any);
         expect(recived).toBe(vExp);
       });
       it("case: is object (is some key path valids, )", async () => {
         const data = { p1: "loquesea", p2: "otroDato" };
         const vExp = false; //deben existir todas las que se envien en el parametro `keyOrkeysPath`
-        const recived = util.isObjectAndExistEveryProperty(
+        const recived = util.isObjectWithProperties(
           data,
           false,
           ["p1", "p3" as any] //"p3" no existe
@@ -790,7 +782,7 @@ describe("Util Pure", async () => {
       it('case: is object (is property as undefined, prop condition ("it-exist"))', async () => {
         const data = { p1: "loquesea", p2: "otroDato", p3: undefined };
         const vExp = true; //se verifica que exista (asi tenga asignado undefined)
-        const recived = util.isObjectAndExistEveryDeepProperty(
+        const recived = util.isObjectWithDeepProperties(
           data,
           false,
           ["p3"],
@@ -801,7 +793,7 @@ describe("Util Pure", async () => {
       it('case: is object (is property as undefined, prop condition ("is-not-undefined-and-not-null"))', async () => {
         const data = { p1: "loquesea", p2: "otroDato", p3: undefined };
         const vExp = false; //sal ser undefined o null no es valida
-        const recived = util.isObjectAndExistEveryDeepProperty(
+        const recived = util.isObjectWithDeepProperties(
           data,
           false,
           ["p3"],
@@ -812,7 +804,7 @@ describe("Util Pure", async () => {
       it('case: is object (is property as null, prop condition ("it-exist"))', async () => {
         const data = { p1: "loquesea", p2: "otroDato", p3: null };
         const vExp = true; //se verifica que exista (asi tenga asignado null)
-        const recived = util.isObjectAndExistEveryDeepProperty(
+        const recived = util.isObjectWithDeepProperties(
           data,
           false,
           ["p3"],
@@ -823,7 +815,7 @@ describe("Util Pure", async () => {
       it('case: is object (is property as null, prop condition ("is-not-undefined-and-not-null"))', async () => {
         const data = { p1: "loquesea", p2: "otroDato", p3: null };
         const vExp = false; //al ser undefined o null no es valida
-        const recived = util.isObjectAndExistEveryDeepProperty(
+        const recived = util.isObjectWithDeepProperties(
           data,
           false,
           ["p3"],
@@ -832,39 +824,35 @@ describe("Util Pure", async () => {
         expect(recived).toBe(vExp);
       });
     });
-    describe("method: isObjectAndExistEveryDeepProperty", async () => {
+    describe("method: isObjectWithDeepProperties", async () => {
       it("case: is not object", async () => {
         const data = 10;
         const vExp = false;
-        const recived = util.isObjectAndExistEveryDeepProperty(
-          data,
-          false,
-          "p1"
-        );
+        const recived = util.isObjectWithDeepProperties(data, false, "p1");
         expect(recived).toBe(vExp);
       });
       it("case: is object (is not key or keys path)", async () => {
         const data = { p1: "hola", p2: 31 };
         const vExp = true; //se comporta como un `this.isObject(data, false)` normal
-        const recived = util.isObjectAndExistEveryDeepProperty(data);
+        const recived = util.isObjectWithDeepProperties(data);
         expect(recived).toBe(vExp);
       });
       it("case: is object (is not key or keys path, is allow empty)", async () => {
         const data = {};
         const vExp = true; //se comporta como un `this.isObject(data, true)` normal
-        const recived = util.isObjectAndExistEveryDeepProperty(data, true);
+        const recived = util.isObjectWithDeepProperties(data, true);
         expect(recived).toBe(vExp);
       });
       it("case: is object (is not key or keys path, is deny empty)", async () => {
         const data = {};
         const vExp = false; //se comporta como un `this.isObject(data, false)` normal
-        const recived = util.isObjectAndExistEveryDeepProperty(data, false);
+        const recived = util.isObjectWithDeepProperties(data, false);
         expect(recived).toBe(vExp);
       });
       it("case: is object (is not keys path, is allow empty, mode )", async () => {
         const data = {};
         const vExp = true; // permite vacios
-        const recived = util.isObjectAndExistEveryDeepProperty(
+        const recived = util.isObjectWithDeepProperties(
           data,
           true //permite vacios
         );
@@ -873,27 +861,19 @@ describe("Util Pure", async () => {
       it("case: is objetc (is key path valids, )", async () => {
         const data = { p1: "loquesea", p2: "otroDato" };
         const vExp = true;
-        const recived = util.isObjectAndExistEveryDeepProperty(
-          data,
-          false,
-          "p1"
-        );
+        const recived = util.isObjectWithDeepProperties(data, false, "p1");
         expect(recived).toBe(vExp);
       });
       it("case: is objetc (is not key path valids, )", async () => {
         const data = { p1: "loquesea", p2: "otroDato" };
         const vExp = false;
-        const recived = util.isObjectAndExistEveryDeepProperty(
-          data,
-          false,
-          "p3"
-        );
+        const recived = util.isObjectWithDeepProperties(data, false, "p3");
         expect(recived).toBe(vExp);
       });
       it("case: is object (is some key path valids, )", async () => {
         const data = { p1: "loquesea", p2: "otroDato" };
         const vExp = false; //deben existir todas las que se envien en el parametro `keyOrkeysPath`
-        const recived = util.isObjectAndExistEveryDeepProperty(
+        const recived = util.isObjectWithDeepProperties(
           data,
           false,
           ["p1", "p3"] //"p3" no existe
@@ -903,7 +883,7 @@ describe("Util Pure", async () => {
       it('case: is object (is property as undefined, prop condition ("it-exist"))', async () => {
         const data = { p1: "loquesea", p2: "otroDato", p3: undefined };
         const vExp = true; //se verifica que exista (asi tenga asignado undefined)
-        const recived = util.isObjectAndExistEveryDeepProperty(
+        const recived = util.isObjectWithDeepProperties(
           data,
           false,
           ["p3"],
@@ -914,7 +894,7 @@ describe("Util Pure", async () => {
       it('case: is object (is property as undefined, prop condition ("is-not-undefined-and-not-null"))', async () => {
         const data = { p1: "loquesea", p2: "otroDato", p3: undefined };
         const vExp = false; //sal ser undefined o null no es valida
-        const recived = util.isObjectAndExistEveryDeepProperty(
+        const recived = util.isObjectWithDeepProperties(
           data,
           false,
           ["p3"],
@@ -925,7 +905,7 @@ describe("Util Pure", async () => {
       it('case: is object (is property as null, prop condition ("it-exist"))', async () => {
         const data = { p1: "loquesea", p2: "otroDato", p3: null };
         const vExp = true; //se verifica que exista (asi tenga asignado null)
-        const recived = util.isObjectAndExistEveryDeepProperty(
+        const recived = util.isObjectWithDeepProperties(
           data,
           false,
           ["p3"],
@@ -936,7 +916,7 @@ describe("Util Pure", async () => {
       it('case: is object (is property as null, prop condition ("is-not-undefined-and-not-null"))', async () => {
         const data = { p1: "loquesea", p2: "otroDato", p3: null };
         const vExp = false; //al ser undefined o null no es valida
-        const recived = util.isObjectAndExistEveryDeepProperty(
+        const recived = util.isObjectWithDeepProperties(
           data,
           false,
           ["p3"],
@@ -947,7 +927,7 @@ describe("Util Pure", async () => {
       it("case: is objetc and properties valid (deep (1))", async () => {
         const data = { p1: "loquesea", p2: { p21: 3 } };
         const vExp = true;
-        const recived = util.isObjectAndExistEveryDeepProperty(data, false, [
+        const recived = util.isObjectWithDeepProperties(data, false, [
           "p2.p21",
           "p1",
         ]);
@@ -956,7 +936,7 @@ describe("Util Pure", async () => {
       it("case: is objetc and properties valid (deep (2))", async () => {
         const data = { p1: "loquesea", p2: { p21: 3 } };
         const vExp = false;
-        const recived = util.isObjectAndExistEveryDeepProperty(data, false, [
+        const recived = util.isObjectWithDeepProperties(data, false, [
           "p2.p21.p211", //p211 no existe (p21 tiene asignado un nuero)
           "p1",
         ]);
@@ -1049,7 +1029,7 @@ describe("Util Pure", async () => {
         const data = 10;
         const vExpThrow = /is not object valid/;
         const recivedThrowFn = () =>
-          util.objectKeyPropertiesToCase(data as any, "Snake");
+          util.objectKeysToCase(data as any, "Snake");
         expect(recivedThrowFn).toThrowError(vExpThrow);
       });
       it("case: SnakeCase deep", async () => {
@@ -1069,7 +1049,7 @@ describe("Util Pure", async () => {
             },
           },
         };
-        const recived = util.objectKeyPropertiesToCase(data, "Snake");
+        const recived = util.objectKeysToCase(data, "Snake");
         expect(recived).toStrictEqual(vExp);
       });
       it("case: KebabCase deep", async () => {
@@ -1089,7 +1069,7 @@ describe("Util Pure", async () => {
             },
           },
         };
-        const recived = util.objectKeyPropertiesToCase(data, "Kebab");
+        const recived = util.objectKeysToCase(data, "Kebab");
         expect(recived).toStrictEqual(vExp);
       });
       it("case: CamelCase deep", async () => {
@@ -1109,7 +1089,7 @@ describe("Util Pure", async () => {
             },
           },
         };
-        const recived = util.objectKeyPropertiesToCase(data, "Camel");
+        const recived = util.objectKeysToCase(data, "Camel");
         expect(recived).toStrictEqual(vExp);
       });
       it("case: PascalCase deep", async () => {
@@ -1129,7 +1109,7 @@ describe("Util Pure", async () => {
             },
           },
         };
-        const recived = util.objectKeyPropertiesToCase(data, "Pascal");
+        const recived = util.objectKeysToCase(data, "Pascal");
         expect(recived).toStrictEqual(vExp);
       });
     });
@@ -1369,18 +1349,18 @@ describe("Util Pure", async () => {
         });
       });
     });
-    describe("method: findPropByKeyPath", async () => {
+    describe("method: findObjectProperty", async () => {
       it("case: is not object exception", async () => {
         const data = 10;
         const vExpThrow = /is not object valid/;
-        const recivedThrowFn = () => util.findPropByKeyPath(data as any, "");
+        const recivedThrowFn = () => util.findObjectProperty(data as any, "");
         expect(recivedThrowFn).toThrowError(vExpThrow);
       });
       it("case: is not key property exception", async () => {
         const data = null;
         const vExpThrow = /is not key valid/;
         const recivedThrowFn = () =>
-          util.findPropByKeyPath({ a: 1 }, data as any);
+          util.findObjectProperty({ a: 1 }, data as any);
         expect(recivedThrowFn).toThrowError(vExpThrow);
       });
       it("case: find object (level 2)", async () => {
@@ -1396,7 +1376,7 @@ describe("Util Pure", async () => {
           },
         };
         const vExp = { ...data.nivel1_2 };
-        const recived = util.findPropByKeyPath(data, "nivel1_2");
+        const recived = util.findObjectProperty(data, "nivel1_2");
         expect(recived).toMatchObject(vExp);
       });
       it("case: find object (level 5)", async () => {
@@ -1426,7 +1406,7 @@ describe("Util Pure", async () => {
         const vExp = {
           ...data.nivel1_2.nivel2_22.nivel3_222.nivel4_2222.nivel5_22222,
         };
-        const recived = util.findPropByKeyPath(data, "nivel5_22222");
+        const recived = util.findObjectProperty(data, "nivel5_22222");
         expect(recived).toMatchObject(vExp);
       });
       it("case: find object (level 5 fake)", async () => {
@@ -1470,22 +1450,22 @@ describe("Util Pure", async () => {
         const vExp = {
           ...data.nivel1_1.nivel5_22222,
         };
-        const recived = util.findPropByKeyPath(data, "nivel5_22222");
+        const recived = util.findObjectProperty(data, "nivel5_22222");
         expect(recived).toMatchObject(vExp);
       });
     });
-    describe("method: objectDeepMerge", async () => {
+    describe("method: deepMergeObjects", async () => {
       it("case: is not tuple exception", async () => {
         const data = 10;
         const vExpThrow = /is not tuple of objects valid/;
         const recivedThrowFn = () =>
-          util.objectDeepMerge(data as any, { mode: "soft" });
+          util.deepMergeObjects(data as any, { mode: "soft" });
         expect(recivedThrowFn).toThrowError(vExpThrow);
       });
       it("case: special case is not tuple of objects", async () => {
         const data = [10, 15] as any as [object, object];
         const vExp = 10; //retorna supuesto objeto base
-        const recived = util.objectDeepMerge(data, {
+        const recived = util.deepMergeObjects(data, {
           mode: "soft",
           isNullAsUndefined: false,
         });
@@ -1494,7 +1474,7 @@ describe("Util Pure", async () => {
       it("case: special case is not base object", async () => {
         const data = [10, { p1: 31 }] as any as [object, object];
         const vExp = { p1: 31 }; //retorna el objeto a fusionar
-        const recived = util.objectDeepMerge(data, {
+        const recived = util.deepMergeObjects(data, {
           mode: "soft",
           isNullAsUndefined: false,
         });
@@ -1503,7 +1483,7 @@ describe("Util Pure", async () => {
       it("case: special case is not to merge object", async () => {
         const data = [{ p1: 31 }, 15] as any as [object, object];
         const vExp = { p1: 31 }; //retorna el objeto base
-        const recived = util.objectDeepMerge(data, {
+        const recived = util.deepMergeObjects(data, {
           mode: "soft",
           isNullAsUndefined: false,
         });
@@ -1533,7 +1513,7 @@ describe("Util Pure", async () => {
           p4: 255, //al ser "soft" no lo debe fusionar
           p5: null, //al ser "soft" y isNullAsUndefined = false si debe fusionarlo
         };
-        const recived = util.objectDeepMerge(data, {
+        const recived = util.deepMergeObjects(data, {
           mode: "soft",
           isNullAsUndefined: false,
         });
@@ -1563,7 +1543,7 @@ describe("Util Pure", async () => {
           p4: 255, //al ser "soft" no lo debe fusionar
           p5: "A", //al ser "soft" y isNullAsUndefined = true no debe fusionarlo
         };
-        const recived = util.objectDeepMerge(data, {
+        const recived = util.deepMergeObjects(data, {
           mode: "soft",
           isNullAsUndefined: true,
         });
@@ -1597,7 +1577,7 @@ describe("Util Pure", async () => {
             },
           },
         };
-        const recived = util.objectDeepMerge(data, {
+        const recived = util.deepMergeObjects(data, {
           mode: "soft",
         });
         expect(recived).toMatchObject(vExp);
@@ -1630,7 +1610,7 @@ describe("Util Pure", async () => {
             },
           },
         };
-        const recived = util.objectDeepMerge(data, {
+        const recived = util.deepMergeObjects(data, {
           mode: "soft",
         });
         expect(recived).toMatchObject(vExp);
@@ -1656,7 +1636,7 @@ describe("Util Pure", async () => {
           p1: "ahora si es español", //se fusionó
           p7: [1, 2, 3], //se fusionó
         };
-        const recived = util.objectDeepMerge(data, {
+        const recived = util.deepMergeObjects(data, {
           mode: "soft",
         });
         expect(recived).toMatchObject(vExp);
@@ -1708,7 +1688,7 @@ describe("Util Pure", async () => {
             },
           },
         };
-        const recived = util.objectDeepMerge(data, {
+        const recived = util.deepMergeObjects(data, {
           mode: "hard",
         });
         expect(recived).toMatchObject(vExp);
@@ -1734,17 +1714,17 @@ describe("Util Pure", async () => {
           p1: "ahora si es español", //se fusionó
           p7: {}, //se fusionó al ser "hard"
         };
-        const recived = util.objectDeepMerge(data, {
+        const recived = util.deepMergeObjects(data, {
           mode: "hard",
         });
         expect(recived).toMatchObject(vExp);
       });
     });
-    describe("method: arrayOfEntryTupleToObject", async () => {
+    describe("method: arrayEntriesToObject", async () => {
       it("case is not array of entry tuple", async () => {
         const data = 31;
         const vExpThrow = /contain tuples not valid/;
-        const recivedThrowFn = () => util.aEntryTupleToObject(data as any);
+        const recivedThrowFn = () => util.arrayEntriesToObject(data as any);
         expect(recivedThrowFn).toThrowError(vExpThrow);
       });
       it("case: array contains tuples no valid", async () => {
@@ -1754,7 +1734,7 @@ describe("Util Pure", async () => {
           ["key3", 255],
         ] as Array<[any, any]>;
         const vExpThrow = /contain tuples not valid/;
-        const recivedThrowFn = () => util.aEntryTupleToObject(data as any);
+        const recivedThrowFn = () => util.arrayEntriesToObject(data as any);
         expect(recivedThrowFn).toThrowError(vExpThrow);
       });
       it("case: is array of entries tuple", async () => {
@@ -1768,7 +1748,7 @@ describe("Util Pure", async () => {
           key2: { q: "hola" },
           key3: 255,
         };
-        const recived = util.aEntryTupleToObject(data);
+        const recived = util.arrayEntriesToObject(data);
         expect(recived).toMatchObject(vExp);
       });
     });
@@ -1855,12 +1835,12 @@ describe("Util Pure", async () => {
         expect(recived).toBe(vExp);
       });
     });
-    describe("method: anyArraySort", async () => {
+    describe("method: sortMixedArray", async () => {
       describe("cases: array of boolean", async () => {
         it("case: is booleans (asc)", async () => {
           const data = [false, true, true, false, true];
           const vExp = [false, false, true, true, true];
-          const recived = util.anyArraySort(data, {
+          const recived = util.sortMixedArray(data, {
             direction: "asc",
           });
           expect(recived).toMatchObject(vExp);
@@ -1868,7 +1848,7 @@ describe("Util Pure", async () => {
         it("case: is booleans (desc)", async () => {
           const data = [false, true, true, false, true];
           const vExp = [true, true, true, false, false];
-          const recived = util.anyArraySort(data, {
+          const recived = util.sortMixedArray(data, {
             direction: "desc",
           });
           expect(recived).toMatchObject(vExp);
@@ -1878,7 +1858,7 @@ describe("Util Pure", async () => {
         it("case: is numbers (asc)", async () => {
           const data = [-1, -2, -5, -3, -4, 0, 4, 3, 5, 2, 1];
           const vExp = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5];
-          const recived = util.anyArraySort(data, {
+          const recived = util.sortMixedArray(data, {
             direction: "asc",
           });
           expect(recived).toMatchObject(vExp);
@@ -1886,7 +1866,7 @@ describe("Util Pure", async () => {
         it("case: is numbers (desc)", async () => {
           const data = [-1, -2, -5, -3, -4, 0, 4, 3, 5, 2, 1];
           const vExp = [5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5];
-          const recived = util.anyArraySort(data, {
+          const recived = util.sortMixedArray(data, {
             direction: "desc",
           });
           expect(recived).toMatchObject(vExp);
@@ -1896,7 +1876,7 @@ describe("Util Pure", async () => {
         it("case: is strings (asc)", async () => {
           const data = ["pera", "manzana", "uva", "mango", "ñame"];
           const vExp = ["mango", "manzana", "ñame", "pera", "uva"];
-          const recived = util.anyArraySort(data, {
+          const recived = util.sortMixedArray(data, {
             direction: "asc",
           });
           expect(recived).toMatchObject(vExp);
@@ -1904,7 +1884,7 @@ describe("Util Pure", async () => {
         it("case: is strings (desc)", async () => {
           const data = ["pera", "manzana", "uva", "mango", "ñame"];
           const vExp = ["uva", "pera", "ñame", "manzana", "mango"];
-          const recived = util.anyArraySort(data, {
+          const recived = util.sortMixedArray(data, {
             direction: "desc",
           });
           expect(recived).toMatchObject(vExp);
@@ -1912,7 +1892,7 @@ describe("Util Pure", async () => {
         it("case: is strings (desc, is not case sensitive)", async () => {
           const data = ["juan", "ana", "Juan", "Ana"];
           const vExp = ["juan", "Juan", "ana", "Ana"]; //"j" y "J" pesan igual por no ser sensitivo
-          const recived = util.anyArraySort(data, {
+          const recived = util.sortMixedArray(data, {
             direction: "desc",
             isCaseSensitiveForString: false,
           });
@@ -1921,7 +1901,7 @@ describe("Util Pure", async () => {
         it("case: is strings (desc, is case sensitive)", async () => {
           const data = ["juan", "ana", "Juan", "Ana"];
           const vExp = ["Juan", "juan", "Ana", "ana"]; //"J" pesa mas que "j", por ser sensitivo
-          const recived = util.anyArraySort(data, {
+          const recived = util.sortMixedArray(data, {
             direction: "desc",
             isCaseSensitiveForString: true,
           });
@@ -1946,7 +1926,7 @@ describe("Util Pure", async () => {
             { id: "id-0005", p1: 511, p2: { p21: 1023 } },
             { id: "id-0006", p1: 767, p2: { p21: 1023 } },
           ];
-          const recived = util.anyArraySort(data, {
+          const recived = util.sortMixedArray(data, {
             direction: "asc",
             keyOrKeysPath: "id",
           });
@@ -1969,7 +1949,7 @@ describe("Util Pure", async () => {
             { id: "id-0002", p1: 63, p2: { p21: 1023 } },
             { id: "id-0001", p1: 31, p2: { p21: 1023 } },
           ];
-          const recived = util.anyArraySort(data, {
+          const recived = util.sortMixedArray(data, {
             direction: "desc",
             keyOrKeysPath: "id",
           });
@@ -1992,7 +1972,7 @@ describe("Util Pure", async () => {
             { id: "id-0006", p1: 767, p2: { p21: 1023, p22: "uva" } },
             { id: "id-0001", p1: 31, p2: { p21: 1023, p22: "zapote" } },
           ];
-          const recived = util.anyArraySort(data, {
+          const recived = util.sortMixedArray(data, {
             direction: "asc",
             keyOrKeysPath: "p2.p22",
           });
@@ -2009,7 +1989,7 @@ describe("Util Pure", async () => {
             [false, false, true, true], //menor tamaño
             [false, false, true, true, true],
           ];
-          const recived = util.anyArraySort(data, {
+          const recived = util.sortMixedArray(data, {
             direction: "asc",
           });
           expect(recived).toMatchObject(vExp);
@@ -2023,7 +2003,7 @@ describe("Util Pure", async () => {
             [true, true, true, false, false], //mayor tamaño
             [true, false, false],
           ];
-          const recived = util.anyArraySort(data, {
+          const recived = util.sortMixedArray(data, {
             direction: "desc",
           });
           expect(recived).toMatchObject(vExp);
@@ -2037,7 +2017,7 @@ describe("Util Pure", async () => {
             [-1, 0, 1], //menor tamaño
             [-2, -1, 0, 1, 2],
           ];
-          const recived = util.anyArraySort(data, {
+          const recived = util.sortMixedArray(data, {
             direction: "asc",
           });
           expect(recived).toMatchObject(vExp);
@@ -2051,7 +2031,7 @@ describe("Util Pure", async () => {
             [2, 1, 0, -1, -2], //mayor tamaño
             [1, 0, -1],
           ];
-          const recived = util.anyArraySort(data, {
+          const recived = util.sortMixedArray(data, {
             direction: "desc",
           });
           expect(recived).toMatchObject(vExp);
@@ -2065,7 +2045,7 @@ describe("Util Pure", async () => {
             ["alvaro", "juan", "pedro"], //menor tamaño
             ["banana", "kiwi", "manzana", "pera", "zapote"],
           ];
-          const recived = util.anyArraySort(data, {
+          const recived = util.sortMixedArray(data, {
             direction: "asc",
           });
           expect(recived).toMatchObject(vExp);
@@ -2079,7 +2059,7 @@ describe("Util Pure", async () => {
             ["zapote", "pera", "manzana", "kiwi", "banana"], //mayor tamaño
             ["pedro", "juan", "alvaro"],
           ];
-          const recived = util.anyArraySort(data, {
+          const recived = util.sortMixedArray(data, {
             direction: "desc",
           });
           expect(recived).toMatchObject(vExp);
@@ -2105,7 +2085,7 @@ describe("Util Pure", async () => {
               { age: 89, name: "Pedro" },
             ],
           ];
-          const recived = util.anyArraySort(data, {
+          const recived = util.sortMixedArray(data, {
             direction: "asc",
             keyOrKeysPath: ["age", "name"],
           });
@@ -2133,7 +2113,7 @@ describe("Util Pure", async () => {
             ],
             ["Zulma", "maria", "Alvaro"],
           ];
-          const recived = util.anyArraySort(data, {
+          const recived = util.sortMixedArray(data, {
             direction: "desc",
             keyOrKeysPath: ["age", "name"],
             isCaseSensitiveForString: true,
@@ -2180,7 +2160,7 @@ describe("Util Pure", async () => {
             [7, 15],
             ["dato1", "dato2"],
           ];
-          const recived = util.anyArraySort(data, {
+          const recived = util.sortMixedArray(data, {
             direction: "asc",
             keyOrKeysPath: "id",
           });
@@ -2224,7 +2204,7 @@ describe("Util Pure", async () => {
             null,
             undefined,
           ];
-          const recived = util.anyArraySort(data, {
+          const recived = util.sortMixedArray(data, {
             direction: "desc",
             keyOrKeysPath: ["id", "p2.p21"],
           });
@@ -2232,53 +2212,53 @@ describe("Util Pure", async () => {
         });
       });
     });
-    describe("method: arrayRemoveDuplicate", async () => {
+    describe("method: removeArrayDuplicate", async () => {
       it("case: exception is not array to remove duplicates", async () => {
         const vExpThrow = /is not array to remove duplicates valid/;
-        const recivedThrowFn = () => util.arrayRemoveDuplicate(0 as any, {});
+        const recivedThrowFn = () => util.removeArrayDuplicate(0 as any, {});
         expect(recivedThrowFn).toThrowError(vExpThrow);
       });
       it("case: exception is not configuration object", async () => {
         const vExpThrow = /is not object of configuration/;
-        const recivedThrowFn = () => util.arrayRemoveDuplicate([], 0 as any);
+        const recivedThrowFn = () => util.removeArrayDuplicate([], 0 as any);
         expect(recivedThrowFn).toThrowError(vExpThrow);
       });
       it("case: exception is not conflict mode valid", async () => {
         const vExpThrow = /is not configuration's item conflict/;
         const recivedThrowFn = () =>
-          util.arrayRemoveDuplicate([], {
+          util.removeArrayDuplicate([], {
             itemConflictMode: 0 as any, //una configuracion no valida
           });
         expect(recivedThrowFn).toThrowError(vExpThrow);
       });
       it("case: empty array", async () => {
         const vExp = [];
-        const recived = util.arrayRemoveDuplicate([], {});
+        const recived = util.removeArrayDuplicate([], {});
         expect(recived).toMatchObject(vExp);
       });
       it("case: null undefined array", async () => {
         const data = [null, null, undefined, undefined];
         const vExp = [null, undefined];
-        const recived = util.arrayRemoveDuplicate(data, {});
+        const recived = util.removeArrayDuplicate(data, {});
         expect(recived).toMatchObject(vExp);
       });
       it("case: boolea array", async () => {
         const data = [true, true, false, true, false];
         const vExp = [true, false];
-        const recived = util.arrayRemoveDuplicate(data, {});
+        const recived = util.removeArrayDuplicate(data, {});
         expect(recived).toMatchObject(vExp);
       });
       it("case: number array", async () => {
         const data = [1, -1, 1, 2, -1, 2, 0, 0];
         const vExp = [1, -1, 2, 0]; //se respeta el orden (o desorden) del array base
         //(tambien influye el modo de conflicto, predefinido "last")
-        const recived = util.arrayRemoveDuplicate(data, {});
+        const recived = util.removeArrayDuplicate(data, {});
         expect(recived).toMatchObject(vExp);
       });
       it("case: string-number array (is compare string as number, last conflict mode)", async () => {
         const data = [0, "1", 1, 2, "2", 0];
         const vExp = [1, "2", 0]; //de los duplicados se toman los ultimos
-        const recived = util.arrayRemoveDuplicate(data, {
+        const recived = util.removeArrayDuplicate(data, {
           itemConflictMode: "last",
           isCompareStringToNumber: true,
         });
@@ -2287,7 +2267,7 @@ describe("Util Pure", async () => {
       it("case: string-number array (is compare string as number, first conflict mode)", async () => {
         const data = [0, "1", 1, 2, "2", 0];
         const vExp = [0, "1", 2]; //de los duplicados se toman los primeros
-        const recived = util.arrayRemoveDuplicate(data, {
+        const recived = util.removeArrayDuplicate(data, {
           itemConflictMode: "first",
           isCompareStringToNumber: true,
         });
@@ -2296,7 +2276,7 @@ describe("Util Pure", async () => {
       it("case: string-number array (is not compare string as number, last conflict mode)", async () => {
         const data = [0, "1", 1, 2, "2", 0];
         const vExp = ["1", 1, 2, "2", 0]; //de los duplicados se toman los ultimos
-        const recived = util.arrayRemoveDuplicate(data, {
+        const recived = util.removeArrayDuplicate(data, {
           itemConflictMode: "last",
           isCompareStringToNumber: false,
         });
@@ -2313,7 +2293,7 @@ describe("Util Pure", async () => {
           "piña",
         ];
         const vExp = ["banano", "pera", "manzana", "mango", "piña"];
-        const recived = util.arrayRemoveDuplicate(data, {
+        const recived = util.removeArrayDuplicate(data, {
           itemConflictMode: "last",
         });
         expect(recived).toMatchObject(vExp);
@@ -2337,7 +2317,7 @@ describe("Util Pure", async () => {
           "Piña", // "P"
           "piña",
         ]; ///al ser case sensitive ninguno es dplicado
-        const recived = util.arrayRemoveDuplicate(data, {
+        const recived = util.removeArrayDuplicate(data, {
           itemConflictMode: "last",
           isCaseSensitiveForString: true,
         });
@@ -2360,7 +2340,7 @@ describe("Util Pure", async () => {
           "mango",
           "piña", //es el ultimo duplicado
         ];
-        const recived = util.arrayRemoveDuplicate(data, {
+        const recived = util.removeArrayDuplicate(data, {
           itemConflictMode: "last",
           isCaseSensitiveForString: false,
         });
@@ -2383,7 +2363,7 @@ describe("Util Pure", async () => {
           "mango",
           "Piña", //es el primer duplicado
         ];
-        const recived = util.arrayRemoveDuplicate(data, {
+        const recived = util.removeArrayDuplicate(data, {
           itemConflictMode: "first",
           isCaseSensitiveForString: false,
         });
@@ -2408,7 +2388,7 @@ describe("Util Pure", async () => {
           { age: 14, name: "Pedro" },
           { age: 18, name: "juan" },
         ];
-        const recived = util.arrayRemoveDuplicate(data, {
+        const recived = util.removeArrayDuplicate(data, {
           itemConflictMode: "first",
         });
         expect(recived).toMatchObject(vExp);
@@ -2432,7 +2412,7 @@ describe("Util Pure", async () => {
           // {age: 14, name: "Pedro"}, //❌ esta duplicado
           { age: 18, name: "juan" },
         ];
-        const recived = util.arrayRemoveDuplicate(data, {
+        const recived = util.removeArrayDuplicate(data, {
           itemConflictMode: "first",
           keyOrKeysPath: "age",
         });
@@ -2457,7 +2437,7 @@ describe("Util Pure", async () => {
           { age: 14, name: "Pedro" }, //es el ultimo
           { age: 18, name: "juan" },
         ];
-        const recived = util.arrayRemoveDuplicate(data, {
+        const recived = util.removeArrayDuplicate(data, {
           itemConflictMode: "last",
           keyOrKeysPath: "age",
         });
@@ -2482,7 +2462,7 @@ describe("Util Pure", async () => {
           { age: 14, name: "Pedro" },
           { age: 16, name: "juan" }, //"j" no son duplicados (es case sensitive)
         ];
-        const recived = util.arrayRemoveDuplicate(data, {
+        const recived = util.removeArrayDuplicate(data, {
           itemConflictMode: "first",
           isCaseSensitiveForString: true,
           keyOrKeysPath: ["age", "name"],
@@ -2508,7 +2488,7 @@ describe("Util Pure", async () => {
           { age: 14, name: "Pedro" },
           //{ age: 16, name: "juan" }, //❌ esta duplicado, (no es case sensitive)
         ];
-        const recived = util.arrayRemoveDuplicate(data, {
+        const recived = util.removeArrayDuplicate(data, {
           itemConflictMode: "first",
           isCaseSensitiveForString: false,
           keyOrKeysPath: ["age", "name"],
@@ -2528,7 +2508,7 @@ describe("Util Pure", async () => {
           //{ age: 14, name: "Pablo", pd:{p1:1}},//❌ esta duplicado
           { age: 14, name: "Perla", pd: { p1: 3 } },
         ];
-        const recived = util.arrayRemoveDuplicate(data, {
+        const recived = util.removeArrayDuplicate(data, {
           itemConflictMode: "first",
           isCaseSensitiveForString: false,
           keyOrKeysPath: ["age", "pd.p1"],
@@ -2548,7 +2528,7 @@ describe("Util Pure", async () => {
           [1, 2, 3],
           //[1,2,3,4,5], //❌ duplicado
         ];
-        const recived = util.arrayRemoveDuplicate(data, {
+        const recived = util.removeArrayDuplicate(data, {
           itemConflictMode: "first",
           isCaseSensitiveForString: true,
           isCompareLength: false,
@@ -2568,7 +2548,7 @@ describe("Util Pure", async () => {
           [1, 2, 3],
           [1, 2, 3, 4, 5], //no es duplicado porque es de mayor tamaño
         ];
-        const recived = util.arrayRemoveDuplicate(data, {
+        const recived = util.removeArrayDuplicate(data, {
           itemConflictMode: "first",
           isCaseSensitiveForString: true,
           isCompareLength: true,
@@ -2588,7 +2568,7 @@ describe("Util Pure", async () => {
           [1, 2, 3],
           //[1,2,3,4,5], //❌ es duplicado
         ];
-        const recived = util.arrayRemoveDuplicate(data, {
+        const recived = util.removeArrayDuplicate(data, {
           itemConflictMode: "first",
           isCaseSensitiveForString: false,
           isCompareLength: false,
@@ -2772,7 +2752,7 @@ describe("Util Pure", async () => {
         expect(recived).toMatchObject(vExp);
       });
     });
-    describe("method: findArrayIntoArray", async () => {
+    describe("method: searchItemsInArray", async () => {
       it("case: serach", async () => {
         const aData = [
           { code: "A", age: 12, name: "Pedro" },
@@ -2786,7 +2766,7 @@ describe("Util Pure", async () => {
           { code: "B", age: 13, name: "Juan" },
           { code: "B", age: 8, name: "Miguel" },
         ];
-        const recived = util.findArrayIntoArray(aData, aSearch, {});
+        const recived = util.searchItemsInArray(aData, aSearch, {});
         expect(recived).toMatchObject(vExp);
       });
     });

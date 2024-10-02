@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "directories": {
-   
-  },
+  "directories": {},
   "scripts": {
     "test": "vitest"
   },
@@ -21,9 +19,11 @@
   },
   "homepage": "https://github.com/magles987/mag-util-typescript#readme",
   "devDependencies": {
+    "@types/node": "^22.7.4",
     "vitest": "^2.1.1"
   },
   "dependencies": {
     "lodash": "^4.17.21"
   }
 }
+
