@@ -64,7 +64,7 @@ export class UtilNative {
     /**es el valor que se va a asumir como valor
      * predefinido cuando haya ausencia de valor */
     public readonly dfValue: null | undefined
-  ) {}
+  ) { }
   /**
    * devuelve la instancia única de esta clase
    * ya sea que la crea o la que ya a sido creada
@@ -74,7 +74,7 @@ export class UtilNative {
   public static getInstance(defaultValue: null | undefined): UtilNative {
     UtilNative.UtilNative_instance =
       UtilNative.UtilNative_instance === undefined ||
-      UtilNative.UtilNative_instance === null
+        UtilNative.UtilNative_instance === null
         ? new UtilNative(defaultValue)
         : UtilNative.UtilNative_instance;
     return UtilNative.UtilNative_instance;
@@ -215,8 +215,8 @@ export class UtilNative {
     r.estrictType = !Number.isInteger(n)
       ? "float"
       : typeof n !== "bigint"
-      ? "int"
-      : "bigInt";
+        ? "int"
+        : "bigInt";
     return r;
   }
   /**
@@ -765,10 +765,14 @@ export class UtilNative {
       pathEnd,
       pathInit,
     } = option;
+    /**permitirá eliminar caracteres separadores de 
+     * cada item si los tiene iniciado o terminando el key */
+    const re = new RegExp(`^\\${sp}+|\\${sp}+$`, 'g');
     let path = aKeys.reduce((prePath, cKey, idx) => {
-      let r: string;
-      if (idx === 0 && !isInitWithSeparator) r = `${prePath}${cKey}`;
-      else r = `${prePath}${sp}${cKey}`;
+      cKey = cKey.replace(re, "");
+      let r = (idx === 0 && !isInitWithSeparator)
+        ? `${prePath}${cKey}`
+        : `${prePath}${sp}${cKey}`;
       return r;
     }, pathInit);
     if (pathEnd !== "") path = `${path}${sp}${pathEnd}`;
@@ -883,8 +887,8 @@ export class UtilNative {
     let keys = this.isArray(keyOrKeys, true)
       ? ([...(keyOrKeys as any)] as string[])
       : this.isString(keyOrKeys)
-      ? ([keyOrKeys as any] as string[])
-      : ([] as string[]);
+        ? ([keyOrKeys as any] as string[])
+        : ([] as string[]);
     keys = [...new Set(keys)]; //eliminacion de repetidos sencilla
     let r = false;
     if (!this.isObject(obj, allowEmpty)) {
@@ -896,10 +900,10 @@ export class UtilNative {
             propCondition === "it-exist"
               ? key in obj
               : propCondition === "is-not-undefined"
-              ? obj[key] !== undefined
-              : propCondition === "is-not-null"
-              ? obj[key] !== null
-              : this.isNotUndefinedAndNotNull(obj[key]);
+                ? obj[key] !== undefined
+                : propCondition === "is-not-null"
+                  ? obj[key] !== null
+                  : this.isNotUndefinedAndNotNull(obj[key]);
           return r;
         });
       } else {
@@ -980,8 +984,8 @@ export class UtilNative {
     let keysPath = this.isArray(keyOrKeysPath, true)
       ? ([...keyOrKeysPath] as string[])
       : this.isString(keyOrKeysPath)
-      ? ([keyOrKeysPath as any] as string[])
-      : ([] as string[]);
+        ? ([keyOrKeysPath as any] as string[])
+        : ([] as string[]);
     keysPath = [...new Set(keysPath)]; //eliminacion de repetidos sencilla
     let r = false;
     if (!this.isObject(obj, allowEmpty)) {
@@ -998,10 +1002,10 @@ export class UtilNative {
             propCondition === "it-exist"
               ? key in obj
               : propCondition === "is-not-undefined"
-              ? obj[cKey] !== undefined
-              : propCondition === "is-not-null"
-              ? obj[cKey] !== null
-              : this.isNotUndefinedAndNotNull(obj[cKey]);
+                ? obj[cKey] !== undefined
+                : propCondition === "is-not-null"
+                  ? obj[cKey] !== null
+                  : this.isNotUndefinedAndNotNull(obj[cKey]);
           //determinar si recorre profundidad
           if (r && lenKP > 1) {
             keysSplitPath.shift();
@@ -1231,8 +1235,8 @@ export class UtilNative {
     let keysPathForDelete = this.isArray(keyOrKeysPathForDelete, true)
       ? ([...keyOrKeysPathForDelete] as string[])
       : this.isString(keyOrKeysPathForDelete)
-      ? ([keyOrKeysPathForDelete] as string[])
-      : ([] as string[]);
+        ? ([keyOrKeysPathForDelete] as string[])
+        : ([] as string[]);
     isDeletePrivates = this.convertToBoolean(isDeletePrivates);
     const sp = this.charSeparatorLogicPath;
     //eliminar claves identificadoras repetidas
@@ -1563,8 +1567,8 @@ export class UtilNative {
             propB === undefined || (isNullAsUndefined && propB === null)
               ? propN
               : propN === undefined || (isNullAsUndefined && propN === null)
-              ? propB
-              : propN;
+                ? propB
+                : propN;
         } else if (mode === "hard") {
           //comprobacion de existencia de propiedad
           const isPropB = key in (objBase as object);
@@ -2447,8 +2451,8 @@ export class UtilNative {
     let keysPath = this.isArray(keyOrKeysPath, true)
       ? ([...keyOrKeysPath] as string[])
       : this.isNotUndefinedAndNotNull(keyOrKeysPath)
-      ? ([keyOrKeysPath] as string[])
-      : [];
+        ? ([keyOrKeysPath] as string[])
+        : [];
     let findArray = rootArray.filter((mAi) => {
       const r = searchArray.find((sAi) => {
         let r = this.isEquivalentTo([mAi, sAi], {
@@ -3182,8 +3186,8 @@ export class UtilNative {
     let keysPath = this.isArray(keyOrKeysPath, true)
       ? ([...keyOrKeysPath] as string[])
       : this.isString(keyOrKeysPath)
-      ? ([keyOrKeysPath] as string[])
-      : ([] as string[]);
+        ? ([keyOrKeysPath] as string[])
+        : ([] as string[]);
     isCompareLength = this.convertToBoolean(isCompareLength);
     isCompareSize = this.convertToBoolean(isCompareSize);
     isCompareStringToNumber = this.convertToBoolean(isCompareStringToNumber);
@@ -3598,8 +3602,8 @@ export class UtilNative {
     let keysPath = this.isArray(keyOrKeysPath, true)
       ? ([...keyOrKeysPath] as string[])
       : this.isString(keyOrKeysPath)
-      ? ([keyOrKeysPath] as string[])
-      : ([] as string[]);
+        ? ([keyOrKeysPath] as string[])
+        : ([] as string[]);
     isCompareLength = this.convertToBoolean(isCompareLength);
     isCompareSize = this.convertToBoolean(isCompareSize);
     isAllowEquivalent = this.convertToBoolean(isAllowEquivalent);
@@ -3623,7 +3627,7 @@ export class UtilNative {
         let lenItemRun =
           lenItemBase <= lenItemToCompare
             ? //se selecciona el len mas pequeño para recorrer
-              lenItemBase
+            lenItemBase
             : lenItemToCompare;
         //comparar todos loes elementos
         for (let idx = 0; idx < lenItemRun; idx++) {
@@ -4131,8 +4135,8 @@ export class UtilNative {
     let keysPath = this.isArray(keyOrKeysPath, true)
       ? ([...keyOrKeysPath] as string[])
       : this.isString(keyOrKeysPath)
-      ? ([keyOrKeysPath] as string[])
-      : ([] as string[]);
+        ? ([keyOrKeysPath] as string[])
+        : ([] as string[]);
     isCompareLength = this.convertToBoolean(isCompareLength);
     isCompareSize = this.convertToBoolean(isCompareSize);
     isAllowEquivalent = this.convertToBoolean(isAllowEquivalent);
@@ -4156,7 +4160,7 @@ export class UtilNative {
         let lenItemRun =
           lenItemBase <= lenItemToCompare
             ? //se selecciona el len mas pequeño para recorrer
-              lenItemBase
+            lenItemBase
             : lenItemToCompare;
         //comparar todos loes elementos
         for (let idx = 0; idx < lenItemRun; idx++) {

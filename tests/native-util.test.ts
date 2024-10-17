@@ -675,6 +675,19 @@ describe("Util Pure", async () => {
         const recived = util.buildPath(data);
         expect(recived).toBe(vExp);
       });
+      it("case: default path with keys wrapped format", async () => {
+        const data = [
+          ".ruta1.", //separador al inicio y final
+          ".ruta2", //separador solamente al inicio
+          "ruta3.", //separador solamente al final
+          "ru.ta4", // separado en medio
+          ".ruta.5.", //separador al inicio final y medio
+          "......ruta6...", //separadores al inicio y final
+        ];
+        const vExp = "ruta1.ruta2.ruta3.ru.ta4.ruta.5.ruta6"; //es capas de evitar rutas mal formateadas como "ruta1..ruta2"
+        const recived = util.buildPath(data);
+        expect(recived).toBe(vExp);
+      });
       it("case: path char separator in init", async () => {
         const data = ["ruta1", "ruta2"];
         const vExp = "/ruta1/ruta2"; //"/" al inicio
@@ -969,7 +982,7 @@ describe("Util Pure", async () => {
         expect(recived).toBe(vExp);
       });
       it("case: is not literal object (because is instance (Custom))", async () => {
-        class MiClase {}
+        class MiClase { }
         const data = new MiClase();
         const vExp = false;
         const recived = util.isLiteralObject(data);
@@ -1002,7 +1015,7 @@ describe("Util Pure", async () => {
         expect(recived).toBe(vExp);
       });
       it("case: is instance (empty class)", async () => {
-        class MiClaseVacia {} //clase vacia
+        class MiClaseVacia { } //clase vacia
         const data = new MiClaseVacia();
         const vExp = true;
         const recived = util.isInstance(data);
@@ -1017,7 +1030,7 @@ describe("Util Pure", async () => {
         expect(recivedThrowFn).toThrowError(vExpThrow);
       });
       it("case: get class name", async () => {
-        class MiClaseParaName {} //clase vacia
+        class MiClaseParaName { } //clase vacia
         const data = new MiClaseParaName();
         const vExp = "MiClaseParaName";
         const recived = util.getClassName(data);
@@ -2975,7 +2988,7 @@ describe("Util Pure", async () => {
         try {
           //siempre se dispara el error porque structuredClone no clona funciones
           const t = recived.pFn();
-        } catch (error) {} //detectarlo y no hacer nada
+        } catch (error) { } //detectarlo y no hacer nada
         expect(recived)
           .not //no puede ser igual porque stringify no clona funciones
           .toStrictEqual(vExp); //strict para verificar clonacion exacta
@@ -2993,7 +3006,7 @@ describe("Util Pure", async () => {
         try {
           recived = util.clone(data, "structuredClone"); //❗structuredClone nisiquiera intenta la clonacion, lanza error❗
           const t = recived.pFn();
-        } catch (error) {} //detectarlo y no hacer nada
+        } catch (error) { } //detectarlo y no hacer nada
         expect(recived)
           .not //no puede ser igual porque stringify no clona funciones
           .toStrictEqual(vExp); //strict para verificar clonacion exacta
@@ -3001,7 +3014,7 @@ describe("Util Pure", async () => {
       it("case: clone instance by stringify)", async () => {
         class ClassA {
           private p2: number;
-          constructor(public p1: string) {}
+          constructor(public p1: string) { }
           public doAny(): boolean {
             return true;
           }
@@ -3012,7 +3025,7 @@ describe("Util Pure", async () => {
         try {
           //siempre se dispara el error porque structuredClone no clona funciones
           const t = recived.doAny();
-        } catch (error) {} //detectarlo y no hacer nada
+        } catch (error) { } //detectarlo y no hacer nada
         expect(recived)
           .not //no puede ser igual porque stringify no clona funciones
           .toStrictEqual(vExp);
@@ -3020,7 +3033,7 @@ describe("Util Pure", async () => {
       it("case: clone instance by structuredClone)", async () => {
         class ClassA {
           private p2 = 10;
-          constructor(public p1: string) {}
+          constructor(public p1: string) { }
           public doAny(): boolean {
             return true;
           }
@@ -3031,7 +3044,7 @@ describe("Util Pure", async () => {
         try {
           //siempre se dispara el error porque structuredClone no clona funciones
           const t = recived.doAny();
-        } catch (error) {} //detectarlo y no hacer nada
+        } catch (error) { } //detectarlo y no hacer nada
         expect(recived)
           .not //no puede ser igual porque recived no es una instancia (no se clonaron las funciones)
           .toStrictEqual(vExp);
@@ -3503,7 +3516,7 @@ describe("Util Pure", async () => {
         expect(recived).toBe(vExp);
       });
       it("case: is function", async () => {
-        const data = () => {};
+        const data = () => { };
         const vExp = true;
         const recived = util.isValueType(data, "is", "function");
         expect(recived).toBe(vExp);
@@ -4238,7 +4251,7 @@ describe("Util Pure", async () => {
         expect(recived).toBe(vExp);
       });
       it("case: function > null)", async () => {
-        const data1 = () => {};
+        const data1 = () => { };
         const data2 = null;
         const vExp = true; //function pesa mas que null
         const recived = util.isGreaterTo([data1, data2], {
@@ -4264,7 +4277,7 @@ describe("Util Pure", async () => {
       });
       it("case: boolean > function)", async () => {
         const data1 = false;
-        const data2 = () => {};
+        const data2 = () => { };
         const vExp = true; //false pesa mas que function
         const recived = util.isGreaterTo([data1, data2], {
           isAllowEquivalent: false,
@@ -4863,7 +4876,7 @@ describe("Util Pure", async () => {
       });
       it("case: null < function)", async () => {
         const data1 = null;
-        const data2 = () => {};
+        const data2 = () => { };
         const vExp = true; //null pesa manos que null
         const recived = util.isLesserTo([data1, data2], {
           isAllowEquivalent: false,
@@ -4887,7 +4900,7 @@ describe("Util Pure", async () => {
         expect(recived).toBe(vExp);
       });
       it("case: function < boolean )", async () => {
-        const data1 = () => {};
+        const data1 = () => { };
         const data2 = false;
         const vExp = true; //function pesa menos que false
         const recived = util.isLesserTo([data1, data2], {
