@@ -691,23 +691,24 @@ export class UtilNative {
    * const keys = ["home", "user", "documents"];
    * let path: string;
    * //ejemplo 1:
-   * path = buildPath(keys, { charSeparator: "/", isInitWithSeparator: true });
+   * path = buildPath(keys, { charSeparator: "/", isStartWithSeparator: true });
    * console.log(path); // salida: "/home/user/documents"
    *
    * //ejemplo 2:
    * path = buildPath(keys, {
    *   charSeparator: "/",
-   *   isJoinInitWithSeparator: true,
-   *   isJoinEndtWithSeparator: true
+   *   isStartWithSeparator: false, //no inicializar con "/"
+   *   isFinishWithSeparator: true, //si finalizar con "/"
    * });
-   * console.log(path); // salida: "/home/user/documents/"
+   * console.log(path); // salida: "home/user/documents/"
    *
    * //ejemplo 3:
    * path = buildPath(keys, {
    *   charSeparator: "/",
-   *   isJoinInitWithSeparator: true,
-   *   isJoinEndtWithSeparator: true,
-   *   pathInit: ".."
+   *   isStartWithSeparator: false, //no inicializar con "/"
+   *   isFinishWithSeparator: true, //si finalizar con "/"
+   *   pathInit: "..",  
+   *   isJoinInitWithSeparator: true //unir ".." al path con "/"
    * });
    * console.log(path); // salida: "../home/user/documents/"
    * ```
