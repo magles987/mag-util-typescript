@@ -688,31 +688,97 @@ describe("Util Pure", async () => {
         const recived = util.buildPath(data);
         expect(recived).toBe(vExp);
       });
-      it("case: path char separator in init", async () => {
+      it("case: path char separator start", async () => {
         const data = ["ruta1", "ruta2"];
         const vExp = "/ruta1/ruta2"; //"/" al inicio
         const recived = util.buildPath(data, {
           charSeparator: "/",
-          isInitWithSeparator: true,
+          isStartWithSeparator: true
         });
         expect(recived).toBe(vExp);
       });
-      it("case: path with default init", async () => {
+      it("case: path char separator start with Init", async () => {
         const data = ["ruta1", "ruta2"];
-        const pathInit = "initial";
-        const vExp = "initialruta1.ruta2"; //"initial" al inicio de la ruta pero sin el caracter
+        const pathInit = "inicio"
+        const vExp = "/inicio/ruta1/ruta2"; //"/" al inicio
         const recived = util.buildPath(data, {
+          charSeparator: "/",
+          isStartWithSeparator: true,
+          isJoinInitWithSeparator: true,
           pathInit,
         });
         expect(recived).toBe(vExp);
       });
-      it("case: path with default init and char separator", async () => {
+      it("case: path with Init and without char separator start", async () => {
         const data = ["ruta1", "ruta2"];
-        const pathInit = "initial";
-        const vExp = "initial.ruta1.ruta2"; //"initial" al inicio con separacion
+        const pathInit = "inicio"
+        const vExp = "inicio/ruta1/ruta2"; //"/" No esta al inicio
         const recived = util.buildPath(data, {
+          charSeparator: "/",
+          isStartWithSeparator: false, //no inicie
+          isJoinInitWithSeparator: true,
           pathInit,
-          isInitWithSeparator: true,
+        });
+        expect(recived).toBe(vExp);
+      });
+      it("case: path with char separator start and without join init", async () => {
+        const data = ["ruta1", "ruta2"];
+        const pathInit = "inicio"
+        const vExp = "/inicioruta1/ruta2"; //"/" inicia pero el pathInit no se une con el caracter separador
+        const recived = util.buildPath(data, {
+          charSeparator: "/",
+          isStartWithSeparator: true, //inicie
+          isJoinInitWithSeparator: false, //no unir
+          pathInit,
+        });
+        expect(recived).toBe(vExp);
+      });
+      it("case: path char separator finish with end", async () => {
+        const data = ["ruta1", "ruta2"];
+        const pathEnd = "finaliza";
+        const vExp = "ruta1/ruta2/finaliza/"; //"/" al finalizar
+        const recived = util.buildPath(data, {
+          charSeparator: "/",
+          isFinishWithSeparator: true,
+          isJoinEndtWithSeparator: true,
+          pathEnd,
+        });
+        expect(recived).toBe(vExp);
+      });
+      it("case: path with End and without char separator finish", async () => {
+        const data = ["ruta1", "ruta2"];
+        const pathEnd = "finaliza";
+        const vExp = "ruta1/ruta2/finaliza"; //"/" no esta al finalizar
+        const recived = util.buildPath(data, {
+          charSeparator: "/",
+          isFinishWithSeparator: false,
+          isJoinEndtWithSeparator: true,
+          pathEnd,
+        });
+        expect(recived).toBe(vExp);
+      });
+      it("case: path with char separator finish and without join end", async () => {
+        const data = ["ruta1", "ruta2"];
+        const pathEnd = "finaliza";
+        const vExp = "ruta1/ruta2finaliza/"; // finalizar con "/" pero el pathEnd no se une con el caracter separador
+        const recived = util.buildPath(data, {
+          charSeparator: "/",
+          isFinishWithSeparator: true, //inicie
+          isJoinEndtWithSeparator: false, //no unir
+          pathEnd,
+        });
+        expect(recived).toBe(vExp);
+      });
+      it("case: path with empty keys", async () => {
+        const data = ["ruta1", "", "ruta3", "", "ruta5"];
+        const pathInit = "inicio";
+        const pathEnd = "finaliza";
+        const vExp = "inicio.ruta1.ruta3.ruta5.finaliza";// no toma en cuenta los vacios
+        const recived = util.buildPath(data, {
+          isJoinInitWithSeparator: true,
+          isJoinEndtWithSeparator: true,
+          pathInit,
+          pathEnd
         });
         expect(recived).toBe(vExp);
       });

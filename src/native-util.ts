@@ -677,8 +677,10 @@ export class UtilNative {
    * @param {string[]} aKeys - El array de strings que se utilizará para construir el path.
    * @param {object} [option] - Opciones para personalizar la construcción del path:
    *  - `charSeparator` (string) `= "."`: El carácter separador a utilizar entre los elementos del path.
-   *  - `isInitWithSeparator` (boolean) `= false`: Determina si el path debe iniciar con el carácter separador.
-   *  - `isEndtWithSeparator` (boolean) `= false` : Determina si el path debe terminar con el carácter separador.
+   *  - `isStartWithSeparator` (boolean) `= false` Determina si el path debe iniciar con el caracter separador.
+   *  - `isStartWithSeparator` (boolean) `= false` Determina si el path debe iniciar con el caracter separador.
+   *  - `isInitWithSeparator` (boolean) `= false`: Determina si el `pathInit` debe unirse al path con caracter separador.
+   *  - `isEndtWithSeparator` (boolean) `= false` : Determina si el `pathEnd` debe unirse al path con caracter separador.
    *  - `pathInit` (string) `= ""`: El prefijo a añadir al inicio del path.
    *  - `pathEnd` (string) `= ""`: El sufijo a añadir al final del path.
    * @returns el string del path ya construido
@@ -695,16 +697,16 @@ export class UtilNative {
    * //ejemplo 2:
    * path = buildPath(keys, {
    *   charSeparator: "/",
-   *   isInitWithSeparator: true,
-   *   isEndtWithSeparator: true
+   *   isJoinInitWithSeparator: true,
+   *   isJoinEndtWithSeparator: true
    * });
    * console.log(path); // salida: "/home/user/documents/"
    *
    * //ejemplo 3:
    * path = buildPath(keys, {
    *   charSeparator: "/",
-   *   isInitWithSeparator: true,
-   *   isEndtWithSeparator: true,
+   *   isJoinInitWithSeparator: true,
+   *   isJoinEndtWithSeparator: true,
    *   pathInit: ".."
    * });
    * console.log(path); // salida: "../home/user/documents/"
@@ -715,10 +717,14 @@ export class UtilNative {
     option?: {
       /** `= "."`: El carácter separador a utilizar entre los elementos del path. */
       charSeparator?: string;
-      /** `= false`: Determina si el path debe iniciar con el carácter separador. */
-      isInitWithSeparator?: boolean;
-      /** `= false` : Determina si el path debe terminar con el carácter separador. */
-      isEndtWithSeparator?: boolean;
+      /** `= false`: Determina si el path debe iniciar con el caracter separador */
+      isStartWithSeparator?: boolean;
+      /** `= false`: Determina si el path debe terminar con el caracter separador */
+      isFinishWithSeparator?: boolean;
+      /** `= false`: Determina si el `pathInit` debe unirse al path con caracter separador. */
+      isJoinInitWithSeparator?: boolean;
+      /** `= false` : Determina si el `pathEnd` debe unirse al path con caracter separador. */
+      isJoinEndtWithSeparator?: boolean;
       /** `= ""`: El prefijo a añadir al inicio del path. */
       pathInit?: string;
       /** `= ""`: El sufijo a añadir al final del path.*/
@@ -727,8 +733,10 @@ export class UtilNative {
   ): string {
     const dfOp: typeof option = {
       charSeparator: this.charSeparatorLogicPath,
-      isInitWithSeparator: false, //❗No inicia con caracter separador❗,
-      isEndtWithSeparator: false, //❗No termina con caracter separador❗,
+      isStartWithSeparator: false, //❗No inicia con caracter separador❗,
+      isFinishWithSeparator: false, //❗No termina con caracter separador❗
+      isJoinInitWithSeparator: false, //no une con caracter separador
+      isJoinEndtWithSeparator: false, //no une con caracter separador
       pathInit: "",
       pathEnd: "",
     };
@@ -742,12 +750,18 @@ export class UtilNative {
         charSeparator: this.isString(op.charSeparator)
           ? op.charSeparator
           : dfOp.charSeparator,
-        isInitWithSeparator: this.isBoolean(op.isInitWithSeparator)
-          ? op.isInitWithSeparator
-          : dfOp.isInitWithSeparator,
-        isEndtWithSeparator: this.isBoolean(op.isEndtWithSeparator)
-          ? op.isEndtWithSeparator
-          : dfOp.isEndtWithSeparator,
+        isStartWithSeparator: this.isBoolean(op.isStartWithSeparator)
+          ? op.isStartWithSeparator
+          : dfOp.isStartWithSeparator,
+        isFinishWithSeparator: this.isBoolean(op.isFinishWithSeparator)
+          ? op.isFinishWithSeparator
+          : dfOp.isFinishWithSeparator,
+        isJoinInitWithSeparator: this.isBoolean(op.isJoinInitWithSeparator)
+          ? op.isJoinInitWithSeparator
+          : dfOp.isJoinInitWithSeparator,
+        isJoinEndtWithSeparator: this.isBoolean(op.isJoinEndtWithSeparator)
+          ? op.isJoinEndtWithSeparator
+          : dfOp.isJoinEndtWithSeparator,
         pathInit:
           this.isString(op.pathInit) || this.isNumber(op.pathInit, true)
             ? op.pathInit
@@ -760,26 +774,31 @@ export class UtilNative {
     }
     const {
       charSeparator: sp,
-      isInitWithSeparator,
-      isEndtWithSeparator,
+      isStartWithSeparator,
+      isFinishWithSeparator,
+      isJoinInitWithSeparator,
+      isJoinEndtWithSeparator,
       pathEnd,
       pathInit,
     } = option;
     /**permitirá eliminar caracteres separadores de 
      * cada item si los tiene iniciado o terminando el key */
     const re = new RegExp(`^\\${sp}+|\\${sp}+$`, 'g');
-    let path = aKeys.reduce((prePath, cKey, idx) => {
-      cKey = cKey.replace(re, "");
-      let r = "";
-      if (cKey !== "") {
-        r = (idx === 0 && !isInitWithSeparator)
-          ? `${prePath}${cKey}`
-          : `${prePath}${sp}${cKey}`;
+    let aKeys_clon = [...aKeys]; //clonacion sencilla
+    //reducir:
+    let path = aKeys_clon.reduce((prePath, cKey, idx) => {
+      const keyCC = cKey.replace(re, "");
+      let r = prePath;
+      if (keyCC !== "") {
+        r = (idx !== 0) ? `${prePath}${sp}${keyCC}` : `${prePath}${keyCC}`;
       }
       return r;
-    }, pathInit);
-    if (pathEnd !== "") path = `${path}${sp}${pathEnd}`;
-    if (isEndtWithSeparator) path = `${path}${sp}`;
+    }, "");
+    //formateo adicional:
+    if (pathInit !== "") path = isJoinInitWithSeparator ? `${pathInit}${sp}${path}` : `${pathInit}${path}`;
+    if (pathEnd !== "") path = isJoinEndtWithSeparator ? `${path}${sp}${pathEnd}` : `${path}${pathEnd}`;
+    if (isStartWithSeparator) path = `${sp}${path}`;
+    if (isFinishWithSeparator) path = `${path}${sp}`;
     return path;
   }
   //████Objetos████████████████████████████████████████████████████
