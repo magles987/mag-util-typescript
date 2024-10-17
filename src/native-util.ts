@@ -770,9 +770,12 @@ export class UtilNative {
     const re = new RegExp(`^\\${sp}+|\\${sp}+$`, 'g');
     let path = aKeys.reduce((prePath, cKey, idx) => {
       cKey = cKey.replace(re, "");
-      let r = (idx === 0 && !isInitWithSeparator)
-        ? `${prePath}${cKey}`
-        : `${prePath}${sp}${cKey}`;
+      let r = "";
+      if (cKey !== "") {
+        r = (idx === 0 && !isInitWithSeparator)
+          ? `${prePath}${cKey}`
+          : `${prePath}${sp}${cKey}`;
+      }
       return r;
     }, pathInit);
     if (pathEnd !== "") path = `${path}${sp}${pathEnd}`;
