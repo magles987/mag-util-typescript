@@ -52,13 +52,9 @@ export class UtilNative {
    */
   public readonly sepDateRegExp = /\-|\/|\.|\#|\_|\:/;
   /**determina si ya esta definido el valor predefinido*/
-  private static isDfValue: boolean = false;
-  private static _dfValue: null | undefined = undefined;
+  private static _isDfValue: boolean = false;
   /**valor predefinido global */
-  public static get dfValue(): null | undefined {
-    //❗debe ser estático porque esta clase puede ser heredada de otras singletons❗
-    return UtilNative._dfValue;
-  }
+  private static _dfValue: null | undefined = undefined;
   /**valor predefinido global*/ //para uso de instancia
   public get dfValue(): null | undefined {
     return UtilNative._dfValue;
@@ -77,9 +73,9 @@ export class UtilNative {
     dfValue: null | undefined
   ) {
     //❗solo se puede modificar una vez❗
-    if (!UtilNative.isDfValue) {
+    if (!UtilNative._isDfValue) {
       UtilNative._dfValue = dfValue;
-      UtilNative.isDfValue = true;
+      UtilNative._isDfValue = true;
     }
   }
   /**
