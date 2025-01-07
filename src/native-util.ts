@@ -1574,9 +1574,25 @@ export class UtilNative {
       mode,
       isNullAsUndefined = false, //predefinido
     } = config;
-    const uKeys = [
-      ...new Set([...Object.keys(objBase), ...Object.keys(objNew)]),
-    ];
+    let otherKeys = [];
+    for (const key in objBase) {
+      otherKeys.push(key);
+    }
+    let keysB = Object.keys(objBase);
+    keysB = !this.isInstance(objBase) //las instancias deben ser tratadas de forma especial
+      ? keysB
+      : [
+          ...Object.getOwnPropertyNames(Object.getPrototypeOf(objBase)),
+          ...keysB,
+        ];
+    let keysN = Object.keys(objNew);
+    keysN = !this.isInstance(objNew) //las instancias deben ser tratadas de forma especial
+      ? keysN
+      : [
+          ...Object.getOwnPropertyNames(Object.getPrototypeOf(objNew)),
+          ...keysN,
+        ];
+    const uKeys = [...new Set([...keysB, ...keysN])];
     let rObj: any = {};
     for (const key of uKeys) {
       const propB = objBase[key];
