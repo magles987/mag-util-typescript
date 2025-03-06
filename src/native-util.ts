@@ -92,7 +92,7 @@ export class UtilNative {
         : UtilNative.UtilNative_instance;
     return UtilNative.UtilNative_instance;
   }
-  //████Booleanos███████████████████████████████████████████████████
+  //████ Booleanos ███████████████████████████████████████████████████
   /**
    * Determina si un valor es booleano.
    *
@@ -118,6 +118,25 @@ export class UtilNative {
    *   - `"isZeroAsTrue"`: El valor `0` se asume como `true`.
    *   - `"isNullAsTrue"`: El valor `null` se asume como `true`.
    * @returns {boolean} Retorna el booleano correspondiente al valor recibido.
+   *
+   * @example
+   * ```typescript
+   * const value1 = "hello";
+   * const result1 = convertToBoolean(value1);
+   * console.log(result1); // salida: true
+   *
+   * const value2 = "";
+   * const result2 = convertToBoolean(value2, ["isEmptyAsTrue"]);
+   * console.log(result2); // salida: true
+   *
+   * const value3 = 0;
+   * const result3 = convertToBoolean(value3, ["isZeroAsTrue"]);
+   * console.log(result3); // salida: true
+   *
+   * const value4 = null;
+   * const result4 = convertToBoolean(value4, ["isNullAsTrue"]);
+   * console.log(result4); // salida: true
+   * ```
    */
   public convertToBoolean(
     anyToCast: any,
@@ -130,7 +149,7 @@ export class UtilNative {
       throw new Error(
         `${castExceptions} is not array of cast exceptions valid`
       );
-    castExceptions = [...new Set(castExceptions)]; // eliminacion basica de duplicados primitivos
+    castExceptions = [...new Set(castExceptions)]; // eliminación básica de duplicados primitivos
     if (typeof anyToCast === "string") {
       r =
         anyToCast !== "" ||
@@ -144,15 +163,15 @@ export class UtilNative {
       //el caso especial de numero 0
       r = castExceptions.includes("isZeroAsTrue");
     } else if (anyToCast === null) {
-      //el caso especial de numero 0
+      //el caso especial de null
       r = castExceptions.includes("isNullAsTrue");
     } else {
-      //lo demas
+      //lo demás
       r = !!anyToCast; //cast
     }
     return r;
   }
-  //████Numeros██████████████████████████████████████████████████████
+  //████ Números ██████████████████████████████████████████████████████
   /**
    * Determina si el valor proporcionado es un número.
    *
@@ -161,12 +180,16 @@ export class UtilNative {
    * @returns {boolean} Retorna `true` si el valor es un número, `false` de lo contrario.
    */
   public isNumber(num: unknown, allowString = false): boolean {
-    const parse = parseFloat(num);
     allowString = this.convertToBoolean(allowString);
-    const r =
-      (typeof num === "number" || (typeof num === "string" && allowString)) &&
-      !isNaN(parse) &&
-      isFinite(parse);
+    let r: boolean;
+    if (typeof num === "number") {
+      r = !isNaN(num) && isFinite(num);
+    } else if (typeof num === "string" && allowString) {
+      const parse = parseFloat(num as string);
+      r = !isNaN(parse) && isFinite(parse);
+    } else {
+      r = false;
+    }
     return r;
   }
   /**dertermina si el número proporcionado corresponde a
@@ -455,7 +478,7 @@ export class UtilNative {
     }
     return num;
   }
-  //████Textos█████████████████████████████████████████████████████
+  //████ Textos █████████████████████████████████████████████████████
   /**
    * Determina si un valor es un string, con la opción de aceptar o no string vacíos.
    *
