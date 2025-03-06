@@ -106,7 +106,7 @@ export class UtilNative {
    * console.log(result); // salida: true
    * ```
    */
-  public isBoolean(bool: any): boolean {
+  public isBoolean(bool: unknown): boolean {
     return typeof bool === "boolean";
   }
   /**
@@ -160,7 +160,7 @@ export class UtilNative {
    * @param {boolean} allowString `= false`. Determina si se permite que el número se reciba en tipo string.
    * @returns {boolean} Retorna `true` si el valor es un número, `false` de lo contrario.
    */
-  public isNumber(num: any, allowString = false): boolean {
+  public isNumber(num: unknown, allowString = false): boolean {
     const parse = parseFloat(num);
     allowString = this.convertToBoolean(allowString);
     const r =
@@ -474,7 +474,7 @@ export class UtilNative {
    * console.log(!isString(a, false)); // salida `true` niega el negar vacios (vacios prmitidos)
    * ```
    */
-  public isString(str: any, allowEmpty = false): boolean {
+  public isString(str: unknown, allowEmpty = false): boolean {
     allowEmpty = this.convertToBoolean(allowEmpty);
     const r = typeof str === "string" && (allowEmpty || str !== "");
     return r;
@@ -846,7 +846,7 @@ export class UtilNative {
    * console.log(isObject(a)); // salida `false` (un array (vacío o poblado) no lo considera objeto literal)
    * ```
    */
-  public isObject(value: any, allowEmpty = false): boolean {
+  public isObject(value: unknown, allowEmpty = false): boolean {
     allowEmpty = this.convertToBoolean(allowEmpty);
     const r =
       typeof value === "object" &&
@@ -1770,7 +1770,7 @@ export class UtilNative {
    * console.log(isObject(a)); // salida `false` (un objeto (vacío o poblado) no lo considera array)
    * ```
    */
-  public isArray(value: any, allowEmpty = false): boolean {
+  public isArray(value: unknown, allowEmpty = false): boolean {
     const r = Array.isArray(value) && (allowEmpty || value.length > 0);
     return r;
   }
@@ -2710,7 +2710,7 @@ export class UtilNative {
    * console.log(result2); // salida: false
    * ```
    */
-  public isFunction(fn: any): boolean {
+  public isFunction(fn: unknown): boolean {
     const r = typeof fn === "function";
     return r;
   }
