@@ -222,33 +222,33 @@ export class UtilNative {
    * @returns {object} - Retorna un objeto con las siguientes propiedades:
    *   - `polarity`: Indica si el número es "positive" o "negative".
    *   - `genericType`: Indica si el valor es un "number" o un "string-number".
-   *   - `estrictType`: Indica si el número es un "int", "bigInt" o "float".
+   *   - `strictType`: Indica si el número es un "int", "bigInt" o "float".
    *
    * @example
    * ```typescript
    * let report = getTypeNumber("123");
    * console.log(report);
-   * // Salida: { polarity: "positive", genericType: "string-number", estrictType: "int" }
+   * // Salida: { polarity: "positive", genericType: "string-number", strictType: "int" }
    *
    * report = getTypeNumber(-321.654);
    * console.log(report);
-   * // Salida: { polarity: "negative", genericType: "number", estrictType: "float" }
+   * // Salida: { polarity: "negative", genericType: "number", strictType: "float" }
    * ```
    */
   public getNumberReport(num: number | string): {
     polarity: "positive" | "negative";
     genericType: "number" | "string-number";
-    estrictType: "int" | "bigInt" | "float";
+    strictType: "int" | "bigInt" | "float";
   } {
     let r = {
       polarity: "" as "positive" | "negative",
       genericType: "" as "number" | "string-number",
-      estrictType: "" as "int" | "bigInt" | "float",
+      strictType: "" as "int" | "bigInt" | "float",
     };
     let n = this.stringToNumber(num);
     r.polarity = n < 0 ? "negative" : "positive"; //el `0` se considera positivo
     r.genericType = this.isString(num) ? "string-number" : "number";
-    r.estrictType = !Number.isInteger(n)
+    r.strictType = !Number.isInteger(n)
       ? "float"
       : typeof n !== "bigint"
       ? "int"
@@ -381,7 +381,7 @@ export class UtilNative {
     let exp = this.stringToNumber(exponential); //garantizar que es un numero
     if (!this.isString(type, true))
       throw new Error(`${type} is not type valid`);
-    if (this.getNumberReport(exp).estrictType !== "int")
+    if (this.getNumberReport(exp).strictType !== "int")
       throw new Error(`${exponential} is not exponential factor valid`);
     //caso especial si es 0 (no hay forma de redondear)
     if (n === 0) return n;
