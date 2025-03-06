@@ -821,7 +821,7 @@ export class UtilNative {
     if (isFinishWithSeparator) path = `${path}${sp}`;
     return path;
   }
-  //████Objetos████████████████████████████████████████████████████
+  //████ Objetos ████████████████████████████████████████████████████
   /**
    * Determina si el valor recibido corresponde a un objeto.
    *
@@ -1288,7 +1288,7 @@ export class UtilNative {
     let r = {};
     for (const keyProp in obj) {
       //eliminar funciones
-      if (typeof obj[keyProp] === "function") continue;
+      if (this.isFunction(obj[keyProp])) continue;
       //eliminar propiedades con prefijo "_" (si esta habilitado)
       if (isDeletePrivates && /^_/.test(keyProp)) continue;
       //verificar que la propiedad al ser objeto elimine las propiedades seleccionadas por keyOrKeysPath
@@ -1363,7 +1363,7 @@ export class UtilNative {
     if (!this.isObject(obj)) throw new Error(`${obj} is not object valid`);
     let newObj = {};
     for (const keyFn in obj) {
-      if (typeof obj[keyFn] === "function" && keyFn !== "constructor") {
+      if (this.isFunction(obj[keyFn]) && keyFn !== "constructor") {
         newObj[keyFn] = obj[keyFn];
         newObj[keyFn] = this.isObject(thisBind)
           ? (newObj[keyFn] as Function).bind(thisBind)
@@ -1745,7 +1745,7 @@ export class UtilNative {
     const fObj = Object.freeze(obj);
     return fObj;
   }
-  //█████Arrays██████████████████████████████████████████████████████
+  //█████ Arreglos ██████████████████████████████████████████████████████
   /**
    * Determina si es un array, con la opción de aceptar o no arrays vacíos.`
    *
@@ -2554,7 +2554,7 @@ export class UtilNative {
     const fArr = Object.freeze(arr);
     return fArr;
   }
-  //████tuple███████████████████████████████████████████████████████
+  //████ tuplas ███████████████████████████████████████████████████████
   /**
    * Determina si un valor es una tupla de un tamaño específico o dentro de un rango de tamaños.
    *
@@ -2668,7 +2668,7 @@ export class UtilNative {
     });
     return aT as TATuple;
   }
-  //████Fechas███████████████████████████████████████████████████████
+  //████ Fechas ███████████████████████████████████████████████████████
   /**determina si el numero es un timestamp valido
    * @param {any} timestamp el numero a validar como timestamp, se puede recibir como number o como string-number
    * @returns si es un timestamp valido
@@ -2694,7 +2694,55 @@ export class UtilNative {
     let rDate = new Date(year, month, day);
     return rDate.getTime();
   }
-  //████Generales████████████████████████████████████████████████████
+  //████ Funciones ████████████████████████████████████████████████████
+  /**
+   * Determina si un valor es una función.
+   *
+   * @param {any} fn - El valor que se va a verificar.
+   * @returns {boolean} - Retorna `true` si el valor es una función, de lo contrario retorna `false`.
+   *
+   * @example
+   * ```typescript
+   * const result = isFunction(() => {});
+   * console.log(result); // salida: true
+   *
+   * const result2 = isFunction(123);
+   * console.log(result2); // salida: false
+   * ```
+   */
+  public isFunction(fn: any): boolean {
+    const r = typeof fn === "function";
+    return r;
+  }
+  /**
+   * Construye una función vinculada a un contexto específico.
+   *
+   * @param {TFn} fn - La función que se va a vincular.
+   * @param {object} context - El contexto al cual se va a vincular la función.
+   * @returns {TFn} - Retorna la función vinculada.
+   * @throws {Error} - Lanza un error si `fn` no es una función válida.
+   *
+   * @example
+   * ```typescript
+   * const context = { value: 42 };
+   * const fn = function() { return this.value; };
+   * const boundFn = buildFn(fn, context);
+   * console.log(boundFn()); // salida: 42
+   *
+   * const invalidFn = 123;
+   * try {
+   *   const result = buildFn(invalidFn, context);
+   * } catch (e) {
+   *   console.error(e); // salida: 123 is not function valid
+   * }
+   * ```
+   */
+  public buildFn<TFn>(fn: TFn, context: object): TFn {
+    if (!this.isFunction(fn)) throw new Error(`${fn} is not function valid`);
+    fn = (fn as Function).bind(context);
+    return fn;
+  }
+  //████ Generales ████████████████████████████████████████████████████
   /**
    * Realiza la clonación de objetos JSON o Arrays de JSONs a diferentes niveles de profundidad.
    *
@@ -3339,10 +3387,7 @@ export class UtilNative {
       }
     }
     //comparar funciones
-    else if (
-      typeof valueBase === "function" &&
-      typeof valueToCompare === "function"
-    ) {
+    else if (this.isFunction(valueBase) && this.isFunction(valueToCompare)) {
       const regExpCompress = /(\r\n|\n|\r| |;)/gm; //quitar caracteres
       const str_fnItemBase = (valueBase as Function)
         .toString()
@@ -3849,10 +3894,7 @@ export class UtilNative {
       isGreater = modulus > 0 ? true : isAllowEquivalent && modulus === 0;
     }
     //comparar funciones
-    else if (
-      typeof valueBase === "function" &&
-      typeof valueToCompare === "function"
-    ) {
+    else if (this.isFunction(valueBase) && this.isFunction(valueToCompare)) {
       const regExpCompress = /(\r\n|\n|\r| |;)/gm; //quitar caracteres
       const str_fnItemBase = (valueBase as Function)
         .toString()
@@ -3877,31 +3919,31 @@ export class UtilNative {
         isGreater = false;
       } else if (valueBase === null) {
         isGreater = valueToCompare === undefined;
-      } else if (typeof valueBase === "function") {
+      } else if (this.isFunction(valueBase)) {
         isGreater = valueToCompare === undefined || valueToCompare === null;
       } else if (this.isBoolean(valueBase)) {
         isGreater =
           valueToCompare === undefined ||
           valueToCompare === null ||
-          typeof valueToCompare === "function";
+          this.isFunction(valueToCompare);
       } else if (this.isNumber(valueBase, false)) {
         isGreater =
           valueToCompare === undefined ||
           valueToCompare === null ||
-          typeof valueToCompare === "function" ||
+          this.isFunction(valueToCompare) ||
           this.isBoolean(valueToCompare);
       } else if (this.isString(valueBase, true)) {
         isGreater =
           valueToCompare === undefined ||
           valueToCompare === null ||
-          typeof valueToCompare === "function" ||
+          this.isFunction(valueToCompare) ||
           this.isBoolean(valueToCompare) ||
           this.isNumber(valueToCompare);
       } else if (this.isObject(valueBase, true)) {
         isGreater =
           valueToCompare === undefined ||
           valueToCompare === null ||
-          typeof valueToCompare === "function" ||
+          this.isFunction(valueToCompare) ||
           this.isBoolean(valueToCompare) ||
           this.isNumber(valueToCompare) ||
           this.isString(valueToCompare, true);
@@ -3909,7 +3951,7 @@ export class UtilNative {
         isGreater =
           valueToCompare === undefined ||
           valueToCompare === null ||
-          typeof valueToCompare === "function" ||
+          this.isFunction(valueToCompare) ||
           this.isBoolean(valueToCompare) ||
           this.isNumber(valueToCompare) ||
           this.isString(valueToCompare, true) ||
@@ -4382,10 +4424,7 @@ export class UtilNative {
       isLesser = modulus < 0 ? true : isAllowEquivalent && modulus === 0;
     }
     //comparar funciones
-    else if (
-      typeof valueBase === "function" &&
-      typeof valueToCompare === "function"
-    ) {
+    else if (this.isFunction(valueBase) && this.isFunction(valueToCompare)) {
       const regExpCompress = /(\r\n|\n|\r| |;)/gm; //quitar caracteres
       const str_fnItemBase = (valueBase as Function)
         .toString()
@@ -4410,7 +4449,7 @@ export class UtilNative {
         isLesser = true;
       } else if (valueBase === null) {
         isLesser = valueToCompare !== undefined;
-      } else if (typeof valueBase === "function") {
+      } else if (this.isFunction(valueBase)) {
         isLesser = valueToCompare !== undefined && valueToCompare !== null;
       } else if (this.isBoolean(valueBase)) {
         isLesser =
