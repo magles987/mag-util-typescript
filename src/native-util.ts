@@ -7,10 +7,10 @@ import { TStrCase, TExtPrimitiveTypes, IConfigEqGtLt } from "./shared";
 //████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
 /**
  *
- * utilidades nativas sin extensiones ni librerias
+ * utilidades nativas sin extensiones ni librerías
  */
 export class UtilNative {
-  /**Utilidades implicitas en Node JS*/
+  /**Utilidades implícitas en Node JS*/
   public readonly util_Node = Util_Node;
   /**
    * Carácter separador de ruta lógica.
@@ -51,35 +51,48 @@ export class UtilNative {
    * `"."` ej. formato: `dd.mm.yyyy`
    */
   public readonly sepDateRegExp = /\-|\/|\.|\#|\_|\:/;
+  /**determina si ya esta definido el valor predefinido*/
+  private static _isDfValue: boolean = false;
+  /**valor predefinido global */
+  private static _dfValue: null | undefined = undefined;
+  /**valor predefinido global*/ //para uso de instancia
+  public get dfValue(): null | undefined {
+    return UtilNative._dfValue;
+  }
   /**
    * Almacena la instancia única de esta clase
-   * ____
    */
   private static UtilNative_instance: UtilNative;
   /**
-   * @param _dfValue es el valor que se va a asumir
+   * @param dfValue es el valor que se va a asumir
    * como valor predefinido cuando haya ausencia de valor
    */
   constructor(
     /**es el valor que se va a asumir como valor
      * predefinido cuando haya ausencia de valor */
-    public readonly dfValue: null | undefined
-  ) { }
+    dfValue: null | undefined
+  ) {
+    //❗solo se puede modificar una vez❗
+    if (!UtilNative._isDfValue) {
+      UtilNative._dfValue = dfValue;
+      UtilNative._isDfValue = true;
+    }
+  }
   /**
    * devuelve la instancia única de esta clase
    * ya sea que la crea o la que ya a sido creada
    * @param dfValue es el valor que se va a asumir como valor
    * predefinido cuando haya ausencia de valor
    */
-  public static getInstance(defaultValue: null | undefined): UtilNative {
+  public static getInstance(dfValue: null | undefined): UtilNative {
     UtilNative.UtilNative_instance =
       UtilNative.UtilNative_instance === undefined ||
-        UtilNative.UtilNative_instance === null
-        ? new UtilNative(defaultValue)
+      UtilNative.UtilNative_instance === null
+        ? new UtilNative(dfValue)
         : UtilNative.UtilNative_instance;
     return UtilNative.UtilNative_instance;
   }
-  //████Booleanos███████████████████████████████████████████████████
+  //████ Booleanos ███████████████████████████████████████████████████
   /**
    * Determina si un valor es booleano.
    *
@@ -93,7 +106,7 @@ export class UtilNative {
    * console.log(result); // salida: true
    * ```
    */
-  public isBoolean(bool: any): boolean {
+  public isBoolean(bool: unknown): boolean {
     return typeof bool === "boolean";
   }
   /**
@@ -105,6 +118,25 @@ export class UtilNative {
    *   - `"isZeroAsTrue"`: El valor `0` se asume como `true`.
    *   - `"isNullAsTrue"`: El valor `null` se asume como `true`.
    * @returns {boolean} Retorna el booleano correspondiente al valor recibido.
+   *
+   * @example
+   * ```typescript
+   * const value1 = "hello";
+   * const result1 = convertToBoolean(value1);
+   * console.log(result1); // salida: true
+   *
+   * const value2 = "";
+   * const result2 = convertToBoolean(value2, ["isEmptyAsTrue"]);
+   * console.log(result2); // salida: true
+   *
+   * const value3 = 0;
+   * const result3 = convertToBoolean(value3, ["isZeroAsTrue"]);
+   * console.log(result3); // salida: true
+   *
+   * const value4 = null;
+   * const result4 = convertToBoolean(value4, ["isNullAsTrue"]);
+   * console.log(result4); // salida: true
+   * ```
    */
   public convertToBoolean(
     anyToCast: any,
@@ -117,7 +149,7 @@ export class UtilNative {
       throw new Error(
         `${castExceptions} is not array of cast exceptions valid`
       );
-    castExceptions = [...new Set(castExceptions)]; // eliminacion basica de duplicados primitivos
+    castExceptions = [...new Set(castExceptions)]; // eliminación básica de duplicados primitivos
     if (typeof anyToCast === "string") {
       r =
         anyToCast !== "" ||
@@ -131,15 +163,15 @@ export class UtilNative {
       //el caso especial de numero 0
       r = castExceptions.includes("isZeroAsTrue");
     } else if (anyToCast === null) {
-      //el caso especial de numero 0
+      //el caso especial de null
       r = castExceptions.includes("isNullAsTrue");
     } else {
-      //lo demas
+      //lo demás
       r = !!anyToCast; //cast
     }
     return r;
   }
-  //████Numeros██████████████████████████████████████████████████████
+  //████ Números ██████████████████████████████████████████████████████
   /**
    * Determina si el valor proporcionado es un número.
    *
@@ -147,13 +179,17 @@ export class UtilNative {
    * @param {boolean} allowString `= false`. Determina si se permite que el número se reciba en tipo string.
    * @returns {boolean} Retorna `true` si el valor es un número, `false` de lo contrario.
    */
-  public isNumber(num: any, allowString = false): boolean {
-    const parse = parseFloat(num);
+  public isNumber(num: unknown, allowString = false): boolean {
     allowString = this.convertToBoolean(allowString);
-    const r =
-      (typeof num === "number" || (typeof num === "string" && allowString)) &&
-      !isNaN(parse) &&
-      isFinite(parse);
+    let r: boolean;
+    if (typeof num === "number") {
+      r = !isNaN(num) && isFinite(num);
+    } else if (typeof num === "string" && allowString) {
+      const parse = parseFloat(num as string);
+      r = !isNaN(parse) && isFinite(parse);
+    } else {
+      r = false;
+    }
     return r;
   }
   /**dertermina si el número proporcionado corresponde a
@@ -186,37 +222,37 @@ export class UtilNative {
    * @returns {object} - Retorna un objeto con las siguientes propiedades:
    *   - `polarity`: Indica si el número es "positive" o "negative".
    *   - `genericType`: Indica si el valor es un "number" o un "string-number".
-   *   - `estrictType`: Indica si el número es un "int", "bigInt" o "float".
+   *   - `strictType`: Indica si el número es un "int", "bigInt" o "float".
    *
    * @example
    * ```typescript
    * let report = getTypeNumber("123");
    * console.log(report);
-   * // Salida: { polarity: "positive", genericType: "string-number", estrictType: "int" }
+   * // Salida: { polarity: "positive", genericType: "string-number", strictType: "int" }
    *
    * report = getTypeNumber(-321.654);
    * console.log(report);
-   * // Salida: { polarity: "negative", genericType: "number", estrictType: "float" }
+   * // Salida: { polarity: "negative", genericType: "number", strictType: "float" }
    * ```
    */
   public getNumberReport(num: number | string): {
     polarity: "positive" | "negative";
     genericType: "number" | "string-number";
-    estrictType: "int" | "bigInt" | "float";
+    strictType: "int" | "bigInt" | "float";
   } {
     let r = {
       polarity: "" as "positive" | "negative",
       genericType: "" as "number" | "string-number",
-      estrictType: "" as "int" | "bigInt" | "float",
+      strictType: "" as "int" | "bigInt" | "float",
     };
     let n = this.stringToNumber(num);
     r.polarity = n < 0 ? "negative" : "positive"; //el `0` se considera positivo
     r.genericType = this.isString(num) ? "string-number" : "number";
-    r.estrictType = !Number.isInteger(n)
+    r.strictType = !Number.isInteger(n)
       ? "float"
       : typeof n !== "bigint"
-        ? "int"
-        : "bigInt";
+      ? "int"
+      : "bigInt";
     return r;
   }
   /**
@@ -345,7 +381,7 @@ export class UtilNative {
     let exp = this.stringToNumber(exponential); //garantizar que es un numero
     if (!this.isString(type, true))
       throw new Error(`${type} is not type valid`);
-    if (this.getNumberReport(exp).estrictType !== "int")
+    if (this.getNumberReport(exp).strictType !== "int")
       throw new Error(`${exponential} is not exponential factor valid`);
     //caso especial si es 0 (no hay forma de redondear)
     if (n === 0) return n;
@@ -442,7 +478,7 @@ export class UtilNative {
     }
     return num;
   }
-  //████Textos█████████████████████████████████████████████████████
+  //████ Textos █████████████████████████████████████████████████████
   /**
    * Determina si un valor es un string, con la opción de aceptar o no string vacíos.
    *
@@ -461,7 +497,7 @@ export class UtilNative {
    * console.log(!isString(a, false)); // salida `true` niega el negar vacios (vacios prmitidos)
    * ```
    */
-  public isString(str: any, allowEmpty = false): boolean {
+  public isString(str: unknown, allowEmpty = false): boolean {
     allowEmpty = this.convertToBoolean(allowEmpty);
     const r = typeof str === "string" && (allowEmpty || str !== "");
     return r;
@@ -691,23 +727,24 @@ export class UtilNative {
    * const keys = ["home", "user", "documents"];
    * let path: string;
    * //ejemplo 1:
-   * path = buildPath(keys, { charSeparator: "/", isInitWithSeparator: true });
+   * path = buildPath(keys, { charSeparator: "/", isStartWithSeparator: true });
    * console.log(path); // salida: "/home/user/documents"
    *
    * //ejemplo 2:
    * path = buildPath(keys, {
    *   charSeparator: "/",
-   *   isJoinInitWithSeparator: true,
-   *   isJoinEndtWithSeparator: true
+   *   isStartWithSeparator: false, //no inicializar con "/"
+   *   isFinishWithSeparator: true, //si finalizar con "/"
    * });
-   * console.log(path); // salida: "/home/user/documents/"
+   * console.log(path); // salida: "home/user/documents/"
    *
    * //ejemplo 3:
    * path = buildPath(keys, {
    *   charSeparator: "/",
-   *   isJoinInitWithSeparator: true,
-   *   isJoinEndtWithSeparator: true,
-   *   pathInit: ".."
+   *   isStartWithSeparator: false, //no inicializar con "/"
+   *   isFinishWithSeparator: true, //si finalizar con "/"
+   *   pathInit: "..",
+   *   isJoinInitWithSeparator: true //unir ".." al path con "/"
    * });
    * console.log(path); // salida: "../home/user/documents/"
    * ```
@@ -781,27 +818,33 @@ export class UtilNative {
       pathEnd,
       pathInit,
     } = option;
-    /**permitirá eliminar caracteres separadores de 
+    /**permitirá eliminar caracteres separadores de
      * cada item si los tiene iniciado o terminando el key */
-    const re = new RegExp(`^\\${sp}+|\\${sp}+$`, 'g');
+    const re = new RegExp(`^\\${sp}+|\\${sp}+$`, "g");
     let aKeys_clon = [...aKeys]; //clonacion sencilla
     //reducir:
     let path = aKeys_clon.reduce((prePath, cKey, idx) => {
       const keyCC = cKey.replace(re, "");
       let r = prePath;
       if (keyCC !== "") {
-        r = (idx !== 0) ? `${prePath}${sp}${keyCC}` : `${prePath}${keyCC}`;
+        r = idx !== 0 ? `${prePath}${sp}${keyCC}` : `${prePath}${keyCC}`;
       }
       return r;
     }, "");
     //formateo adicional:
-    if (pathInit !== "") path = isJoinInitWithSeparator ? `${pathInit}${sp}${path}` : `${pathInit}${path}`;
-    if (pathEnd !== "") path = isJoinEndtWithSeparator ? `${path}${sp}${pathEnd}` : `${path}${pathEnd}`;
+    if (pathInit !== "")
+      path = isJoinInitWithSeparator
+        ? `${pathInit}${sp}${path}`
+        : `${pathInit}${path}`;
+    if (pathEnd !== "")
+      path = isJoinEndtWithSeparator
+        ? `${path}${sp}${pathEnd}`
+        : `${path}${pathEnd}`;
     if (isStartWithSeparator) path = `${sp}${path}`;
     if (isFinishWithSeparator) path = `${path}${sp}`;
     return path;
   }
-  //████Objetos████████████████████████████████████████████████████
+  //████ Objetos ████████████████████████████████████████████████████
   /**
    * Determina si el valor recibido corresponde a un objeto.
    *
@@ -826,7 +869,7 @@ export class UtilNative {
    * console.log(isObject(a)); // salida `false` (un array (vacío o poblado) no lo considera objeto literal)
    * ```
    */
-  public isObject(value: any, allowEmpty = false): boolean {
+  public isObject(value: unknown, allowEmpty = false): boolean {
     allowEmpty = this.convertToBoolean(allowEmpty);
     const r =
       typeof value === "object" &&
@@ -909,8 +952,8 @@ export class UtilNative {
     let keys = this.isArray(keyOrKeys, true)
       ? ([...(keyOrKeys as any)] as string[])
       : this.isString(keyOrKeys)
-        ? ([keyOrKeys as any] as string[])
-        : ([] as string[]);
+      ? ([keyOrKeys as any] as string[])
+      : ([] as string[]);
     keys = [...new Set(keys)]; //eliminacion de repetidos sencilla
     let r = false;
     if (!this.isObject(obj, allowEmpty)) {
@@ -922,10 +965,10 @@ export class UtilNative {
             propCondition === "it-exist"
               ? key in obj
               : propCondition === "is-not-undefined"
-                ? obj[key] !== undefined
-                : propCondition === "is-not-null"
-                  ? obj[key] !== null
-                  : this.isNotUndefinedAndNotNull(obj[key]);
+              ? obj[key] !== undefined
+              : propCondition === "is-not-null"
+              ? obj[key] !== null
+              : this.isNotUndefinedAndNotNull(obj[key]);
           return r;
         });
       } else {
@@ -1006,8 +1049,8 @@ export class UtilNative {
     let keysPath = this.isArray(keyOrKeysPath, true)
       ? ([...keyOrKeysPath] as string[])
       : this.isString(keyOrKeysPath)
-        ? ([keyOrKeysPath as any] as string[])
-        : ([] as string[]);
+      ? ([keyOrKeysPath as any] as string[])
+      : ([] as string[]);
     keysPath = [...new Set(keysPath)]; //eliminacion de repetidos sencilla
     let r = false;
     if (!this.isObject(obj, allowEmpty)) {
@@ -1024,10 +1067,10 @@ export class UtilNative {
             propCondition === "it-exist"
               ? key in obj
               : propCondition === "is-not-undefined"
-                ? obj[cKey] !== undefined
-                : propCondition === "is-not-null"
-                  ? obj[cKey] !== null
-                  : this.isNotUndefinedAndNotNull(obj[cKey]);
+              ? obj[cKey] !== undefined
+              : propCondition === "is-not-null"
+              ? obj[cKey] !== null
+              : this.isNotUndefinedAndNotNull(obj[cKey]);
           //determinar si recorre profundidad
           if (r && lenKP > 1) {
             keysSplitPath.shift();
@@ -1257,8 +1300,8 @@ export class UtilNative {
     let keysPathForDelete = this.isArray(keyOrKeysPathForDelete, true)
       ? ([...keyOrKeysPathForDelete] as string[])
       : this.isString(keyOrKeysPathForDelete)
-        ? ([keyOrKeysPathForDelete] as string[])
-        : ([] as string[]);
+      ? ([keyOrKeysPathForDelete] as string[])
+      : ([] as string[]);
     isDeletePrivates = this.convertToBoolean(isDeletePrivates);
     const sp = this.charSeparatorLogicPath;
     //eliminar claves identificadoras repetidas
@@ -1268,7 +1311,7 @@ export class UtilNative {
     let r = {};
     for (const keyProp in obj) {
       //eliminar funciones
-      if (typeof obj[keyProp] === "function") continue;
+      if (this.isFunction(obj[keyProp])) continue;
       //eliminar propiedades con prefijo "_" (si esta habilitado)
       if (isDeletePrivates && /^_/.test(keyProp)) continue;
       //verificar que la propiedad al ser objeto elimine las propiedades seleccionadas por keyOrKeysPath
@@ -1343,10 +1386,10 @@ export class UtilNative {
     if (!this.isObject(obj)) throw new Error(`${obj} is not object valid`);
     let newObj = {};
     for (const keyFn in obj) {
-      if (typeof obj[keyFn] === "function" && keyFn !== "constructor") {
+      if (this.isFunction(obj[keyFn]) && keyFn !== "constructor") {
         newObj[keyFn] = obj[keyFn];
         newObj[keyFn] = this.isObject(thisBind)
-          ? (<Function>newObj[keyFn]).bind(thisBind)
+          ? (newObj[keyFn] as Function).bind(thisBind)
           : newObj[keyFn];
         continue;
       }
@@ -1554,9 +1597,25 @@ export class UtilNative {
       mode,
       isNullAsUndefined = false, //predefinido
     } = config;
-    const uKeys = [
-      ...new Set([...Object.keys(objBase), ...Object.keys(objNew)]),
-    ];
+    let otherKeys = [];
+    for (const key in objBase) {
+      otherKeys.push(key);
+    }
+    let keysB = Object.keys(objBase);
+    keysB = !this.isInstance(objBase) //las instancias deben ser tratadas de forma especial
+      ? keysB
+      : [
+          ...Object.getOwnPropertyNames(Object.getPrototypeOf(objBase)),
+          ...keysB,
+        ];
+    let keysN = Object.keys(objNew);
+    keysN = !this.isInstance(objNew) //las instancias deben ser tratadas de forma especial
+      ? keysN
+      : [
+          ...Object.getOwnPropertyNames(Object.getPrototypeOf(objNew)),
+          ...keysN,
+        ];
+    const uKeys = [...new Set([...keysB, ...keysN])];
     let rObj: any = {};
     for (const key of uKeys) {
       const propB = objBase[key];
@@ -1589,8 +1648,8 @@ export class UtilNative {
             propB === undefined || (isNullAsUndefined && propB === null)
               ? propN
               : propN === undefined || (isNullAsUndefined && propN === null)
-                ? propB
-                : propN;
+              ? propB
+              : propN;
         } else if (mode === "hard") {
           //comprobacion de existencia de propiedad
           const isPropB = key in (objBase as object);
@@ -1709,7 +1768,7 @@ export class UtilNative {
     const fObj = Object.freeze(obj);
     return fObj;
   }
-  //█████Arrays██████████████████████████████████████████████████████
+  //█████ Arreglos ██████████████████████████████████████████████████████
   /**
    * Determina si es un array, con la opción de aceptar o no arrays vacíos.`
    *
@@ -1734,7 +1793,7 @@ export class UtilNative {
    * console.log(isObject(a)); // salida `false` (un objeto (vacío o poblado) no lo considera array)
    * ```
    */
-  public isArray(value: any, allowEmpty = false): boolean {
+  public isArray(value: unknown, allowEmpty = false): boolean {
     const r = Array.isArray(value) && (allowEmpty || value.length > 0);
     return r;
   }
@@ -2473,8 +2532,8 @@ export class UtilNative {
     let keysPath = this.isArray(keyOrKeysPath, true)
       ? ([...keyOrKeysPath] as string[])
       : this.isNotUndefinedAndNotNull(keyOrKeysPath)
-        ? ([keyOrKeysPath] as string[])
-        : [];
+      ? ([keyOrKeysPath] as string[])
+      : [];
     let findArray = rootArray.filter((mAi) => {
       const r = searchArray.find((sAi) => {
         let r = this.isEquivalentTo([mAi, sAi], {
@@ -2518,7 +2577,7 @@ export class UtilNative {
     const fArr = Object.freeze(arr);
     return fArr;
   }
-  //████tuple███████████████████████████████████████████████████████
+  //████ tuplas ███████████████████████████████████████████████████████
   /**
    * Determina si un valor es una tupla de un tamaño específico o dentro de un rango de tamaños.
    *
@@ -2632,7 +2691,7 @@ export class UtilNative {
     });
     return aT as TATuple;
   }
-  //████Fechas███████████████████████████████████████████████████████
+  //████ Fechas ███████████████████████████████████████████████████████
   /**determina si el numero es un timestamp valido
    * @param {any} timestamp el numero a validar como timestamp, se puede recibir como number o como string-number
    * @returns si es un timestamp valido
@@ -2658,7 +2717,55 @@ export class UtilNative {
     let rDate = new Date(year, month, day);
     return rDate.getTime();
   }
-  //████Generales████████████████████████████████████████████████████
+  //████ Funciones ████████████████████████████████████████████████████
+  /**
+   * Determina si un valor es una función.
+   *
+   * @param {any} fn - El valor que se va a verificar.
+   * @returns {boolean} - Retorna `true` si el valor es una función, de lo contrario retorna `false`.
+   *
+   * @example
+   * ```typescript
+   * const result = isFunction(() => {});
+   * console.log(result); // salida: true
+   *
+   * const result2 = isFunction(123);
+   * console.log(result2); // salida: false
+   * ```
+   */
+  public isFunction(fn: unknown): boolean {
+    const r = typeof fn === "function";
+    return r;
+  }
+  /**
+   * Construye una función vinculada a un contexto específico.
+   *
+   * @param {TFn} fn - La función que se va a vincular.
+   * @param {object} context - El contexto al cual se va a vincular la función.
+   * @returns {TFn} - Retorna la función vinculada.
+   * @throws {Error} - Lanza un error si `fn` no es una función válida.
+   *
+   * @example
+   * ```typescript
+   * const context = { value: 42 };
+   * const fn = function() { return this.value; };
+   * const boundFn = buildFn(fn, context);
+   * console.log(boundFn()); // salida: 42
+   *
+   * const invalidFn = 123;
+   * try {
+   *   const result = buildFn(invalidFn, context);
+   * } catch (e) {
+   *   console.error(e); // salida: 123 is not function valid
+   * }
+   * ```
+   */
+  public buildFn<TFn>(fn: TFn, context: object): TFn {
+    if (!this.isFunction(fn)) throw new Error(`${fn} is not function valid`);
+    fn = (fn as Function).bind(context);
+    return fn;
+  }
+  //████ Generales ████████████████████████████████████████████████████
   /**
    * Realiza la clonación de objetos JSON o Arrays de JSONs a diferentes niveles de profundidad.
    *
@@ -2971,7 +3078,7 @@ export class UtilNative {
             (emptyMode === "allow-empty" ||
               (emptyMode === "deny-empty" && anyValue.length > 0));
           if (r && this.isArray(subTypes, false)) {
-            r = (<any[]>anyValue).every((aV) =>
+            r = (anyValue as any[]).every((aV) =>
               this.isValueType(aV, "is", subTypes as any[], emptyMode)
             );
           }
@@ -3208,8 +3315,8 @@ export class UtilNative {
     let keysPath = this.isArray(keyOrKeysPath, true)
       ? ([...keyOrKeysPath] as string[])
       : this.isString(keyOrKeysPath)
-        ? ([keyOrKeysPath] as string[])
-        : ([] as string[]);
+      ? ([keyOrKeysPath] as string[])
+      : ([] as string[]);
     isCompareLength = this.convertToBoolean(isCompareLength);
     isCompareSize = this.convertToBoolean(isCompareSize);
     isCompareStringToNumber = this.convertToBoolean(isCompareStringToNumber);
@@ -3303,10 +3410,7 @@ export class UtilNative {
       }
     }
     //comparar funciones
-    else if (
-      typeof valueBase === "function" &&
-      typeof valueToCompare === "function"
-    ) {
+    else if (this.isFunction(valueBase) && this.isFunction(valueToCompare)) {
       const regExpCompress = /(\r\n|\n|\r| |;)/gm; //quitar caracteres
       const str_fnItemBase = (valueBase as Function)
         .toString()
@@ -3624,8 +3728,8 @@ export class UtilNative {
     let keysPath = this.isArray(keyOrKeysPath, true)
       ? ([...keyOrKeysPath] as string[])
       : this.isString(keyOrKeysPath)
-        ? ([keyOrKeysPath] as string[])
-        : ([] as string[]);
+      ? ([keyOrKeysPath] as string[])
+      : ([] as string[]);
     isCompareLength = this.convertToBoolean(isCompareLength);
     isCompareSize = this.convertToBoolean(isCompareSize);
     isAllowEquivalent = this.convertToBoolean(isAllowEquivalent);
@@ -3649,7 +3753,7 @@ export class UtilNative {
         let lenItemRun =
           lenItemBase <= lenItemToCompare
             ? //se selecciona el len mas pequeño para recorrer
-            lenItemBase
+              lenItemBase
             : lenItemToCompare;
         //comparar todos loes elementos
         for (let idx = 0; idx < lenItemRun; idx++) {
@@ -3813,10 +3917,7 @@ export class UtilNative {
       isGreater = modulus > 0 ? true : isAllowEquivalent && modulus === 0;
     }
     //comparar funciones
-    else if (
-      typeof valueBase === "function" &&
-      typeof valueToCompare === "function"
-    ) {
+    else if (this.isFunction(valueBase) && this.isFunction(valueToCompare)) {
       const regExpCompress = /(\r\n|\n|\r| |;)/gm; //quitar caracteres
       const str_fnItemBase = (valueBase as Function)
         .toString()
@@ -3841,31 +3942,31 @@ export class UtilNative {
         isGreater = false;
       } else if (valueBase === null) {
         isGreater = valueToCompare === undefined;
-      } else if (typeof valueBase === "function") {
+      } else if (this.isFunction(valueBase)) {
         isGreater = valueToCompare === undefined || valueToCompare === null;
       } else if (this.isBoolean(valueBase)) {
         isGreater =
           valueToCompare === undefined ||
           valueToCompare === null ||
-          typeof valueToCompare === "function";
+          this.isFunction(valueToCompare);
       } else if (this.isNumber(valueBase, false)) {
         isGreater =
           valueToCompare === undefined ||
           valueToCompare === null ||
-          typeof valueToCompare === "function" ||
+          this.isFunction(valueToCompare) ||
           this.isBoolean(valueToCompare);
       } else if (this.isString(valueBase, true)) {
         isGreater =
           valueToCompare === undefined ||
           valueToCompare === null ||
-          typeof valueToCompare === "function" ||
+          this.isFunction(valueToCompare) ||
           this.isBoolean(valueToCompare) ||
           this.isNumber(valueToCompare);
       } else if (this.isObject(valueBase, true)) {
         isGreater =
           valueToCompare === undefined ||
           valueToCompare === null ||
-          typeof valueToCompare === "function" ||
+          this.isFunction(valueToCompare) ||
           this.isBoolean(valueToCompare) ||
           this.isNumber(valueToCompare) ||
           this.isString(valueToCompare, true);
@@ -3873,7 +3974,7 @@ export class UtilNative {
         isGreater =
           valueToCompare === undefined ||
           valueToCompare === null ||
-          typeof valueToCompare === "function" ||
+          this.isFunction(valueToCompare) ||
           this.isBoolean(valueToCompare) ||
           this.isNumber(valueToCompare) ||
           this.isString(valueToCompare, true) ||
@@ -4157,8 +4258,8 @@ export class UtilNative {
     let keysPath = this.isArray(keyOrKeysPath, true)
       ? ([...keyOrKeysPath] as string[])
       : this.isString(keyOrKeysPath)
-        ? ([keyOrKeysPath] as string[])
-        : ([] as string[]);
+      ? ([keyOrKeysPath] as string[])
+      : ([] as string[]);
     isCompareLength = this.convertToBoolean(isCompareLength);
     isCompareSize = this.convertToBoolean(isCompareSize);
     isAllowEquivalent = this.convertToBoolean(isAllowEquivalent);
@@ -4182,7 +4283,7 @@ export class UtilNative {
         let lenItemRun =
           lenItemBase <= lenItemToCompare
             ? //se selecciona el len mas pequeño para recorrer
-            lenItemBase
+              lenItemBase
             : lenItemToCompare;
         //comparar todos loes elementos
         for (let idx = 0; idx < lenItemRun; idx++) {
@@ -4346,10 +4447,7 @@ export class UtilNative {
       isLesser = modulus < 0 ? true : isAllowEquivalent && modulus === 0;
     }
     //comparar funciones
-    else if (
-      typeof valueBase === "function" &&
-      typeof valueToCompare === "function"
-    ) {
+    else if (this.isFunction(valueBase) && this.isFunction(valueToCompare)) {
       const regExpCompress = /(\r\n|\n|\r| |;)/gm; //quitar caracteres
       const str_fnItemBase = (valueBase as Function)
         .toString()
@@ -4374,7 +4472,7 @@ export class UtilNative {
         isLesser = true;
       } else if (valueBase === null) {
         isLesser = valueToCompare !== undefined;
-      } else if (typeof valueBase === "function") {
+      } else if (this.isFunction(valueBase)) {
         isLesser = valueToCompare !== undefined && valueToCompare !== null;
       } else if (this.isBoolean(valueBase)) {
         isLesser =
