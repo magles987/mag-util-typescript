@@ -1,5 +1,11 @@
 /**tipos de conversiones de estandares de nomenclatura en codigo*/
-export type TStrCase = "Snake" | "Kebab" | "Camel" | "Pascal";
+export type TStrCase =
+  | "Snake"
+  | "Kebab"
+  | "Camel"
+  | "Pascal"
+  | "Constant"
+  | "Dot";
 /**tipado extendido para los tipos primitivos, function, objeto o array*/
 export type TExtPrimitiveTypes =
   | "string"
@@ -11,15 +17,50 @@ export type TExtPrimitiveTypes =
   | "null"
   | "object"
   | "array"
+  | "tuple"
   | "function";
-/**estructura de configuracion para metodos
+/**tipado interno para permitir la recursividad en el método isValueType */
+interface IRecursiveObjectForTypes {
+  [key: string]: TAExtValueType;
+}
+/**tipado base para recursividad de tipos en el método isValueType */
+export type TExtValueType =
+  | TExtPrimitiveTypes
+  | IRecursiveObjectForTypes
+  | TAExtValueType;
+/**tipado para agrupación de tipos  */
+export type TAExtValueType = Array<TExtValueType>;
+/**opciones para evaluar tipo en grupo */
+export interface IValueTypeOption {
+  /** `allowNumber_String = false`: Permite que un string numérico sea validado como un número (por ejemplo, `"123"` siendo string, se permite analizar y validar como número). */
+  allowNumber_String?: boolean;
+  /** `allowBigint_String = false`: Permite que un string numérico gigante sea validado como un bigint. */
+  allowBigint_String?: boolean;
+  /** `allowStringEmpty = false`: Permite que un string vacío ( `""` ) sea considerado válido. */
+  allowStringEmpty?: boolean;
+  /** `allowObjectEmpty = false`: Permite que un string vacío ( `{}` ) sea considerado válido. */
+  allowObjectEmpty?: boolean;
+  /** `allowArrayEmpty = false`: Permite que un string vacío ( `[]` ) sea considerado válido.*/
+  allowArrayEmpty?: boolean;
+  /**`tupleSize = undefined`: Define el tamaño esperado de una tupla. Puede ser un número (tamaño fijo)
+   * o un array de dos números `[min, max]` (tamaño variable).
+   *
+   * ❗este argumento es indispensable en caso que en algún nivel del esquema de `types` se verifique
+   * el tipo `"tuple"` (asi explicitamente en texto), por el contrario si la verificacion de la
+   * tupla se hace implicitamente (con varios items array), este argumento es opcional, pero si
+   * se asigna tendrá prioridad de verificación❗.
+   *
+   */
+  tupleSize?: number | [number, number];
+}
+/**estructura de configuración de opciones para métodos
  * `isEquevalentTo()`,
  * `isGreaterTo()`,
  * `isLesserTo()`
- * y sub metodos que dependan de estos
+ * y sub métodos que dependan de estos
  * */
-export interface IConfigEqGtLt {
-  /**determina si la comparacion permite
+export interface IOptionEqGtLt {
+  /**determina si la comparación permite
    * incluir equivalencia*/
   isAllowEquivalent: boolean;
   /**
@@ -31,6 +72,8 @@ export interface IConfigEqGtLt {
    * ⚠ Solo para objetos
    */
   keyOrKeysPath?: string | string[];
+  /**`= this.charSeparatorLogicPath` El carácter separador a utilizar entre los elementos del path. */
+  charSeparator?: string;
   /**
    * Predefinido en `false`
    *
