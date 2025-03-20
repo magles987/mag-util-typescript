@@ -1306,6 +1306,7 @@ export class UtilNative {
     //constructor de opciones
     let op = this.isObject(option, true) ? option : ({} as typeof option); //default vacio
     op = {
+      ...op, //opciones adicionales no documentadas (si las hay)
       charSeparator: this.isString(op.charSeparator)
         ? op.charSeparator
         : this.charSeparatorLogicPath,
@@ -1425,6 +1426,7 @@ export class UtilNative {
     //constructor de opciones
     let op = this.isObject(option, true) ? option : ({} as typeof option); //default vacio
     op = {
+      ...op, //opciones adicionales no documentadas (si las hay)
       propCondition:
         op.propCondition === "is-not-null" ||
         op.propCondition === "is-not-undefined" ||
@@ -1575,6 +1577,7 @@ export class UtilNative {
     //constructor de opciones
     let op = this.isObject(option, true) ? option : ({} as typeof option); //default vacio
     op = {
+      ...op, //opciones adicionales no documentadas (si las hay)
       propCondition:
         op.propCondition === "is-not-null" ||
         op.propCondition === "is-not-undefined" ||
@@ -1999,6 +2002,7 @@ export class UtilNative {
     //constructor de opciones
     let op = this.isObject(option, true) ? option : ({} as typeof option); //default vacio
     op = {
+      ...op, //opciones adicionales no documentadas (si las hay)
       isDeletePrivates: this.convertToBoolean(op.isDeletePrivates),
       keyOrKeysPathForDelete: this.isArray(op.keyOrKeysPathForDelete, true)
         ? [...new Set(op.keyOrKeysPathForDelete as string[])] // Eliminar duplicados
@@ -2949,9 +2953,9 @@ export class UtilNative {
    *  - `null` es mas pesado que `undefined`
    *
    * @param {T} arrayToSort el array a ordenar
-   * @param {object} config configuracion para el ordenamiento
+   * @param {object} option configuracion para el ordenamiento
    * - `direction = "asc"`, direccion de ordenamiento
-   * - `isRemoveDuplicate = fasle`, si se desea eliminar duplicados antes de retornar el array ordenado
+   * - `isRemoveDuplicate = false`, si se desea eliminar duplicados antes de retornar el array ordenado
    * - `keyOrKeysPath` (solo para elementos de tipo objeto) rutas de claves identificadoras para las propiedades que se usaran como base para la comparación
    * - `isCompareLength = false`, determina si debe comprar tamaños de lso arrays
    * - `isCompareSize = false`, determina si debe comparar cantidad de propiedades de los objetos
@@ -3023,7 +3027,7 @@ export class UtilNative {
    */
   public sortMixedArray<T extends Array<any>>(
     arrayToSort: T,
-    config: Omit<IOptionEqGtLt, "isAllowEquivalent"> & {
+    option?: Omit<IOptionEqGtLt, "isAllowEquivalent"> & {
       /**direccion de orden
        *
        * - `"asc"` para ascendente
@@ -3046,26 +3050,21 @@ export class UtilNative {
   ): T {
     if (!this.isArray(arrayToSort, true))
       throw new Error(`${arrayToSort} is not array to sort valid`);
-    if (!this.isObject(config, true))
-      throw new Error(`${config} is not object of configuration to sort valid`);
-    if (
-      this.isNotUndefinedAndNotNull(config.direction) &&
-      !this.isString(config.direction)
-    )
-      throw new Error(
-        `${config.direction} is not configuration's direction to sort valid`
-      );
-    //INICIO
-    let {
-      direction = "asc", //predefinido
-      isRemoveDuplicate = false,
-      isCaseSensitiveForString,
-      isCompareLength,
-      isCompareSize,
-      isCompareStringToNumber,
-      keyOrKeysPath,
-    } = config;
-    isRemoveDuplicate = this.convertToBoolean(isRemoveDuplicate);
+    //constructor de opciones
+    let op = this.isObject(option, true) ? option : ({} as typeof option); //default vacio
+    op = {
+      ...op, //opciones adicionales no documentadas (si las hay)
+      //las opciones de comparación se asignan en sus respectivos métodos
+      direction:
+        op.direction === "asc" || op.direction === "desc"
+          ? op.direction
+          : "asc",
+      isRemoveDuplicate: this.isBoolean(op.isRemoveDuplicate)
+        ? op.isRemoveDuplicate
+        : false,
+    };
+    let { direction, isRemoveDuplicate } = op;
+    //Iniciar proceso
     const nDirection = direction === "asc" ? 1 : -1;
     //tratamiento de arrays internos
     let arrayToSortClone = [] as T;
@@ -3074,16 +3073,7 @@ export class UtilNative {
       //clonacion sencilla ya que no se modifican valores internamente
       //caso especial array
       if (this.isArray(item)) {
-        arrayToSortClone.push(
-          this.sortMixedArray(item as any[], {
-            direction,
-            isCaseSensitiveForString,
-            isCompareLength,
-            isCompareStringToNumber,
-            isRemoveDuplicate,
-            keyOrKeysPath,
-          })
-        );
+        arrayToSortClone.push(this.sortMixedArray(item as any[], { ...op }));
       }
       //caso especial undefined
       else if (this.isUndefined(item)) {
@@ -3098,17 +3088,11 @@ export class UtilNative {
     arrayToSortClone.sort((a, b) => {
       let r = 0;
       //caso especial diferente tamaño de arrays
-      if (Array.isArray(a) && Array.isArray(b) && a.length != b.length) {
+      if (Array.isArray(a) && Array.isArray(b) && a.length !== b.length) {
         r = a.length - b.length;
       } else {
         //casos normales
-        r = this.anyCompareTo([a, b], {
-          isCaseSensitiveForString,
-          isCompareLength,
-          isCompareSize,
-          isCompareStringToNumber,
-          keyOrKeysPath,
-        });
+        r = this.compareTo([a, b], { ...op });
       }
       return r * nDirection;
     });
@@ -3120,12 +3104,8 @@ export class UtilNative {
     //tratamiento de repetidos
     if (isRemoveDuplicate) {
       arrayToSortClone = this.removeArrayDuplicate(arrayToSortClone, {
-        keyOrKeysPath,
+        ...op,
         itemConflictMode: "last",
-        isCaseSensitiveForString,
-        isCompareLength,
-        isCompareSize,
-        isCompareStringToNumber,
       });
     }
     return arrayToSortClone;
@@ -3135,7 +3115,7 @@ export class UtilNative {
    * Elimina los elementos duplicados de un array.
    *
    * @param {Array} arrayToRemove El array del cual se eliminarán los duplicados.
-   * @param {object} config configuracion para el metodo
+   * @param {object} option configuracion para el metodo
    * - `itemConflictMode` al encontrar un elemento repetido define el modo de resolver el conflicto de si se queda con el primero o el ultimo de los repetidos
    * - `keyOrKeysPath` (solo para elementos de tipo objeto) rutas de claves identificadoras para las propiedades que se usaran como base para la comparacion
    * - `isCompareLength = false`, determina si debe comprar tamaños de lso arrays
@@ -3297,7 +3277,7 @@ export class UtilNative {
    */
   public removeArrayDuplicate<T extends Array<any>>(
     arrayToRemove: T,
-    config: Omit<IOptionEqGtLt, "isAllowEquivalent"> & {
+    option?: Omit<IOptionEqGtLt, "isAllowEquivalent"> & {
       /**Si existe un elemento equivalente
        * a otros determinar si mantiene el
        * primero o el ultimo
@@ -3319,25 +3299,18 @@ export class UtilNative {
       throw new Error(
         `${arrayToRemove} is not array to remove duplicates valid`
       );
-    if (!this.isObject(config, true))
-      throw new Error(
-        `${config} is not object of configuration to remove duplicate valid`
-      );
-    if (
-      this.isNotUndefinedAndNotNull(config.itemConflictMode) &&
-      !this.isString(config.itemConflictMode)
-    )
-      throw new Error(
-        `${config.itemConflictMode} is not configuration's item conflict mode to remove duplicate valid`
-      );
-    let {
-      itemConflictMode = "last", //predefinido
-      keyOrKeysPath,
-      isCaseSensitiveForString,
-      isCompareLength,
-      isCompareSize,
-      isCompareStringToNumber,
-    } = config;
+    //constructor de opciones
+    let op = this.isObject(option, true) ? option : ({} as typeof option); //default vacio
+    op = {
+      ...op, //opciones adicionales no documentadas (si las hay)
+      //las opciones de comparación se asignan en sus respectivos métodos
+      itemConflictMode:
+        op.itemConflictMode === "first" || op.itemConflictMode === "last"
+          ? op.itemConflictMode
+          : "last",
+    };
+    let { itemConflictMode } = op;
+    //Iniciar proceso
     let fArray = arrayToRemove.filter((itemBase, idxBase) => {
       let idx: number;
       if (itemConflictMode === "first") {
@@ -3354,13 +3327,7 @@ export class UtilNative {
           return -1;
         };
         idx = findIndexFn(arrayToRemove, (item) =>
-          this.isEquivalentTo([itemBase, item], {
-            keyOrKeysPath,
-            isCaseSensitiveForString,
-            isCompareLength,
-            isCompareSize,
-            isCompareStringToNumber,
-          })
+          this.isEquivalentTo([itemBase, item], { ...op })
         );
       } else if (itemConflictMode === "last") {
         //reescritura de las funciones findLastIndex (por motivos de ES2020)
@@ -3378,18 +3345,12 @@ export class UtilNative {
           return idxLast;
         };
         idx = findLastIndexFn(arrayToRemove, (item) => {
-          const r = this.isEquivalentTo([itemBase, item], {
-            keyOrKeysPath,
-            isCaseSensitiveForString,
-            isCompareLength,
-            isCompareSize,
-            isCompareStringToNumber,
-          });
+          const r = this.isEquivalentTo([itemBase, item], { ...op });
           return r;
         });
       } else {
         throw new Error(
-          `${config.itemConflictMode} is not configuration's item conflict mode to remove duplicate valid`
+          `${itemConflictMode} is not configuration's item conflict mode to remove duplicate valid`
         );
       }
       const r = idxBase === idx;
@@ -3403,7 +3364,7 @@ export class UtilNative {
    * @param {[TArray, TArray]} tArraysToUnion Tupla con los dos arrays a unir, donde:
    * - `tArraysToUnion[0]` es el array "A" a unir.
    * - `tArraysToUnion[1]` es el array "B" a unir.
-   * @param {object} config Configuración para el proceso de eliminación de duplicados. Las opciones son las mismas que para el método `arrayRemoveDuplicate`.
+   * @param {object} option Configuración para el proceso de eliminación de duplicados. Las opciones son las mismas que para el método `arrayRemoveDuplicate`.
    * - `itemConflictMode` al encontrar un elemento repetido define el modo de resolver el conflicto de si se queda con el primero o el ultimo de los repetidos
    * - `keyOrKeysPath` (solo para elementos de tipo objeto) rutas de claves identificadoras para las propiedades que se usaran como base para la comparacion
    * - `isCompareLength = false`, determina si debe comprar tamaños de lso arrays
@@ -3430,13 +3391,13 @@ export class UtilNative {
    */
   public getArrayUnion<TArray extends Array<any>>(
     tArraysToUnion: [TArray, TArray],
-    config: Parameters<typeof this.removeArrayDuplicate>[1] = {}
+    option?: Parameters<typeof this.removeArrayDuplicate>[1]
   ): TArray {
-    if (!this.isArray(tArraysToUnion) || tArraysToUnion.length > 2)
-      throw new Error(`${tArraysToUnion} is not array of set valid`);
+    if (!this.isValueType(tArraysToUnion, [[], []]))
+      throw new Error(`${tArraysToUnion} is not tuple to union valid`);
     let [aAU, bAU] = tArraysToUnion;
     let aR = [...aAU, ...bAU] as TArray;
-    aR = this.removeArrayDuplicate(aR, config);
+    aR = this.removeArrayDuplicate(aR, option);
     return aR;
   }
   /**
@@ -3445,7 +3406,7 @@ export class UtilNative {
    * @param {[TArray, TArray]} tArraysToUnion Tupla con los dos arrays a unir, donde:
    * - `tArraysToUnion[0]` es el array "A" a unir.
    * - `tArraysToUnion[1]` es el array "B" a unir.
-   * @param {object} config Configuración para el proceso de eliminación de duplicados. Las opciones son las mismas que para el método `arrayRemoveDuplicate`.
+   * @param {object} option Configuración para el proceso de eliminación de duplicados. Las opciones son las mismas que para el método `arrayRemoveDuplicate`.
    * - `itemConflictMode` al encontrar un elemento repetido define el modo de resolver el conflicto de si se queda con el primero o el ultimo de los repetidos
    * - `keyOrKeysPath` (solo para elementos de tipo objeto) rutas de claves identificadoras para las propiedades que se usaran como base para la comparacion
    * - `isCompareLength = false`, determina si debe comprar tamaños de lso arrays
@@ -3472,19 +3433,16 @@ export class UtilNative {
    */
   public getArrayIntersection<T extends Array<any>>(
     tArraysToIntersection: [T, T],
-    config: Parameters<typeof this.removeArrayDuplicate>[1] = {}
+    option: Parameters<typeof this.removeArrayDuplicate>[1]
   ): T {
-    if (
-      !this.isArray(tArraysToIntersection) ||
-      tArraysToIntersection.length > 2
-    )
-      throw new Error(`${tArraysToIntersection} is not array of set valid`);
+    if (!this.isValueType(tArraysToIntersection, [[], []]))
+      throw new Error(`${tArraysToIntersection} is not tuple to union valid`);
     let [aAI, bAI] = tArraysToIntersection;
     let aR = aAI.filter((a) => {
-      const r = bAI.some((b) => this.isEquivalentTo([a, b], config));
+      const r = bAI.some((b) => this.isEquivalentTo([a, b], option));
       return r;
     }) as T;
-    aR = this.removeArrayDuplicate(aR, config);
+    aR = this.removeArrayDuplicate(aR, option);
     return aR;
   }
   /**
@@ -3495,7 +3453,7 @@ export class UtilNative {
    * - `tArraysToUnion[0]` es el array *A* a unir.
    * - `tArraysToUnion[1]` es el array *B* a unir.
    * @param {"difference_A" | "difference_B"} selector seleccion de array al cual se le aplica la diferencia (al array `tArraysToUnion[0]` que representa *A* o al array `tArraysToUnion[1]` que representa *B*).
-   * @param {object} config Configuración para el proceso de eliminación de duplicados. Las opciones son las mismas que para el método `arrayRemoveDuplicate`.
+   * @param {object} option Configuración para el proceso de eliminación de duplicados. Las opciones son las mismas que para el método `arrayRemoveDuplicate`.
    * - `itemConflictMode` al encontrar un elemento repetido define el modo de resolver el conflicto de si se queda con el primero o el ultimo de los repetidos
    * - `keyOrKeysPath` (solo para elementos de tipo objeto) rutas de claves identificadoras para las propiedades que se usaran como base para la comparacion
    * - `isCompareLength = false`, determina si debe comprar tamaños de lso arrays
@@ -3529,7 +3487,7 @@ export class UtilNative {
   public getArrayDifference<T extends Array<any>>(
     tArraysToDifference: [T, T],
     selector: "difference_A" | "difference_B",
-    config: Parameters<typeof this.removeArrayDuplicate>[1] = {}
+    option?: Parameters<typeof this.removeArrayDuplicate>[1]
   ): T {
     if (!this.isArray(tArraysToDifference) || tArraysToDifference.length > 2)
       throw new Error(`${tArraysToDifference} is not array of set valid`);
@@ -3540,18 +3498,18 @@ export class UtilNative {
     let aR = [] as T;
     if (selector === "difference_A") {
       aR = aAD.filter((a) => {
-        const r = !bAD.some((b) => this.isEquivalentTo([a, b], config));
+        const r = !bAD.some((b) => this.isEquivalentTo([a, b], option));
         return r;
       }) as T;
     } else if (selector === "difference_B") {
       aR = bAD.filter((b) => {
-        const r = !aAD.some((a) => this.isEquivalentTo([a, b], config));
+        const r = !aAD.some((a) => this.isEquivalentTo([a, b], option));
         return r;
       }) as T;
     } else {
       throw new Error(`${selector} is not selector valid`);
     }
-    aR = this.removeArrayDuplicate(aR, config);
+    aR = this.removeArrayDuplicate(aR, option);
     return aR;
   }
   /**
@@ -3575,7 +3533,7 @@ export class UtilNative {
    * console.log(r); //-> [{id: "1", nombre:"Alan", edad:12}, {id: "4", nombre:"Manuel", edad:16},]
    * ````
    *
-   * ➡Ejemplo busqueda OR y AND:
+   * ➡Ejemplo búsqueda OR y AND:
    * ````
    * const mainArray = [
    *  {id: "1", nombre:"Alan", edad:12},
@@ -3600,7 +3558,7 @@ export class UtilNative {
    *  {id: "3", nombre:"Maria", edad:16},
    *  {id: "4", nombre:"Manuel", edad:16},
    * ];
-   * const searchArray = [ //buscar los objetos en mainArray (se envian los objetos completos)`
+   * const searchArray = [ //buscar los objetos en mainArray (se envían los objetos completos)`
    *  {id: "2", nombre:"Marta", edad:14},
    *  {id: "3", nombre:"Maria", edad:16},
    * ];
@@ -3614,7 +3572,7 @@ export class UtilNative {
    * ````
    *
    * ____
-   * @param rootArray el array base del cual se desea buscar
+   * @param aData el array de datos donde se desea buscar
    *
    * @param searchArray el array con elementos a buscar, si
    * son objetos pueden ser extractos de objetos que almenos
@@ -3633,43 +3591,25 @@ export class UtilNative {
    * ____
    */
   public searchItemsInArray<TArray extends Array<any>>(
-    rootArray: TArray,
+    aData: TArray,
     searchArray: TArray,
-    config: Omit<IOptionEqGtLt, "isAllowEquivalent"> & {}
+    option: Omit<IOptionEqGtLt, "isAllowEquivalent"> & {}
   ): TArray {
-    if (!this.isArray(rootArray))
-      throw new Error(`${rootArray} is not root array valid`);
+    if (!this.isArray(aData))
+      throw new Error(`${aData} is not root array valid`);
     if (!this.isArray(searchArray))
       throw new Error(`${searchArray} is not search array valid`);
-    if (!this.isObject(config, true))
-      throw new Error(`${config} is not object of configuration to find valid`);
-    if (
-      this.isNotUndefinedAndNotNull(config.keyOrKeysPath) &&
-      !this.isString(config.keyOrKeysPath) && //❗Obligario negar string vacio❗
-      !this.isArray(config.keyOrKeysPath, true) //❗Obligario permitir array vacio❗
-    )
-      throw new Error(`${config.keyOrKeysPath} is not key path valid`);
-    const {
-      keyOrKeysPath,
-      isCaseSensitiveForString,
-      isCompareLength,
-      isCompareSize,
-      isCompareStringToNumber,
-    } = config;
-    let keysPath = this.isArray(keyOrKeysPath, true)
-      ? ([...keyOrKeysPath] as string[])
-      : this.isNotUndefinedAndNotNull(keyOrKeysPath)
-      ? ([keyOrKeysPath] as string[])
-      : [];
-    let findArray = rootArray.filter((mAi) => {
+    //constructor de opciones
+    let op = this.isObject(option, true) ? option : ({} as typeof option); //default vacio
+    op = {
+      ...op, //opciones adicionales no documentadas (si las hay)
+      //las opciones de comparación se asignan en sus respectivos métodos
+    };
+    let {} = op;
+    //iniciar proceso
+    let findArray = aData.filter((mAi) => {
       const r = searchArray.find((sAi) => {
-        let r = this.isEquivalentTo([mAi, sAi], {
-          keyOrKeysPath: keysPath,
-          isCaseSensitiveForString,
-          isCompareLength,
-          isCompareSize,
-          isCompareStringToNumber,
-        });
+        let r = this.isEquivalentTo([mAi, sAi], { ...op });
         return r;
       });
       return r;
@@ -4203,6 +4143,7 @@ export class UtilNative {
     //constructor de opciones
     let op = this.isObject(option, true) ? option : ({} as typeof option); //default vacio
     op = {
+      ...op, //opciones adicionales no documentadas (si las hay)
       allowNumber_String: this.isBoolean(op.allowNumber_String)
         ? op.allowNumber_String
         : false,
@@ -4492,6 +4433,7 @@ export class UtilNative {
     //constructor de opciones
     let op = this.isObject(option, true) ? option : ({} as typeof option); //default vacio
     op = {
+      ...op, //opciones adicionales no documentadas (si las hay)
       isCompareLength: this.isBoolean(op.isCompareLength)
         ? op.isCompareLength
         : false,
@@ -4922,6 +4864,7 @@ export class UtilNative {
     //constructor de opciones
     let op = this.isObject(option, true) ? option : ({} as typeof option); //default vacio
     op = {
+      ...op, //opciones adicionales no documentadas (si las hay)
       isAllowEquivalent: this.isBoolean(op.isAllowEquivalent)
         ? op.isAllowEquivalent
         : false,
@@ -5492,6 +5435,7 @@ export class UtilNative {
     //constructor de opciones
     let op = this.isObject(option, true) ? option : ({} as typeof option); //default vacio
     op = {
+      ...op, //opciones adicionales no documentadas (si las hay)
       isAllowEquivalent: this.isBoolean(op.isAllowEquivalent)
         ? op.isAllowEquivalent
         : false,
@@ -5824,23 +5768,105 @@ export class UtilNative {
     }
     return isLesser;
   }
-  /**... */
-  public anyCompareTo(
+  /**
+   * Permite comparar dos valores y determinar la relación entre ellos, devolviendo un número que indica si el primer valor es menor, igual o mayor que el segundo.
+   *
+   * Este método es una combinación de `isEquivalentTo`, `isGreaterTo` y `isLesserTo`, y devuelve un valor numérico que representa la relación entre los dos valores:
+   * - `-1` si el primer valor es menor que el segundo.
+   * - `0` si los valores son equivalentes.
+   * - `1` si el primer valor es mayor que el segundo.
+   *
+   * ⚠ Funciona en base a equivalencia (no igualdad), porque los objetos no se comparan directamente (`{} === {}` compara referencias, no contenido).
+   *
+   * **⚠⚠ Importante los pesos de los tipos ⚠⚠**
+   *
+   * Lista de pesos (de menor a mayor peso):
+   *
+   * - `undefined`
+   * - `null`
+   * - `boolean`
+   * - `number`
+   * - `string-number` cuando está activada `isCompareStringToNumber`
+   * - `bigint`
+   * - `string`
+   * - `object`
+   * - `array`
+   * - `function`
+   *
+   * Los pesos son estrictos y tienen en cuenta el tipo. Ejemplo:
+   *  - `A` es más pesado que `a` (cuando es case sensitive).
+   *  - `0` es más pesado que `true`.
+   *  - `true` es más pesado que `false`.
+   *  - `false` es más pesado que `null`.
+   *  - `null` es más pesado que `undefined`.
+   *
+   * @param {[any, any]} compareValues Tupla con los valores a comparar donde:
+   * - `compareValues[0]` es el primer valor a comparar.
+   * - `compareValues[1]` es el segundo valor a comparar.
+   * @param {object} option Configuración para realizar la comparación:
+   *   - `keyOrKeysPath`: (solo para objetos o array de objetos) claves identificadoras de las propiedades que se usarán para comparar.
+   *   - `isCompareLength`: (solo arrays) determina si se compara el tamaño de los arrays.
+   *   - `isCompareSize`: (solo para objetos) determina si se comparan la cantidad de objetos.
+   *   - `isCompareStringToNumber`: (solo para string posiblemente numérico) determina que en la comparación los string numéricos sean comparados como si fueran números (`2` sería equivalente a `"2"`).
+   *   - `isCaseSensitiveForString`: (solo para string) si la comparación es sensitiva a mayúsculas y minúsculas.
+   *   - `isStringLocaleMode`: (solo para string) si se usan métodos de comparación asumiendo la configuración regional del sistema.
+   * @returns {number} Retorna:
+   * - `-1` si el primer valor es menor que el segundo.
+   * - `0` si los valores son equivalentes.
+   * - `1` si el primer valor es mayor que el segundo.
+   *
+   * @example
+   * ```typescript
+   * let a;
+   * let b;
+   * let r;
+   *
+   * // Comparación básica de primitivos (mismo tipo)
+   * a = 1;
+   * b = 2;
+   * r = anyCompareTo([a, b], {}); // Sin configuración
+   * console.log(r); // Salida: -1 (1 es menor que 2)
+   *
+   * // Comparación básica de primitivos (mismo tipo, equivalentes)
+   * a = 1;
+   * b = 1;
+   * r = anyCompareTo([a, b], {});
+   * console.log(r); // Salida: 0 (1 es equivalente a 1)
+   *
+   * // Comparación básica de primitivos (diferente tipo)
+   * a = "1";
+   * b = 1;
+   * r = anyCompareTo([a, b], { isCompareStringToNumber: true });
+   * console.log(r); // Salida: 0 ("1" es equivalente a 1 cuando se compara como número)
+   *
+   * // Comparación de objetos (con keysOrKeysPath)
+   * a = {a: "hola", b: 31};
+   * b = {a: "hola", b: 15};
+   * r = anyCompareTo([a, b], { keyOrKeysPath: "b" });
+   * console.log(r); // Salida: 1 (31 es mayor que 15)
+   *
+   * // Comparación de arrays (con isCompareLength)
+   * a = [1, 2, 3];
+   * b = [1, 2];
+   * r = anyCompareTo([a, b], { isCompareLength: true });
+   * console.log(r); // Salida: 1 (el primer array es más largo que el segundo)
+   * ```
+   */
+  public compareTo(
     compareValues: [any, any],
-    config: Omit<IOptionEqGtLt, "isAllowEquivalent">
+    option?: Omit<IOptionEqGtLt, "isAllowEquivalent">
   ): number {
-    const isEquivalent = this.isEquivalentTo(compareValues, { ...config });
+    option = this.isObject(option) ? option : {};
+    const isEquivalent = this.isEquivalentTo(compareValues, { ...option });
     if (isEquivalent) return 0;
     const isGreater = this.isGreaterTo(compareValues, {
-      ...(config as IOptionEqGtLt),
-      isAllowEquivalent: true, //❗Obligatorio true
+      ...(option as IOptionEqGtLt),
     });
     if (isGreater) return 1;
     const isLesser = this.isLesserTo(compareValues, {
-      ...(config as IOptionEqGtLt),
-      isAllowEquivalent: true, //❗Obligatorio true
+      ...(option as IOptionEqGtLt),
     });
     if (isLesser) return -1;
-    throw new Error(`Internal Errror in anyCompareTo() method`);
+    throw new Error(`Internal Error in anyCompareTo() method`);
   }
 }

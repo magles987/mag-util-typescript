@@ -3192,19 +3192,6 @@ describe("Util Pure", async () => {
         const recivedThrowFn = () => util.removeArrayDuplicate(0 as any, {});
         expect(recivedThrowFn).toThrowError(expectedThrow);
       });
-      it("case: exception is not configuration object", async () => {
-        const expectedThrow = /is not object of configuration/;
-        const recivedThrowFn = () => util.removeArrayDuplicate([], 0 as any);
-        expect(recivedThrowFn).toThrowError(expectedThrow);
-      });
-      it("case: exception is not conflict mode valid", async () => {
-        const expectedThrow = /is not configuration's item conflict/;
-        const recivedThrowFn = () =>
-          util.removeArrayDuplicate([], {
-            itemConflictMode: 0 as any, //una configuracion no valida
-          });
-        expect(recivedThrowFn).toThrowError(expectedThrow);
-      });
       it("case: empty array", async () => {
         const expected = [];
         const recived = util.removeArrayDuplicate([], {});
