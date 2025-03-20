@@ -3790,6 +3790,27 @@ describe("Util Pure", async () => {
         const recived = util.isTuple(data, length);
         expect(recived).toBe(expected);
       });
+      it("case: is tuple and is range between zero and two elements", async () => {
+        const data = []; //0 elementos
+        const length = [0, 2] as [number, number]; //rango entre 0 y 2 elementos (siempre es incluyente)
+        const expected = true;
+        const recived = util.isTuple(data, length);
+        expect(recived).toBe(expected);
+      });
+      it("case: is tuple and is range between zero and two elements (no array)", async () => {
+        const data = null; //no array contenedor
+        const length = [0, 2] as [number, number]; //rango entre 0 y 2 elementos (siempre es incluyente)
+        const expected = false;
+        const recived = util.isTuple(data, length);
+        expect(recived).toBe(expected);
+      });
+      it("case: is tuple and is range between zero and two elements (no array)", async () => {
+        const data = null; //no array contenedor
+        const length = [0, 2] as [number, number]; //rango entre 0 y 2 elementos (siempre es incluyente)
+        const expected = false;
+        const recived = util.isTuple(data, length);
+        expect(recived).toBe(expected);
+      });
     });
     describe("method: isArrayTuple", async () => {
       it("case: is not array tuple", async () => {
@@ -4282,20 +4303,6 @@ describe("Util Pure", async () => {
           util.isEquivalentTo("No es tupla" as any, {});
         expect(recivedThrowFn).toThrowError(expectedThrow);
       });
-      it("case: exception is not configuration object", async () => {
-        const expectedThrow = /is not object of configuration valid/;
-        const recivedThrowFn = () =>
-          util.isEquivalentTo([1, 1] as any, "No es Objeto de Config" as any);
-        expect(recivedThrowFn).toThrowError(expectedThrow);
-      });
-      it("case: exception is not key or keys path valid", async () => {
-        const expectedThrow = /is not key or keys path valid/;
-        const recivedThrowFn = () =>
-          util.isEquivalentTo([1, 1] as any, {
-            keyOrKeysPath: 999999999999 as any, //no es una clave de ruta valida
-          });
-        expect(recivedThrowFn).toThrowError(expectedThrow);
-      });
       it("case: empty compare data", async () => {
         const expected = true;
         const recived = util.isEquivalentTo([] as any, {});
@@ -4397,7 +4404,7 @@ describe("Util Pure", async () => {
         });
         expect(recived).toBe(expected);
       });
-      it("case: objetc are strict equivalent)", async () => {
+      it("case: objetc are strict equivalent", async () => {
         const data1 = {
           p1: "hola",
           p2: {
@@ -4420,7 +4427,7 @@ describe("Util Pure", async () => {
         const recived = util.isEquivalentTo([data1, data2], {});
         expect(recived).toBe(expected);
       });
-      it("case: objetc are not strict equivalent)", async () => {
+      it("case: objetc are not strict equivalent", async () => {
         const data1 = {
           p1: "hola",
           p2: {
@@ -4443,7 +4450,7 @@ describe("Util Pure", async () => {
         const recived = util.isEquivalentTo([data1, data2], {});
         expect(recived).toBe(expected);
       });
-      it("case: objetc are not strict equivalent)", async () => {
+      it("case: objetc are not strict equivalent", async () => {
         const data1 = {
           p1: "hola",
           p2: {
@@ -4468,7 +4475,7 @@ describe("Util Pure", async () => {
         });
         expect(recived).toBe(expected);
       });
-      it("case: objetc are equivalent (by keyPath))", async () => {
+      it("case: objetc are equivalent (by keyPath)", async () => {
         const data1 = {
           _id: "1d3nt1f13r", //identificador del objeto
           p1: "hola",
@@ -4498,7 +4505,7 @@ describe("Util Pure", async () => {
         });
         expect(recived).toBe(expected);
       });
-      it("case: objetc are not equivalent (by keyPath))", async () => {
+      it("case: objetc are not equivalent (by keyPath)", async () => {
         const data1 = {
           _id: "1d3nt1f13r", //identificador del objeto
           p1: "hola",
@@ -4544,7 +4551,7 @@ describe("Util Pure", async () => {
         const recived = util.isEquivalentTo([data1, data2], {});
         expect(recived).toBe(expected);
       });
-      it("case: objetc are equivalent (by keysPath and deep))", async () => {
+      it("case: objetc are equivalent (by keysPath and deep)", async () => {
         const data1 = {
           _id: "1d3nt1f13r", //identificador del objeto
           p1: "hola",
@@ -4601,7 +4608,7 @@ describe("Util Pure", async () => {
         const recived = util.isEquivalentTo([data1, data2], {});
         expect(recived).toBe(expected);
       });
-      it("case: array are equivalent (is not sensitive (deep)))", async () => {
+      it("case: array are equivalent (is not sensitive (deep))", async () => {
         const data1 = [
           "A",
           31,
@@ -4624,7 +4631,7 @@ describe("Util Pure", async () => {
         });
         expect(recived).toBe(expected);
       });
-      it("case: array are not equivalent (1))", async () => {
+      it("case: array are not equivalent (1)", async () => {
         const data1 = [
           "A",
           31,
@@ -4647,7 +4654,7 @@ describe("Util Pure", async () => {
         const recived = util.isEquivalentTo([data1, data2], {});
         expect(recived).toBe(expected);
       });
-      it("case: array are not equivalent (1))", async () => {
+      it("case: array are not equivalent (1)", async () => {
         const data1 = [
           "A",
           31,
@@ -4672,7 +4679,53 @@ describe("Util Pure", async () => {
         });
         expect(recived).toBe(expected);
       });
-      it("case: array are equivalent (deep))", async () => {
+      it("case: array are equivalent (1 strict order))", async () => {
+        const data1 = [
+          "A",
+          31,
+          {
+            p1: "hola",
+            p2: [1, 2],
+          },
+        ];
+        const data2 = [
+          {
+            p1: "hola",
+            p2: [1, 2],
+          },
+          "A",
+          31,
+        ];
+        const expected = false; //los arrays estan desordenados
+        const recived = util.isEquivalentTo([data1, data2], {
+          isStrictArrayOrder: true, //negar desordenados
+        });
+        expect(recived).toBe(expected);
+      });
+      it("case: array are equivalent (2 not strict order))", async () => {
+        const data1 = [
+          "A",
+          31,
+          {
+            p1: "hola",
+            p2: [1, 2],
+          },
+        ];
+        const data2 = [
+          {
+            p1: "hola",
+            p2: [1, 2],
+          },
+          "A",
+          31,
+        ];
+        const expected = true; //los arrays estan desordenados
+        const recived = util.isEquivalentTo([data1, data2], {
+          isStrictArrayOrder: false, //aceptar desordenados
+        });
+        expect(recived).toBe(expected);
+      });
+      it("case: array are equivalent (deep)", async () => {
         const data1 = [
           "A", //❗siempre comparará los item del array (no importa profundidad)❗
           31, //❗siempre comparará los item del array (no importa profundidad)❗
@@ -4710,7 +4763,7 @@ describe("Util Pure", async () => {
         });
         expect(recived).toBe(expected);
       });
-      it("case: array are not equivalent (deep 1))", async () => {
+      it("case: array are not equivalent (deep 1)", async () => {
         const data1 = [
           "A", //❗siempre comparará los item del array (no importa profundidad)❗
           31, //❗siempre comparará los item del array (no importa profundidad)❗
@@ -4745,7 +4798,7 @@ describe("Util Pure", async () => {
         });
         expect(recived).toBe(expected);
       });
-      it("case: array are not equivalent (deep 1))", async () => {
+      it("case: array are not equivalent (deep 1)", async () => {
         const data1 = [
           "A", //❗siempre comparará los item del array (no importa profundidad)❗
           31, //❗siempre comparará los item del array (no importa profundidad)❗
@@ -4786,21 +4839,6 @@ describe("Util Pure", async () => {
         const expectedThrow = /is not tuple of compare values valid/;
         const recivedThrowFn = () =>
           util.isGreaterTo("No es tupla" as any, {} as any);
-        expect(recivedThrowFn).toThrowError(expectedThrow);
-      });
-      it("case: exception is not configuration object", async () => {
-        const expectedThrow = /is not object of configuration valid/;
-        const recivedThrowFn = () =>
-          util.isGreaterTo([1, 1] as any, "No es Objeto de Config" as any);
-        expect(recivedThrowFn).toThrowError(expectedThrow);
-      });
-      it("case: exception is not key or keys path valid", async () => {
-        const expectedThrow = /is not key or keys path valid/;
-        const recivedThrowFn = () =>
-          util.isGreaterTo([1, 1] as any, {
-            isAllowEquivalent: false,
-            keyOrKeysPath: 999999999999 as any, //no es una clave de ruta valida
-          });
         expect(recivedThrowFn).toThrowError(expectedThrow);
       });
       it("case: empty compare data", async () => {
@@ -5410,21 +5448,6 @@ describe("Util Pure", async () => {
         const expectedThrow = /is not tuple of compare values valid/;
         const recivedThrowFn = () =>
           util.isGreaterTo("No es tupla" as any, {} as any);
-        expect(recivedThrowFn).toThrowError(expectedThrow);
-      });
-      it("case: exception is not configuration object", async () => {
-        const expectedThrow = /is not object of configuration valid/;
-        const recivedThrowFn = () =>
-          util.isLesserTo([1, 1] as any, "No es Objeto de Config" as any);
-        expect(recivedThrowFn).toThrowError(expectedThrow);
-      });
-      it("case: exception is not key or keys path valid", async () => {
-        const expectedThrow = /is not key or keys path valid/;
-        const recivedThrowFn = () =>
-          util.isLesserTo([1, 1] as any, {
-            isAllowEquivalent: false,
-            keyOrKeysPath: 999999999999 as any, //no es una clave de ruta valida
-          });
         expect(recivedThrowFn).toThrowError(expectedThrow);
       });
       it("case: empty compare data", async () => {

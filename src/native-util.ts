@@ -3733,7 +3733,11 @@ export class UtilNative {
     tuple: TTuple,
     size: number | [number, number]
   ): boolean {
-    if (!this.isNumber(size) && !this.isTuple(size, 2))
+    if (
+      (!this.isNumber(size) || this.isNumberSign(size, "-")) &&
+      (!this.isValueType(size, [["number"], ["number"]]) || //this.isTuple(size, 2) ||
+        (size as number[]).some((s) => this.isNumberSign(s, "-")))
+    )
       throw new Error(`${size} is not number or range tuple number valid`);
     if (!this.isArray(tuple, true)) return false;
     const tp = tuple as any[];
@@ -4341,6 +4345,7 @@ export class UtilNative {
    * - `boolean`
    * - `number`
    * - `string-number` cuando esta activada `isCompareStringToNumber`
+   * - `bigint`
    * - `string`
    * - `object`
    * - `array`
@@ -4472,9 +4477,9 @@ export class UtilNative {
    */
   public isEquivalentTo(
     compareValues: [any, any],
-    option?: Omit<IOptionEqGtLt, "isAllowEquivalent">
+    option?: Omit<IOptionEqGtLt, "isAllowEquivalent" | "isMatrixCompared">
   ): boolean {
-    if (!this.isTuple(compareValues, 2)) {
+    if (!this.isTuple(compareValues, [0, 2])) {
       //verificar si almenos se intentó un array
       if (this.isArray(compareValues, true)) {
         //si es vacio es como comparar `undefined === undefined`
@@ -4484,20 +4489,15 @@ export class UtilNative {
       }
       throw new Error(`${option} is not tuple of compare values valid`);
     }
-    if (!this.isObject(option, true))
-      throw new Error(`${option} is not object of configuration valid`);
-    if (
-      this.isNotUndefinedAndNotNull(option.keyOrKeysPath) &&
-      !this.isString(option.keyOrKeysPath) && //❗Obligario negar string vacio❗
-      !this.isArray(option.keyOrKeysPath, true) //❗Obligario permitir array vacio❗
-    )
-      throw new Error(`${option.keyOrKeysPath} is not key or keys path valid`);
     //constructor de opciones
     let op = this.isObject(option, true) ? option : ({} as typeof option); //default vacio
     op = {
       isCompareLength: this.isBoolean(op.isCompareLength)
         ? op.isCompareLength
         : false,
+      isStrictArrayOrder: this.isBoolean(op.isStrictArrayOrder)
+        ? op.isStrictArrayOrder
+        : true,
       isCompareSize: this.isBoolean(op.isCompareSize)
         ? op.isCompareSize
         : false,
@@ -4518,6 +4518,7 @@ export class UtilNative {
     };
     let {
       isCompareLength,
+      isStrictArrayOrder,
       isCompareSize,
       keyOrKeysPath,
       charSeparator,
@@ -4525,13 +4526,11 @@ export class UtilNative {
       isCaseSensitiveForString,
     } = op;
     //Inicio de proceso
-    let keysPath = keyOrKeysPath as string[];
     const [valueBase, valueToCompare] = compareValues;
     let isEquivalent = true; //obligatorio iniciar con true
     //eliminar claves identificadoras repetidas
-    const isKPTCArray = this.isArray(keysPath, false); //❗no se aceptan vacios
-    if (isKPTCArray) keysPath = [...new Set(keysPath as string[])];
-    const sp = this.charSeparatorLogicPath;
+    let keysPath = keyOrKeysPath as string[];
+    keysPath = [...new Set(keysPath as string[])];
     //comparar function
     if (this.isFunction(valueBase) && this.isFunction(valueToCompare)) {
       const regExpCompress = /(\r\n|\n|\r| |;)/gm; //quitar caracteres
@@ -4552,7 +4551,7 @@ export class UtilNative {
       const lenItemToCompare = (valueToCompare as any[]).length;
       const isEmpty = lenItemBase === 0 && lenItemToCompare === 0;
       //comparar tamaños
-      if ((isCompareLength && lenItemBase != lenItemToCompare) || isEmpty) {
+      if ((isCompareLength && lenItemBase !== lenItemToCompare) || isEmpty) {
         isEquivalent = isEmpty;
       } else {
         //el len a usar como base de recorrido
@@ -4560,15 +4559,24 @@ export class UtilNative {
           lenItemBase <= lenItemToCompare ? lenItemBase : lenItemToCompare;
         //comprobar elemento por elemento
         for (let sIdx = 0; sIdx < lenItemRun; sIdx++) {
-          const sValueBase = valueBase[sIdx];
-          const sValueToCompare = valueToCompare[sIdx];
-          isEquivalent = this.isEquivalentTo([sValueBase, sValueToCompare], {
-            keyOrKeysPath: isKPTCArray ? keysPath : undefined,
-            isCompareLength,
-            isCompareSize,
-            isCaseSensitiveForString,
-            isCompareStringToNumber,
-          });
+          if (isStrictArrayOrder) {
+            //comporbacion ordenada (menos costosa)
+            const itemVB = valueBase[sIdx];
+            const itemVC = valueToCompare[sIdx];
+            isEquivalent = this.isEquivalentTo([itemVB, itemVC], {
+              ...op,
+              keyOrKeysPath: keysPath,
+            });
+          } else {
+            //comporbacion desordenada (muy muy costosa)
+            const itemVB = valueBase[sIdx];
+            isEquivalent = (valueToCompare as any[]).some((itemVC) => {
+              return this.isEquivalentTo([itemVB, itemVC], {
+                ...op,
+                keyOrKeysPath: keysPath,
+              });
+            });
+          }
           if (isEquivalent === false) break;
         }
       }
@@ -4578,33 +4586,34 @@ export class UtilNative {
       this.isObject(valueBase, true) &&
       this.isObject(valueToCompare, true)
     ) {
-      if (isKPTCArray) {
-        const lenVB = Object.keys(valueBase).length;
-        const lenVC = Object.keys(valueToCompare).length;
+      let keysVB = Object.keys(valueBase);
+      let keysVC = Object.keys(valueToCompare);
+      if (keysPath.length > 0) {
+        const lenVB = keysVB.length;
+        const lenVC = keysVC.length;
         if (lenVB === 0 && lenVC === 0) {
           isEquivalent = true;
         } else {
           for (const itemKeyPath of keysPath) {
-            const keysSplitPath = itemKeyPath.split(sp);
+            const keysSplitPath = itemKeyPath.split(charSeparator);
             const key = keysSplitPath[0];
             keysSplitPath.shift();
             const subKeyOrKeysPath =
-              keysSplitPath.length > 0 ? [keysSplitPath.join(sp)] : [];
+              keysSplitPath.length > 0
+                ? [keysSplitPath.join(charSeparator)]
+                : [];
             const sValueBase = valueBase[key];
             const sValueToCompare = valueToCompare[key];
             isEquivalent = this.isEquivalentTo([sValueBase, sValueToCompare], {
+              ...op,
               keyOrKeysPath: subKeyOrKeysPath,
-              isCompareLength,
-              isCompareSize,
-              isCaseSensitiveForString,
-              isCompareStringToNumber,
             });
             if (isEquivalent === false) break;
           }
         }
       } else {
-        const keysVB = Object.keys(valueBase).sort();
-        const keysVC = Object.keys(valueToCompare).sort();
+        keysVB = keysVB.sort();
+        keysVC = keysVC.sort();
         const lenVB = keysVB.length;
         const lenVC = keysVC.length;
         const isEmpty = lenVB === 0 && lenVC === 0;
@@ -4618,11 +4627,7 @@ export class UtilNative {
             const sValueBase = valueBase[keyR];
             const sValueToCompare = valueToCompare[keyR];
             isEquivalent = this.isEquivalentTo([sValueBase, sValueToCompare], {
-              keyOrKeysPath: undefined,
-              isCompareLength,
-              isCompareSize,
-              isCaseSensitiveForString,
-              isCompareStringToNumber,
+              ...op,
             });
             if (isEquivalent === false) break;
           }
@@ -4638,6 +4643,10 @@ export class UtilNative {
         strVC = (valueToCompare as string).toLocaleLowerCase();
       }
       isEquivalent = strVB === strVC;
+    }
+    //comparar isBigint
+    else if (this.isBigint(valueBase) && this.isBigint(valueToCompare)) {
+      isEquivalent = valueBase === valueToCompare;
     }
     //comparar number
     else if (this.isNumber(valueBase) && this.isNumber(valueToCompare)) {
@@ -4674,6 +4683,7 @@ export class UtilNative {
    * - `boolean`
    * - `number`
    * - `string-number` cuando esta activada `isCompareStringToNumber`
+   * - `bigint`
    * - `string`
    * - `object`
    * - `array`
@@ -4689,7 +4699,7 @@ export class UtilNative {
    * @param {[any, any]} compareValues Tupla con los valores a comparar donde:
    * - `compareValues[0]` el supuesto valor mayor.
    * - `compareValues[1]` el supuesto valor menor.
-   * @param {object} config Configuración para realizar la comparación:
+   * @param {object} option Configuración para realizar la comparación:
    *   - `isAllowEquivalent` (**Obligatorio**) determina si se permite la equivalencia en la compracion
    *   - `keyOrKeysPath`: (solo para objetos o array de objetos) claves identificadoras de las propiedades que se usarán para comparar.
    *   - `isCompareLength`: (solo arrays) determina si se compara el tamaño de los arrays.
@@ -4697,6 +4707,7 @@ export class UtilNative {
    *   - `isCompareStringToNumber`: (solo para string posiblemente numérico) determina que en la comparación los string numéricos sean comparados como si fueran números (`2` sería equivalente a `"2"`).
    *   - `isCaseSensitiveForString`: (solo para string) si la comparación es sensitiva a mayúsculas y minúsculas.
    *   - `isStringLocaleMode`: (solo para string) si se usan métodos de comparación asumiendo la configuración regional del sistema.
+   *   - `isMatrixCompared` : (solo arrays) comparación matricial
    * @returns {boolean} Retorna `true` si los valores son equivalentes según los criterios definidos, `false` de lo contrario.
    *
    * @example
@@ -4904,50 +4915,66 @@ export class UtilNative {
    */
   public isGreaterTo(
     compareValues: [any, any],
-    config: IOptionEqGtLt
+    option?: IOptionEqGtLt
   ): boolean {
-    if (!this.isArray(compareValues, true) || compareValues.length > 2)
-      throw new Error(`${config} is not tuple of compare values valid`);
-    if (!this.isObject(config, true))
-      throw new Error(`${config} is not object of configuration valid`);
+    if (!this.isTuple(compareValues, [0, 2]))
+      throw new Error(`${option} is not tuple of compare values valid`);
+    //constructor de opciones
+    let op = this.isObject(option, true) ? option : ({} as typeof option); //default vacio
+    op = {
+      isAllowEquivalent: this.isBoolean(op.isAllowEquivalent)
+        ? op.isAllowEquivalent
+        : false,
+      isCompareLength: this.isBoolean(op.isCompareLength)
+        ? op.isCompareLength
+        : false,
+      isStrictArrayOrder: op.isStrictArrayOrder, //isEquivaletnTo se encarga de asignarla
+      isMatrixCompared: this.isBoolean(op.isMatrixCompared)
+        ? op.isMatrixCompared
+        : false,
+      isCompareSize: this.isBoolean(op.isCompareSize)
+        ? op.isCompareSize
+        : false,
+      keyOrKeysPath: this.castArrayByConditionType(
+        op.keyOrKeysPath,
+        "string",
+        []
+      ),
+      charSeparator: this.isString(op.charSeparator)
+        ? op.charSeparator
+        : this.charSeparatorLogicPath,
+      isCompareStringToNumber: this.isBoolean(op.isCompareStringToNumber)
+        ? op.isCompareStringToNumber
+        : false,
+      isCaseSensitiveForString: this.isBoolean(op.isCaseSensitiveForString)
+        ? op.isCaseSensitiveForString
+        : true,
+    };
+    let {
+      isAllowEquivalent,
+      isCompareLength,
+      isMatrixCompared,
+      isCompareSize,
+      keyOrKeysPath,
+      charSeparator,
+      isCompareStringToNumber,
+      isCaseSensitiveForString,
+    } = op;
+    // casos especiales (evitan comprobaciones innecesarias)
     //si es vacio es como comparar `undefined > undefined` (no es mayor a si mismo, puede ser equivalente)
-    if ((compareValues as any[]).length === 0) return config.isAllowEquivalent;
-    //si solo tiene un elemento es como si comparara a `any > undefined` (si es mayord)
+    if ((compareValues as any[]).length === 0) return isAllowEquivalent;
+    //si solo tiene un elemento es como si comparara a `any > undefined` (si es mayor)
     if ((compareValues as any[]).length === 1)
       return (
         !this.isUndefined(compareValues[0]) || //solo si no es `undefined`
-        (this.isUndefined(compareValues[0]) && config.isAllowEquivalent)
+        (this.isUndefined(compareValues[0]) && isAllowEquivalent)
       );
-    if (
-      this.isNotUndefinedAndNotNull(config.keyOrKeysPath) &&
-      !this.isString(config.keyOrKeysPath) && //❗Obligario negar string vacio❗
-      !this.isArray(config.keyOrKeysPath, true) //❗Obligario permitir array vacio❗
-    )
-      throw new Error(`${config.keyOrKeysPath} is not key or keys path valid`);
-    let {
-      isCompareLength = false, //❗Obligatorio `false` predefinido❗
-      isCompareSize = false, //❗Obligatorio `false` predefinido❗
-      keyOrKeysPath,
-      isAllowEquivalent = false, //predefinidos
-      isCompareStringToNumber = false, //predefinidos
-      isCaseSensitiveForString = true, //predefinidos
-    } = config;
     //Inicio de proceso
     const [valueBase, valueToCompare] = compareValues;
-    let keysPath = this.isArray(keyOrKeysPath, true)
-      ? ([...keyOrKeysPath] as string[])
-      : this.isString(keyOrKeysPath)
-      ? ([keyOrKeysPath] as string[])
-      : ([] as string[]);
-    isCompareLength = this.convertToBoolean(isCompareLength);
-    isCompareSize = this.convertToBoolean(isCompareSize);
-    isAllowEquivalent = this.convertToBoolean(isAllowEquivalent);
-    isCompareStringToNumber = this.convertToBoolean(isCompareStringToNumber);
     let isGreater = true; //obligatorio iniciar con true
     //eliminar claves identificadoras repetidas
-    const isKPTCArray = this.isArray(keysPath, false); //❗no se aceptan vacios
-    if (isKPTCArray) keysPath = [...new Set(keysPath as string[])];
-    const sp = this.charSeparatorLogicPath;
+    let keysPath = keyOrKeysPath as string[];
+    keysPath = [...new Set(keysPath as string[])];
     //comparar funciones
     if (this.isFunction(valueBase) && this.isFunction(valueToCompare)) {
       const regExpCompress = /(\r\n|\n|\r| |;)/gm; //quitar caracteres
@@ -4979,35 +5006,45 @@ export class UtilNative {
             ? //se selecciona el len mas pequeño para recorrer
               lenItemBase
             : lenItemToCompare;
-        //comparar todos loes elementos
+        let matrixResult = 0;
+        //comparar todos los elementos
         for (let idx = 0; idx < lenItemRun; idx++) {
-          const sValueBase = valueBase[idx];
-          const sValueToCompare = valueToCompare[idx];
-          const isEquivalent = this.isEquivalentTo(
-            [sValueBase, sValueToCompare],
-            {
-              isCaseSensitiveForString,
-              isCompareLength,
-              isCompareSize,
-              isCompareStringToNumber,
-              keyOrKeysPath: keysPath,
+          if (!isMatrixCompared) {
+            //comparación ordenada (menos costosa)
+            const itemVB = valueBase[idx];
+            const itemVC = valueToCompare[idx];
+            const isEquivalent = this.isEquivalentTo([itemVB, itemVC], {
+              ...op,
+            });
+            //tratamiento de equivalencias (para seguir al siguinte objeto)
+            if (isEquivalent) {
+              if (idx < lenItemRun - 1) continue; //solo continuará si esquivalente y no el último
+              isGreater = isAllowEquivalent;
+              break;
             }
-          );
-          //tratamiento de equivalencias (para seguir al siguinte objeto)
-          if (isEquivalent) {
-            if (idx < lenItemRun - 1) continue; //solo continuará si esquivalente y no el ultimo
-            isGreater = isAllowEquivalent;
+            isGreater = this.isGreaterTo([itemVB, itemVC], {
+              ...op,
+            });
+            break;
+          } else {
+            //comparación matricial (muy muy costosa)
+            const itemVB = valueBase[idx];
+            matrixResult = (valueToCompare as any[]).reduce((accMR, itemVC) => {
+              const isEq = this.isEquivalentTo([itemVB, itemVC], { ...op });
+              const isGr = this.isGreaterTo([itemVB, itemVC], { ...op });
+              const result = isEq ? 0 : isGr ? 1 : -1;
+              accMR = accMR + result;
+              return accMR;
+            }, matrixResult);
+            if (idx < lenItemRun - 1) continue;
+            isGreater =
+              matrixResult === 0
+                ? isAllowEquivalent
+                : matrixResult > 0
+                ? true
+                : false;
             break;
           }
-          isGreater = this.isGreaterTo([sValueBase, sValueToCompare], {
-            isAllowEquivalent,
-            keyOrKeysPath: isKPTCArray ? keysPath : undefined,
-            isCompareLength,
-            isCompareSize,
-            isCompareStringToNumber,
-            isCaseSensitiveForString,
-          });
-          break;
         }
       }
     }
@@ -5016,54 +5053,51 @@ export class UtilNative {
       this.isObject(valueBase, true) &&
       this.isObject(valueToCompare, true)
     ) {
-      if (isKPTCArray) {
+      let keysVB = Object.keys(valueBase);
+      let keysVC = Object.keys(valueToCompare);
+      if (keysPath.length > 0) {
         const lenKP = keysPath.length;
-        const lenVB = Object.keys(valueBase).length; //no necesitan ordenarse
-        const lenVC = Object.keys(valueToCompare).length; //no necesitan ordenarse
+        const lenVB = keysVB.length; //no necesitan ordenarse
+        const lenVC = keysVC.length; //no necesitan ordenarse
         if (lenVB === 0 && lenVC === 0) {
           isGreater = isAllowEquivalent;
         } else {
           for (let idx = 0; idx < lenKP; idx++) {
             const itemKeyPath = keysPath[idx];
-            const keysSplitPath = itemKeyPath.split(sp);
+            const keysSplitPath = itemKeyPath.split(charSeparator);
             const key = keysSplitPath[0];
             keysSplitPath.shift();
             const subKeysPathToCompare =
-              keysSplitPath.length > 0 ? [keysSplitPath.join(sp)] : [];
+              keysSplitPath.length > 0
+                ? [keysSplitPath.join(charSeparator)]
+                : [];
             const sValueBase = valueBase[key];
             const sValueToCompare = valueToCompare[key];
             //obligatoria para seguir al otro objeto (si son equivalentes)
             const isEquivalent = this.isEquivalentTo(
               [sValueBase, sValueToCompare],
               {
-                isCaseSensitiveForString,
-                isCompareLength,
-                isCompareSize,
-                isCompareStringToNumber,
+                ...op,
                 keyOrKeysPath: subKeysPathToCompare,
               }
             );
             //tratamiento de equivalencias (para seguir al siguinte objeto)
             if (isEquivalent) {
-              if (idx < lenKP - 1) continue; //solo continuará si esquivalente y no el ultmo
+              if (idx < lenKP - 1) continue; //solo continuará si esquivalente y no el último
               isGreater = isAllowEquivalent;
               break;
             }
             //compare mayor
             isGreater = this.isGreaterTo([sValueBase, sValueToCompare], {
-              isAllowEquivalent,
+              ...op,
               keyOrKeysPath: subKeysPathToCompare,
-              isCompareLength,
-              isCompareSize,
-              isCompareStringToNumber,
-              isCaseSensitiveForString,
             });
             break;
           }
         }
       } else {
-        const keysVB = Object.keys(valueBase).sort();
-        const keysVC = Object.keys(valueToCompare).sort();
+        keysVB = keysVB.sort();
+        keysVC = keysVC.sort();
         const lenVB = keysVB.length;
         const lenVC = keysVC.length;
         if ((isCompareSize && lenVB <= lenVC) || (lenVB === 0 && lenVC === 0)) {
@@ -5081,11 +5115,7 @@ export class UtilNative {
             const isEquivalent = this.isEquivalentTo(
               [sValueBase, sValueToCompare],
               {
-                isCaseSensitiveForString,
-                isCompareLength,
-                isCompareSize,
-                isCompareStringToNumber,
-                keyOrKeysPath,
+                ...op,
               }
             );
             //tratamiento de equivalencias (para seguir al siguinte objeto)
@@ -5095,12 +5125,7 @@ export class UtilNative {
               break;
             }
             isGreater = this.isGreaterTo([sValueBase, sValueToCompare], {
-              isAllowEquivalent,
-              keyOrKeysPath: undefined,
-              isCompareLength,
-              isCompareSize,
-              isCaseSensitiveForString,
-              isCompareStringToNumber,
+              ...op,
             });
             break;
           }
@@ -5119,6 +5144,11 @@ export class UtilNative {
         caseFirst: "lower",
       });
       isGreater = modulus > 0 ? true : isAllowEquivalent && modulus === 0;
+    }
+    //comparar isBigint
+    else if (this.isBigint(valueBase) && this.isBigint(valueToCompare)) {
+      const modulus = (valueBase as bigint) - (valueToCompare as bigint);
+      isGreater = modulus > 0 ? true : isAllowEquivalent && modulus === 0n;
     }
     //comparar number
     else if (this.isNumber(valueBase) && this.isNumber(valueToCompare)) {
@@ -5162,18 +5192,26 @@ export class UtilNative {
           this.isUndefined(valueToCompare) ||
           this.isNull(valueToCompare) ||
           this.isBoolean(valueToCompare);
-      } else if (this.isString(valueBase, true)) {
+      } else if (this.isBigint(valueBase, false)) {
         isGreater =
           this.isUndefined(valueToCompare) ||
           this.isNull(valueToCompare) ||
           this.isBoolean(valueToCompare) ||
           this.isNumber(valueToCompare);
+      } else if (this.isString(valueBase, true)) {
+        isGreater =
+          this.isUndefined(valueToCompare) ||
+          this.isNull(valueToCompare) ||
+          this.isBoolean(valueToCompare) ||
+          this.isNumber(valueToCompare) ||
+          this.isBigint(valueToCompare);
       } else if (this.isObject(valueBase, true)) {
         isGreater =
           this.isUndefined(valueToCompare) ||
           this.isNull(valueToCompare) ||
           this.isBoolean(valueToCompare) ||
           this.isNumber(valueToCompare) ||
+          this.isBigint(valueToCompare) ||
           this.isString(valueToCompare, true);
       } else if (this.isArray(valueBase, true)) {
         isGreater =
@@ -5181,6 +5219,7 @@ export class UtilNative {
           this.isNull(valueToCompare) ||
           this.isBoolean(valueToCompare) ||
           this.isNumber(valueToCompare) ||
+          this.isBigint(valueToCompare) ||
           this.isString(valueToCompare, true) ||
           this.isObject(valueToCompare, true);
       } else if (this.isFunction(valueBase)) {
@@ -5189,6 +5228,7 @@ export class UtilNative {
           this.isNull(valueToCompare) ||
           this.isBoolean(valueToCompare) ||
           this.isNumber(valueToCompare) ||
+          this.isBigint(valueToCompare) ||
           this.isString(valueToCompare, true) ||
           this.isObject(valueToCompare, true) ||
           this.isArray(valueToCompare, true);
@@ -5229,7 +5269,7 @@ export class UtilNative {
    * @param {[any, any]} compareValues Tupla con los valores a comparar donde:
    * - `compareValues[0]` el supuesto valor menor.
    * - `compareValues[1]` el supuesto valor mayor.
-   * @param {object} config Configuración para realizar la comparación:
+   * @param {object} option Configuración para realizar la comparación:
    *   - `isAllowEquivalent` (**Obligatorio**) determina si se permite la equivalencia en la compracion
    *   - `keyOrKeysPath`: (solo para objetos o array de objetos) claves identificadoras de las propiedades que se usarán para comparar.
    *   - `isCompareLength`: (solo arrays) determina si se compara el tamaño de los arrays.
@@ -5237,6 +5277,7 @@ export class UtilNative {
    *   - `isCompareStringToNumber`: (solo para string posiblemente numérico) determina que en la comparación los string numéricos sean comparados como si fueran números (`2` sería equivalente a `"2"`).
    *   - `isCaseSensitiveForString`: (solo para string) si la comparación es sensitiva a mayúsculas y minúsculas.
    *   - `isStringLocaleMode`: (solo para string) si se usan métodos de comparación asumiendo la configuración regional del sistema.
+   *   - `isMatrixCompared` : (solo arrays) comparación matricial
    * @returns {boolean} Retorna `true` si los valores son equivalentes según los criterios definidos, `false` de lo contrario.
    *
    * @example
@@ -5442,46 +5483,65 @@ export class UtilNative {
    *
    * ````
    */
-  public isLesserTo(compareValues: [any, any], config: IOptionEqGtLt): boolean {
-    if (!this.isArray(compareValues, true) || compareValues.length > 2)
-      throw new Error(`${config} is not tuple of compare values valid`);
-    if (!this.isObject(config, true))
-      throw new Error(`${config} is not object of configuration valid`);
+  public isLesserTo(
+    compareValues: [any, any],
+    option?: IOptionEqGtLt
+  ): boolean {
+    if (!this.isTuple(compareValues, [0, 2]))
+      throw new Error(`${option} is not tuple of compare values valid`);
+    //constructor de opciones
+    let op = this.isObject(option, true) ? option : ({} as typeof option); //default vacio
+    op = {
+      isAllowEquivalent: this.isBoolean(op.isAllowEquivalent)
+        ? op.isAllowEquivalent
+        : false,
+      isCompareLength: this.isBoolean(op.isCompareLength)
+        ? op.isCompareLength
+        : false,
+      isStrictArrayOrder: op.isStrictArrayOrder, //isEquivaletnTo se encarga de asignarla
+      isMatrixCompared: this.isBoolean(op.isMatrixCompared)
+        ? op.isMatrixCompared
+        : false,
+      isCompareSize: this.isBoolean(op.isCompareSize)
+        ? op.isCompareSize
+        : false,
+      keyOrKeysPath: this.castArrayByConditionType(
+        op.keyOrKeysPath,
+        "string",
+        []
+      ),
+      charSeparator: this.isString(op.charSeparator)
+        ? op.charSeparator
+        : this.charSeparatorLogicPath,
+      isCompareStringToNumber: this.isBoolean(op.isCompareStringToNumber)
+        ? op.isCompareStringToNumber
+        : false,
+      isCaseSensitiveForString: this.isBoolean(op.isCaseSensitiveForString)
+        ? op.isCaseSensitiveForString
+        : true,
+    };
+    let {
+      isAllowEquivalent,
+      isCompareLength,
+      isMatrixCompared,
+      isCompareSize,
+      keyOrKeysPath,
+      charSeparator,
+      isCompareStringToNumber,
+      isCaseSensitiveForString,
+    } = op;
+    // casos especiales (evitan comprobaciones innecesarias)
     //si es vacio es como comparar `undefined < undefined` (no es menor a si mismo, puede ser equivalente)
-    if ((compareValues as any[]).length === 0) return config.isAllowEquivalent;
+    if ((compareValues as any[]).length === 0) return op.isAllowEquivalent;
     //si solo tiene un elemento es como si comparara a `any < undefined`
     if ((compareValues as any[]).length === 1)
-      return this.isUndefined(compareValues[0]) && config.isAllowEquivalent;
-    if (
-      this.isNotUndefinedAndNotNull(config.keyOrKeysPath) &&
-      !this.isString(config.keyOrKeysPath) && //❗Obligario negar string vacio❗
-      !this.isArray(config.keyOrKeysPath, true) //❗Obligario permitir array vacio❗
-    )
-      throw new Error(`${config.keyOrKeysPath} is not key or keys path valid`);
-    let {
-      isCompareLength = false, //❗Obligatorio `false` predefinido❗
-      isCompareSize = false, //❗Obligatorio `false` predefinido❗
-      keyOrKeysPath,
-      isAllowEquivalent = false, //predefinidos
-      isCompareStringToNumber = false, //predefinidos
-      isCaseSensitiveForString = true, //predefinidos
-    } = config;
+      return this.isUndefined(compareValues[0]) && op.isAllowEquivalent;
     //Inicio de proceso
     const [valueBase, valueToCompare] = compareValues;
-    let keysPath = this.isArray(keyOrKeysPath, true)
-      ? ([...keyOrKeysPath] as string[])
-      : this.isString(keyOrKeysPath)
-      ? ([keyOrKeysPath] as string[])
-      : ([] as string[]);
-    isCompareLength = this.convertToBoolean(isCompareLength);
-    isCompareSize = this.convertToBoolean(isCompareSize);
-    isAllowEquivalent = this.convertToBoolean(isAllowEquivalent);
-    isCompareStringToNumber = this.convertToBoolean(isCompareStringToNumber);
     let isLesser = true; //obligatorio iniciar con true
     //eliminar claves identificadoras repetidas
-    const isKPTCArray = this.isArray(keysPath, false); //❗no se aceptan vacios
-    if (isKPTCArray) keysPath = [...new Set(keysPath as string[])];
-    const sp = this.charSeparatorLogicPath;
+    let keysPath = keyOrKeysPath as string[];
+    keysPath = [...new Set(keysPath as string[])];
     //comparar funciones
     if (this.isFunction(valueBase) && this.isFunction(valueToCompare)) {
       const regExpCompress = /(\r\n|\n|\r| |;)/gm; //quitar caracteres
@@ -5513,35 +5573,48 @@ export class UtilNative {
             ? //se selecciona el len mas pequeño para recorrer
               lenItemBase
             : lenItemToCompare;
+        let matrixResult = 0;
         //comparar todos loes elementos
         for (let idx = 0; idx < lenItemRun; idx++) {
-          const sValueBase = valueBase[idx];
-          const sValueToCompare = valueToCompare[idx];
-          const isEquivalent = this.isEquivalentTo(
-            [sValueBase, sValueToCompare],
-            {
+          if (!isMatrixCompared) {
+            const itemVB = valueBase[idx];
+            const itemVC = valueToCompare[idx];
+            const isEquivalent = this.isEquivalentTo([itemVB, itemVC], {
               isCaseSensitiveForString,
               isCompareLength,
               isCompareSize,
               isCompareStringToNumber,
               keyOrKeysPath: keysPath,
+            });
+            //tratamiento de equivalencias (para seguir al siguinte objeto)
+            if (isEquivalent) {
+              if (idx < lenItemRun - 1) continue; //solo continuará si esquivalente y no el ultimo
+              isLesser = isAllowEquivalent;
+              break;
             }
-          );
-          //tratamiento de equivalencias (para seguir al siguinte objeto)
-          if (isEquivalent) {
-            if (idx < lenItemRun - 1) continue; //solo continuará si esquivalente y no el ultimo
-            isLesser = isAllowEquivalent;
+            isLesser = this.isLesserTo([itemVB, itemVC], {
+              ...op,
+            });
+            break;
+          } else {
+            //comparación matricial (muy muy costosa)
+            const itemVB = valueBase[idx];
+            matrixResult = (valueToCompare as any[]).reduce((accMR, itemVC) => {
+              const isEq = this.isEquivalentTo([itemVB, itemVC], { ...op });
+              const isLe = this.isLesserTo([itemVB, itemVC], { ...op });
+              const result = isEq ? 0 : isLe ? -1 : 1;
+              accMR = accMR + result;
+              return accMR;
+            }, matrixResult);
+            if (idx < lenItemRun - 1) continue;
+            isLesser =
+              matrixResult === 0
+                ? isAllowEquivalent
+                : matrixResult < 0
+                ? true
+                : false;
             break;
           }
-          isLesser = this.isLesserTo([sValueBase, sValueToCompare], {
-            isAllowEquivalent,
-            keyOrKeysPath: isKPTCArray ? keysPath : undefined,
-            isCompareLength,
-            isCompareSize,
-            isCompareStringToNumber,
-            isCaseSensitiveForString,
-          });
-          break;
         }
       }
     }
@@ -5550,20 +5623,24 @@ export class UtilNative {
       this.isObject(valueBase, true) &&
       this.isObject(valueToCompare, true)
     ) {
-      if (isKPTCArray) {
+      let keysVB = Object.keys(valueBase);
+      let keysVC = Object.keys(valueToCompare);
+      if (keysPath.length > 0) {
         const lenKP = keysPath.length;
-        const lenVB = Object.keys(valueBase).length; //no necesitan ordenarse
-        const lenVC = Object.keys(valueToCompare).length; //no necesitan ordenarse
+        const lenVB = keysVB.length; //no necesitan ordenarse
+        const lenVC = keysVC.length; //no necesitan ordenarse
         if (lenVB === 0 && lenVC === 0) {
           isLesser = isAllowEquivalent;
         } else {
           for (let idx = 0; idx < lenKP; idx++) {
             const itemKeyPath = keysPath[idx];
-            const keysSplitPath = itemKeyPath.split(sp);
+            const keysSplitPath = itemKeyPath.split(charSeparator);
             const key = keysSplitPath[0];
             keysSplitPath.shift();
             const subKeysPathToCompare =
-              keysSplitPath.length > 0 ? [keysSplitPath.join(sp)] : [];
+              keysSplitPath.length > 0
+                ? [keysSplitPath.join(charSeparator)]
+                : [];
             const sValueBase = valueBase[key];
             const sValueToCompare = valueToCompare[key];
             //obligatoria para seguir al otro objeto (si son equivalentes)
@@ -5596,8 +5673,8 @@ export class UtilNative {
           }
         }
       } else {
-        const keysVB = Object.keys(valueBase).sort();
-        const keysVC = Object.keys(valueToCompare).sort();
+        keysVB = keysVB.sort();
+        keysVC = keysVC.sort();
         const lenVB = keysVB.length;
         const lenVC = keysVC.length;
         if ((isCompareSize && lenVB >= lenVC) || (lenVC === 0 && lenVC === 0)) {
@@ -5654,6 +5731,11 @@ export class UtilNative {
       });
       isLesser = modulus < 0 ? true : isAllowEquivalent && modulus === 0;
     }
+    //comparar isBigint
+    else if (this.isBigint(valueBase) && this.isBigint(valueToCompare)) {
+      const modulus = (valueBase as bigint) - (valueToCompare as bigint);
+      isLesser = modulus < 0 ? true : isAllowEquivalent && modulus === 0n;
+    }
     //comparar number
     else if (this.isNumber(valueBase) && this.isNumber(valueToCompare)) {
       const modulus = (valueBase as number) - (valueToCompare as number);
@@ -5696,18 +5778,26 @@ export class UtilNative {
           !this.isUndefined(valueToCompare) &&
           !this.isNull(valueToCompare) &&
           !this.isBoolean(valueToCompare);
-      } else if (this.isString(valueBase, true)) {
+      } else if (this.isBigint(valueBase, false)) {
         isLesser =
           !this.isUndefined(valueToCompare) &&
           !this.isNull(valueToCompare) &&
           !this.isBoolean(valueToCompare) &&
           !this.isNumber(valueToCompare);
+      } else if (this.isString(valueBase, true)) {
+        isLesser =
+          !this.isUndefined(valueToCompare) &&
+          !this.isNull(valueToCompare) &&
+          !this.isBoolean(valueToCompare) &&
+          !this.isNumber(valueToCompare) &&
+          !this.isBigint(valueToCompare);
       } else if (this.isObject(valueBase, true)) {
         isLesser =
           !this.isUndefined(valueToCompare) &&
           !this.isNull(valueToCompare) &&
           !this.isBoolean(valueToCompare) &&
           !this.isNumber(valueToCompare) &&
+          !this.isBigint(valueToCompare) &&
           !this.isString(valueToCompare, true);
       } else if (this.isArray(valueBase, true)) {
         isLesser =
@@ -5715,6 +5805,7 @@ export class UtilNative {
           !this.isNull(valueToCompare) &&
           !this.isBoolean(valueToCompare) &&
           !this.isNumber(valueToCompare) &&
+          !this.isBigint(valueToCompare) &&
           !this.isString(valueToCompare, true) &&
           !this.isObject(valueToCompare, true);
       } else if (this.isFunction(valueBase)) {
@@ -5723,6 +5814,7 @@ export class UtilNative {
           !this.isNull(valueToCompare) &&
           !this.isBoolean(valueToCompare) &&
           !this.isNumber(valueToCompare) &&
+          !this.isBigint(valueToCompare) &&
           !this.isString(valueToCompare, true) &&
           !this.isObject(valueToCompare, true) &&
           !this.isArray(valueToCompare, true);

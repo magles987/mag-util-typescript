@@ -60,7 +60,10 @@ export interface IValueTypeOption {
  * y sub métodos que dependan de estos
  * */
 export interface IOptionEqGtLt {
-  /**determina si la comparación permite
+  /**
+   * Predefinido en `false`
+   *
+   * determina si la comparación permite
    * incluir equivalencia*/
   isAllowEquivalent: boolean;
   /**
@@ -72,7 +75,9 @@ export interface IOptionEqGtLt {
    * ⚠ Solo para objetos
    */
   keyOrKeysPath?: string | string[];
-  /**`= this.charSeparatorLogicPath` El carácter separador a utilizar entre los elementos del path. */
+  /**Predefinido en `this.charSeparatorLogicPath`
+   * El carácter separador a utilizar entre los elementos del path.
+   */
   charSeparator?: string;
   /**
    * Predefinido en `false`
@@ -83,6 +88,52 @@ export interface IOptionEqGtLt {
    *
    */
   isCompareLength?: boolean;
+  /**
+   * Predefinido en `true`
+   *
+   * ❗Aplica solamente para equivalencia de arrays❗
+   *
+   * determina si entre los arrays se
+   * debe comparar en orden estricto los elementos
+   * o los elementos pueden estar en orden aleatorio
+   * (lo importante es que sean comparables)
+   */
+  isStrictArrayOrder?: boolean;
+  /**
+   *
+   * Predefinido en `false`
+   *
+   * ❗Aplica solamente para mayor y menor que de arrays❗
+   *
+   * determina que debe compararen orden matricial
+   * cada uno de los elementos sin tener en cuenta
+   * el orden.
+   *
+   * @example
+   * ````
+   * let a = ["a", 2, true];
+   * let b = ["b", 1, false];
+   * //¿cual es mayor o cual el menor?
+   *
+   * ````
+   * Sin orden matricial se evalua elemento contra
+   * elemento en el orden que se encuentren por lo tanto
+   * el elemento `a[0]` que es `"a"` en comparación con
+   * `b[0]` que es `"b"` entonces el array `a` es mayor
+   * que el array `b` (los demás elementos se ignoran).
+   *
+   * Con orden matricial se evalua cada elemento del array
+   * `a` contra todos los elemento del array `b`, cada
+   * resultado de comparación se le asigna un valor:
+   *
+   * `1` si es mayor, `0` si es igual, `-1` si es menor
+   *
+   * luego se suman los resultados de cada comparación y
+   * si el resultado es *positivo* significa que es mayor,
+   * si es *negativo* significa que es menor y si es *0*
+   * indica que es igual
+   */
+  isMatrixCompared?: boolean;
   /**
    * Predefinido en `false`
    *
