@@ -2529,7 +2529,7 @@ export class UtilNative {
    * @param {[T, T?]} tObjToMerge Tupla que representa:
    *   - `tObjToMerge[0]`: Objeto base al cual se fusionará el nuevo objeto.
    *   - `tObjToMerge[1]`: Objeto a fusionar con el objeto base.
-   * @param {object} config - Configuración para el proceso de fusión:
+   * @param {object} option - Configuración para el proceso de fusión:
    *   - `mode`: Modo de fusión par alos objetos
    *   - `isNullAsUndefined` Determina si se debe asumir que
    *     el valor `null` tiene el mismo peso comparativo que el valor `undefined`.
@@ -2601,7 +2601,7 @@ export class UtilNative {
    */
   public deepMergeObjects<T>(
     tObjToMerge: [T, T?],
-    config: {
+    option: {
       /**
        * determina el modo de fusion
        *
@@ -2624,91 +2624,61 @@ export class UtilNative {
   ): T {
     if (!this.isTuple(tObjToMerge, 2))
       throw new Error(`${tObjToMerge} is not tuple of objects valid`);
+    // Constructor de opciones
+    let op = this.isObject(option, true) ? option : ({} as typeof option);
+    op = {
+      mode: op.mode === "soft" || op.mode === "hard" ? op.mode : "hard",
+      isNullAsUndefined: this.isBoolean(op.isNullAsUndefined)
+        ? op.isNullAsUndefined
+        : false,
+    };
+    const { mode, isNullAsUndefined } = op;
+    // Iniciar proceso
     let [objBase, objNew] = tObjToMerge;
     const isObjBase = this.isObject(objBase, true);
     const isObjNew = this.isObject(objNew, true);
-    if (!this.isObject(config, true))
-      throw new Error(
-        `${config} is not object of configuration to deep merge valid`
-      );
-    if (!this.isString(config.mode))
-      throw new Error(`${config.mode} is not mode for merge valid`);
-    //casos especiales (alguno o ambos no son objetos)
+    // Casos especiales (alguno o ambos no son objetos)
     if (!isObjBase || !isObjNew) {
       if (!isObjBase && isObjNew) return objNew;
       if (!isObjNew && isObjBase) return objBase;
       return objBase;
     }
-    let {
-      mode,
-      isNullAsUndefined = false, //predefinido
-    } = config;
-    let otherKeys = [];
-    for (const key in objBase) {
-      otherKeys.push(key);
-    }
-    let keysB = Object.keys(objBase);
-    keysB = !this.isInstance(objBase) //las instancias deben ser tratadas de forma especial
-      ? keysB
-      : [
-          ...Object.getOwnPropertyNames(Object.getPrototypeOf(objBase)),
-          ...keysB,
-        ];
-    let keysN = Object.keys(objNew);
-    keysN = !this.isInstance(objNew) //las instancias deben ser tratadas de forma especial
-      ? keysN
-      : [
-          ...Object.getOwnPropertyNames(Object.getPrototypeOf(objNew)),
-          ...keysN,
-        ];
-    const uKeys = [...new Set([...keysB, ...keysN])];
-    let rObj: any = {};
-    for (const key of uKeys) {
-      const propB = objBase[key];
-      const propN = objNew[key];
-      if (this.isObject(propB, true) && this.isObject(propN, true)) {
-        if (Object.keys(propB).length === 0) {
-          //caso especial objeto vacio en propiedad base
+    // Pila para manejar la recursividad
+    const stack: Array<{ base: any; new: any; target: any }> = [];
+    const result = {} as T;
+    stack.push({ base: objBase, new: objNew, target: result });
+    while (stack.length > 0) {
+      const { base, new: newObj, target } = stack.pop()!;
+      const keysB = Object.keys(base);
+      const keysN = Object.keys(newObj);
+      const uKeys = [...new Set([...keysB, ...keysN])];
+      for (const key of uKeys) {
+        const propB = base[key];
+        const propN = newObj[key];
+        if (this.isObject(propB, true) && this.isObject(propN, true)) {
+          target[key] = {};
+          stack.push({ base: propB, new: propN, target: target[key] });
+        } else {
           if (mode === "soft") {
-            rObj[key] =
-              this.isUndefined(propN) ||
-              (isNullAsUndefined && this.isNull(propN))
+            target[key] =
+              this.isUndefined(propB) ||
+              (isNullAsUndefined && this.isNull(propB))
+                ? propN
+                : this.isUndefined(propN) ||
+                  (isNullAsUndefined && this.isNull(propN))
                 ? propB
                 : propN;
           } else if (mode === "hard") {
-            rObj[key] = propN;
+            const isPropB = key in base;
+            const isPropN = key in newObj;
+            target[key] = isPropN ? propN : propB;
           } else {
             throw new Error(`${mode} is not mode for merge valid`);
           }
-        } else if (Object.keys(propN).length === 0) {
-          //caso especial objeto vacio en propiedad nuevo
-          rObj[key] = mode === "hard" ? propN : propB;
-        } else {
-          rObj[key] = this.deepMergeObjects([propB, propN], {
-            mode,
-            isNullAsUndefined,
-          });
-        }
-      } else {
-        if (mode === "soft") {
-          rObj[key] =
-            this.isUndefined(propB) || (isNullAsUndefined && this.isNull(propB))
-              ? propN
-              : this.isUndefined(propN) ||
-                (isNullAsUndefined && this.isNull(propN))
-              ? propB
-              : propN;
-        } else if (mode === "hard") {
-          //comprobacion de existencia de propiedad
-          const isPropB = key in (objBase as object);
-          const isPropN = key in (objNew as object);
-          rObj[key] = isPropN ? propN : propB;
-        } else {
-          throw new Error(`${mode} is not mode for merge valid`);
         }
       }
     }
-    return rObj;
+    return result;
   }
   /**
    * Convierte un array de tuplas tipo entry (`[key, value]`) en un objeto.
