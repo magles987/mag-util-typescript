@@ -1444,45 +1444,48 @@ describe("Util Pure", async () => {
       it("case: is not object", async () => {
         const data = 10;
         const expected = false;
-        const recived = util.isObjectWithProperties(data as any, false, "p1");
+        const recived = util.isObjectWithProperties(data as any, "p1");
         expect(recived).toBe(expected);
       });
       it("case: is object (is not key or keys path)", async () => {
         const data = { p1: "hola", p2: 31 };
         const expected = true; //se comporta como un `this.isObject(data, false)` normal
-        const recived = util.isObjectWithProperties(data);
+        const recived = util.isObjectWithProperties(data, []);
         expect(recived).toBe(expected);
       });
       it("case: is object (is not key or keys path, is allow empty)", async () => {
         const data = {};
         const expected = true; //se comporta como un `this.isObject(data, true)` normal
-        const recived = util.isObjectWithProperties(data, true);
+        const recived = util.isObjectWithProperties(data, [], {
+          allowEmpty: true,
+        });
         expect(recived).toBe(expected);
       });
       it("case: is object (is not key or keys path, is deny empty)", async () => {
         const data = {};
         const expected = false; //se comporta como un `this.isObject(data, false)` normal
-        const recived = util.isObjectWithProperties(data, false);
+        const recived = util.isObjectWithProperties(data, [], {
+          allowEmpty: false,
+        });
         expect(recived).toBe(expected);
       });
-      it("case: is objetc (is key path valids)", async () => {
+      it("case: is object (is key path valid)", async () => {
         const data = { p1: "loquesea", p2: "otroDato" };
         const expected = true;
-        const recived = util.isObjectWithProperties(data, false, "p1");
+        const recived = util.isObjectWithProperties(data, "p1");
         expect(recived).toBe(expected);
       });
-      it("case: is objetc (is not key path valids)", async () => {
+      it("case: is object (is not key path valid)", async () => {
         const data = { p1: "loquesea", p2: "otroDato" };
         const expected = false;
-        const recived = util.isObjectWithProperties(data, false, "p3" as any);
+        const recived = util.isObjectWithProperties(data, "p3" as any);
         expect(recived).toBe(expected);
       });
-      it("case: is object (is some key path valids, )", async () => {
+      it("case: is object (is some key path valid, )", async () => {
         const data = { p1: "loquesea", p2: "otroDato" };
         const expected = false; //deben existir todas las que se envien en el parametro `keyOrkeysPath`
         const recived = util.isObjectWithProperties(
           data,
-          false,
           ["p1", "p3" as any] //"p3" no existe
         );
         expect(recived).toBe(expected);
@@ -1490,7 +1493,7 @@ describe("Util Pure", async () => {
       it('case: is object (is property as undefined, prop condition ("it-exist"))', async () => {
         const data = { p1: "loquesea", p2: "otroDato", p3: undefined };
         const expected = true; //se verifica que exista (asi tenga asignado undefined)
-        const recived = util.isObjectWithProperties(data, false, ["p3"], {
+        const recived = util.isObjectWithProperties(data, ["p3"], {
           propCondition: "it-exist", //si la propiedade existe se valida
         });
         expect(recived).toBe(expected);
@@ -1498,7 +1501,7 @@ describe("Util Pure", async () => {
       it('case: is object (is property as undefined, prop condition ("is-not-undefined-and-not-null"))', async () => {
         const data = { p1: "loquesea", p2: "otroDato", p3: undefined };
         const expected = false; //sal ser undefined o null no es valida
-        const recived = util.isObjectWithProperties(data, false, ["p3"], {
+        const recived = util.isObjectWithProperties(data, ["p3"], {
           propCondition: "is-not-undefined-and-not-null", //al ser undefined no es valida
         });
         expect(recived).toBe(expected);
@@ -1506,7 +1509,7 @@ describe("Util Pure", async () => {
       it('case: is object (is property as null, prop condition ("it-exist"))', async () => {
         const data = { p1: "loquesea", p2: "otroDato", p3: null };
         const expected = true; //se verifica que exista (asi tenga asignado null)
-        const recived = util.isObjectWithProperties(data, false, ["p3"], {
+        const recived = util.isObjectWithProperties(data, ["p3"], {
           propCondition: "it-exist", //si la propiedade existe se valida
         });
         expect(recived).toBe(expected);
@@ -1514,7 +1517,7 @@ describe("Util Pure", async () => {
       it('case: is object (is property as null, prop condition ("is-not-undefined-and-not-null"))', async () => {
         const data = { p1: "loquesea", p2: "otroDato", p3: null };
         const expected = false; //al ser undefined o null no es valida
-        const recived = util.isObjectWithProperties(data, false, ["p3"], {
+        const recived = util.isObjectWithProperties(data, ["p3"], {
           propCondition: "is-not-undefined-and-not-null", //al ser undefined no es valida
         });
         expect(recived).toBe(expected);
@@ -1524,46 +1527,41 @@ describe("Util Pure", async () => {
       it("case: is not object", async () => {
         const data = 10;
         const expected = false;
-        const recived = util.isObjectWithDeepProperties(data, false, "p1");
+        const recived = util.isObjectWithDeepProperties(data, "p1");
         expect(recived).toBe(expected);
       });
       it("case: is object (is not key or keys path)", async () => {
         const data = { p1: "hola", p2: 31 };
         const expected = true; //se comporta como un `this.isObject(data, false)` normal
-        const recived = util.isObjectWithDeepProperties(data);
+        const recived = util.isObjectWithDeepProperties(data, []);
         expect(recived).toBe(expected);
       });
       it("case: is object (is not key or keys path, is allow empty)", async () => {
         const data = {};
         const expected = true; //se comporta como un `this.isObject(data, true)` normal
-        const recived = util.isObjectWithDeepProperties(data, true);
+        const recived = util.isObjectWithDeepProperties(data, [], {
+          allowEmpty: true,
+        });
         expect(recived).toBe(expected);
       });
       it("case: is object (is not key or keys path, is deny empty)", async () => {
         const data = {};
         const expected = false; //se comporta como un `this.isObject(data, false)` normal
-        const recived = util.isObjectWithDeepProperties(data, false);
-        expect(recived).toBe(expected);
-      });
-      it("case: is object (is not keys path, is allow empty, mode )", async () => {
-        const data = {};
-        const expected = true; // permite vacios
-        const recived = util.isObjectWithDeepProperties(
-          data,
-          true //permite vacios
-        );
+        const recived = util.isObjectWithDeepProperties(data, [], {
+          allowEmpty: false,
+        });
         expect(recived).toBe(expected);
       });
       it("case: is objetc (is key path valids, )", async () => {
         const data = { p1: "loquesea", p2: "otroDato" };
         const expected = true;
-        const recived = util.isObjectWithDeepProperties(data, false, "p1");
+        const recived = util.isObjectWithDeepProperties(data, "p1");
         expect(recived).toBe(expected);
       });
       it("case: is objetc (is not key path valids, )", async () => {
         const data = { p1: "loquesea", p2: "otroDato" };
         const expected = false;
-        const recived = util.isObjectWithDeepProperties(data, false, "p3");
+        const recived = util.isObjectWithDeepProperties(data, "p3");
         expect(recived).toBe(expected);
       });
       it("case: is object (is some key path valids, )", async () => {
@@ -1571,7 +1569,6 @@ describe("Util Pure", async () => {
         const expected = false; //deben existir todas las que se envien en el parametro `keyOrkeysPath`
         const recived = util.isObjectWithDeepProperties(
           data,
-          false,
           ["p1", "p3"] //"p3" no existe
         );
         expect(recived).toBe(expected);
@@ -1579,15 +1576,15 @@ describe("Util Pure", async () => {
       it('case: is object (is property as undefined, prop condition ("it-exist"))', async () => {
         const data = { p1: "loquesea", p2: "otroDato", p3: undefined };
         const expected = true; //se verifica que exista (asi tenga asignado undefined)
-        const recived = util.isObjectWithDeepProperties(data, false, ["p3"], {
-          propCondition: "it-exist", //si la propiedade existe se valida
+        const recived = util.isObjectWithDeepProperties(data, ["p3"], {
+          propCondition: "it-exist", //si la propiedad existe se valida
         });
         expect(recived).toBe(expected);
       });
       it('case: is object (is property as undefined, prop condition ("is-not-undefined-and-not-null"))', async () => {
         const data = { p1: "loquesea", p2: "otroDato", p3: undefined };
         const expected = false; //sal ser undefined o null no es valida
-        const recived = util.isObjectWithDeepProperties(data, false, ["p3"], {
+        const recived = util.isObjectWithDeepProperties(data, ["p3"], {
           propCondition: "is-not-undefined-and-not-null", //al ser undefined no es valida
         });
         expect(recived).toBe(expected);
@@ -1595,7 +1592,7 @@ describe("Util Pure", async () => {
       it('case: is object (is property as null, prop condition ("it-exist"))', async () => {
         const data = { p1: "loquesea", p2: "otroDato", p3: null };
         const expected = true; //se verifica que exista (asi tenga asignado null)
-        const recived = util.isObjectWithDeepProperties(data, false, ["p3"], {
+        const recived = util.isObjectWithDeepProperties(data, ["p3"], {
           propCondition: "it-exist", //si la propiedade existe se valida
         });
         expect(recived).toBe(expected);
@@ -1603,7 +1600,7 @@ describe("Util Pure", async () => {
       it('case: is object (is property as null, prop condition ("is-not-undefined-and-not-null"))', async () => {
         const data = { p1: "loquesea", p2: "otroDato", p3: null };
         const expected = false; //al ser undefined o null no es valida
-        const recived = util.isObjectWithDeepProperties(data, false, ["p3"], {
+        const recived = util.isObjectWithDeepProperties(data, ["p3"], {
           propCondition: "is-not-undefined-and-not-null",
         });
         expect(recived).toBe(expected);
@@ -1611,16 +1608,13 @@ describe("Util Pure", async () => {
       it("case: is objetc and properties valid (deep (1))", async () => {
         const data = { p1: "loquesea", p2: { p21: 3 } };
         const expected = true;
-        const recived = util.isObjectWithDeepProperties(data, false, [
-          "p2.p21",
-          "p1",
-        ]);
+        const recived = util.isObjectWithDeepProperties(data, ["p2.p21", "p1"]);
         expect(recived).toBe(expected);
       });
       it("case: is objetc and properties valid (deep (2))", async () => {
         const data = { p1: "loquesea", p2: { p21: 3 } };
         const expected = false;
-        const recived = util.isObjectWithDeepProperties(data, false, [
+        const recived = util.isObjectWithDeepProperties(data, [
           "p2.p21.p211", //p211 no existe (p21 tiene asignado un nuero)
           "p1",
         ]);
@@ -1631,7 +1625,6 @@ describe("Util Pure", async () => {
         const expected = true;
         const recived = util.isObjectWithDeepProperties(
           data,
-          false,
           [
             "p2.p2.p2", //la misma propiedad en varios niveles
             "p1",

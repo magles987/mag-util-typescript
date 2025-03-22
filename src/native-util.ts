@@ -1362,8 +1362,7 @@ export class UtilNative {
    * ⚠ **No** reconoce arrays, solo objetos.
    *
    * @param {TObj} obj El objeto a verificar.
-   * @param {boolean} allowEmpty `= false`, Determina si se permite que un objeto vacío sea válido.
-   * @param {keyof TObj | Array<keyof TObj>} keyOrKeys = `[]` Las claves identificadoras de las propiedades a verificar (❕No deben ser rutas, solo claves de las propiedades de primer nivel❕).
+   * @param {keyof TObj | Array<keyof TObj>} keyOrKeys Las claves identificadoras de las propiedades a verificar (❕No deben ser rutas, solo claves de las propiedades de primer nivel❕).
    * @param {object} [option] Objeto de opciones para configurar la verificación con las siguientes propiedades:
    *  - `charSeparator = "is-not-undefined-and-not-null"` Determina la condición que debe cumplir cada propiedad referenciada en `keyOrKeys`
    * @returns {boolean} Retorna `true` si es un objeto y las propiedades cumplen la condición, `false` de lo contrario.
@@ -1406,8 +1405,7 @@ export class UtilNative {
    */
   public isObjectWithProperties<TObj extends object>(
     obj: TObj,
-    allowEmpty = false,
-    keyOrKeys?: keyof TObj | Array<keyof TObj>,
+    keyOrKeys: keyof TObj | Array<keyof TObj>,
     option?: {
       /** `= "is-not-undefined-and-not-null"` Determina la condición que debe cumplir cada propiedad referenciada en `keyOrKeys` */
       propCondition?:
@@ -1415,6 +1413,8 @@ export class UtilNative {
         | "is-not-undefined"
         | "is-not-null"
         | "is-not-undefined-and-not-null";
+      /**`= false`, Determina si se permite que un objeto vacío sea válido. */
+      allowEmpty?: boolean;
     }
   ): boolean {
     if (
@@ -1434,33 +1434,28 @@ export class UtilNative {
         op.propCondition === "is-not-undefined-and-not-null"
           ? op.propCondition
           : "is-not-undefined-and-not-null", //default
+      allowEmpty: this.isBoolean(op.allowEmpty) ? op.allowEmpty : false,
     };
-    const { propCondition } = op;
-    let keys = this.isArray(keyOrKeys, true)
-      ? ([...(keyOrKeys as any)] as string[])
-      : this.isString(keyOrKeys)
-      ? ([keyOrKeys as any] as string[])
-      : ([] as string[]);
+    const { propCondition, allowEmpty } = op;
+    let keys = this.castArrayByConditionType(keyOrKeys, "string", []);
     keys = [...new Set(keys)]; //eliminacion de repetidos sencilla
+    //validación del objeto vacio
+    if (!this.isObject(obj, allowEmpty)) return false;
     let r = false;
-    if (!this.isObject(obj, allowEmpty)) {
-      r = false;
+    if (keys.length > 0) {
+      r = keys.every((key) => {
+        let r =
+          propCondition === "it-exist"
+            ? key in obj
+            : propCondition === "is-not-undefined"
+            ? !this.isUndefined(obj[key])
+            : propCondition === "is-not-null"
+            ? !this.isNull(obj[key])
+            : this.isNotUndefinedAndNotNull(obj[key]);
+        return r;
+      });
     } else {
-      if (keys.length > 0) {
-        r = keys.every((key) => {
-          let r =
-            propCondition === "it-exist"
-              ? key in obj
-              : propCondition === "is-not-undefined"
-              ? !this.isUndefined(obj[key])
-              : propCondition === "is-not-null"
-              ? !this.isNull(obj[key])
-              : this.isNotUndefinedAndNotNull(obj[key]);
-          return r;
-        });
-      } else {
-        r = true;
-      }
+      r = true;
     }
     return r;
   }
@@ -1470,8 +1465,7 @@ export class UtilNative {
    * ⚠ **No** reconoce arrays directamente como objetos, pero permite el uso de comodines para verificar elementos dentro de arrays.
    *
    * @param {any} obj El objeto a verificar.
-   * @param {boolean} allowEmpty `= false`, Determina si se permite que un objeto vacío sea válido.
-   * @param {string | string[]} keyOrKeysPath = `[]` Las claves identificadoras de las propiedades a verificar, permitiendo rutas profundas separadas por `charSeparator`.
+   * @param {string | string[]} keyOrKeysPath Las claves identificadoras de las propiedades a verificar, permitiendo rutas profundas separadas por `charSeparator`.
    * @param {object} [option] Objeto de opciones para configurar la verificación con las siguientes propiedades:
    * - `propCondition = "is-not-undefined-and-not-null"` Determina la condición que debe cumplir cada propiedad referenciada en `keyOrKeysPath`.
    * - `"it-exist"` verifica si la propiedad existe (aunque tenga asignado `undefined` o `null`).
@@ -1521,8 +1515,7 @@ export class UtilNative {
    */
   public isObjectWithDeepProperties(
     obj: any,
-    allowEmpty = false,
-    keyOrKeysPath?: string | string[],
+    keyOrKeysPath: string | string[],
     option?: {
       /** `= "is-not-undefined-and-not-null"` Determina la condición que debe cumplir cada propiedad referenciada en `keyOrKeys` */
       propCondition?:
@@ -1560,12 +1553,10 @@ export class UtilNative {
        * ````
        */
       charWildcard?: string;
+      /**`= false`, Determina si se permite que un objeto vacío sea válido. */
+      allowEmpty?: boolean;
     }
   ): boolean {
-    // Validación del objeto
-    if (!this.isObject(obj, allowEmpty)) {
-      return false; //objeto no valido por lo tanto no se puede ejecutar acciones
-    }
     // Validación de keyOrKeysPath
     if (
       this.isNotUndefinedAndNotNull(keyOrKeysPath) &&
@@ -1591,30 +1582,29 @@ export class UtilNative {
       charWildcard: this.isString(op.charWildcard)
         ? op.charWildcard
         : this.charWildcardArrayItem,
+      allowEmpty: this.isBoolean(op.allowEmpty) ? op.allowEmpty : false,
     };
-    const { propCondition, charSeparator: sp, charWildcard: wc } = op;
+    const { propCondition, allowEmpty, charSeparator, charWildcard } = op;
     // Convertir keyOrKeysPath a un array de rutas
-    const keysPath = this.isArray(keyOrKeysPath, true)
-      ? ([...keyOrKeysPath] as string[])
-      : this.isString(keyOrKeysPath)
-      ? ([keyOrKeysPath] as string[])
-      : ([] as string[]);
+    let keysPath = this.castArrayByConditionType(keyOrKeysPath, "string", []);
     // Eliminar duplicados
-    const uniqueKeysPath = [...new Set(keysPath)];
+    keysPath = [...new Set(keysPath)];
+    // Validación del objeto vacio
+    if (!this.isObject(obj, allowEmpty)) return false;
     // Verificar cada ruta
-    for (const keyPath of uniqueKeysPath) {
-      const keys = keyPath.split(sp);
+    for (const keyPath of keysPath) {
+      const keys = keyPath.split(charSeparator);
       let currentObj = obj;
       // Recorrer la ruta de claves
       for (let idx = 0; idx < keys.length; idx++) {
         const key = keys[idx];
         // Si es un comodín, verificar todos los elementos del array
-        if (key === wc) {
+        if (key === charWildcard) {
           // Si no es un array, no se puede aplicar el comodín
           if (!Array.isArray(currentObj)) return false;
           // Verificar cada elemento del array
           for (const element of currentObj) {
-            const remainingPath = keys.slice(idx + 1).join(sp);
+            const remainingPath = keys.slice(idx + 1).join(charSeparator);
             if (
               this.isObjectWithDeepProperties(
                 element,
@@ -1622,8 +1612,8 @@ export class UtilNative {
                 remainingPath,
                 {
                   propCondition,
-                  charSeparator: sp,
-                  charWildcard: wc,
+                  charSeparator: charSeparator,
+                  charWildcard: charWildcard,
                 }
               )
             ) {
@@ -2850,7 +2840,7 @@ export class UtilNative {
    * @param value El valor a transformar.
    * @param extractType El esquema (sencillo o extracto) del tipo de array que
    *        se debe verificar para poder transformar.
-   * @param defaultValue Valor por defecto que se asignará si el `value` no
+   * @param defaultValue `= this.dfValue` Valor por defecto que se asignará si el `value` no
    *        cumple con las condiciones.
    * @param option Opciones adicionales para la validación de tipo de datos.
    *
@@ -2859,17 +2849,24 @@ export class UtilNative {
    *
    * @example
    * ````typescript
+   *
+   * let result;
+   *
    * // Transformando un string a un array de strings
-   * const result = instance.castArrayByConditionType("hello", "string", ["default"]);
+   * result = instance.castArrayByConditionType("hello", "string");
    * console.log(result); // Salida: ["hello"]
    *
    * // Manteniendo un array existente si cumple con el tipo
-   * const result2 = instance.castArrayByConditionType(["item1", "item2"], "string", ["default"]);
-   * console.log(result2); // Salida: ["item1", "item2"]
+   * result = instance.castArrayByConditionType(["item1", "item2"], "string");
+   * console.log(result); // Salida: ["item1", "item2"]
    *
    * // Retornando el valor por defecto si el tipo no es adecuado
-   * const result3 = instance.castArrayByConditionType(42, "string", ["default"]);
-   * console.log(result3); // Salida: ["default"]
+   * result = instance.castArrayByConditionType(42, "string");
+   * console.log(result); // Salida: this.dfValue
+   *
+   * // Retornando el valor por defecto (personalizado) si el tipo no es adecuado
+   * result = instance.castArrayByConditionType(true, "string", ["hola"]);
+   * console.log(result); // Salida: ["hola"]
    * ````
    */
   public castArrayByConditionType<TItem>(
@@ -3403,7 +3400,7 @@ export class UtilNative {
    */
   public getArrayIntersection<T extends Array<any>>(
     tArraysToIntersection: [T, T],
-    option: Parameters<typeof this.removeArrayDuplicate>[1]
+    option?: Parameters<typeof this.removeArrayDuplicate>[1]
   ): T {
     if (!this.isValueType(tArraysToIntersection, [[], []]))
       throw new Error(`${tArraysToIntersection} is not tuple to union valid`);
