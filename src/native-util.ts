@@ -1606,16 +1606,7 @@ export class UtilNative {
           for (const element of currentObj) {
             const remainingPath = keys.slice(idx + 1).join(charSeparator);
             if (
-              this.isObjectWithDeepProperties(
-                element,
-                allowEmpty,
-                remainingPath,
-                {
-                  propCondition,
-                  charSeparator: charSeparator,
-                  charWildcard: charWildcard,
-                }
-              )
+              this.isObjectWithDeepProperties(element, remainingPath, { ...op })
             ) {
               return true; // Al menos un elemento cumple la condición
             }
