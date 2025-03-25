@@ -589,13 +589,19 @@ export class UtilNative {
    * ```
    */
   public toggleNumberSign(
+    num: string | number,
+    allowString?: true
+  ): string | number;
+  public toggleNumberSign(num: number, allowString?: false): number;
+  public toggleNumberSign(
     num: number | string,
     allowString = false
   ): number | string {
     allowString = this.convertToBoolean(allowString);
     if (!this.isNumber(num, allowString)) num;
     let r: number | string;
-    if (!allowString) r = -num;
+    const isOnlyNumber = this.isNumber(num, false); //solo numero
+    if (!allowString || isOnlyNumber) r = -num;
     else r = `${-this.stringToNumber(num)}`;
     return r;
   }
@@ -3844,14 +3850,81 @@ export class UtilNative {
     fn = (fn as Function).bind(context);
     return fn;
   }
+  /**
+   * Obtiene el nombre de una función a partir del índice inverso en el stack de llamadas.
+   *
+   * 🧪 Experimental, posibles problemas en entornos antiguos 🧪
+   *
+   * @param {number} idxReverse - Índice inverso en el stack de llamadas. **Debe ser negativo y no igual a `0`.**, ejemplos:
+   *    - `idxReverse === -1`, la funcion que se está usando actualmente.
+   *    - `idxReverse === -2`, la funcion "padre" que llamó o invocó a esta que se está ejecutando.
+   *    - `idxReverse === -3`, la funcion "abuelo" que llamó o invocó a la padre que a su vez llamó o invocó a esta que se está ejecutando.
+   * @returns {string | typeof this.dfValue} Retorna el nombre de la función o el valor predeterminado `this.dfValue` si no se encuentra un nombre válido.
+   *
+   * @throws {Error} "`<valor>` is not idx reverse valid" Si el parámetro `idxReverse` no es un número válido.
+   * @throws {Error} "`<valor>` is not negative idx reverse valid" Si el parámetro `idxReverse` no es un número negativo.
+   *
+   * @example
+   * ````typescript
+   * const util = UtilNative.getinstance();
+   * function hacer_1(){
+   *   const fnName = util.getFunctionName(-2); //❗Punto de referencia❗, -2 solicita en nombre de la funcion "padre" que llamó a esta
+   *   console.log(functionName); // Salida: "hacer_2"
+   *   return
+   * }
+   *
+   * function hacer_2(){
+   *   return hacer_1()
+   * }
+   *
+   * function hacer_3(){
+   *   return hacer_2()
+   * }
+   *
+   * hacer_3();
+   *
+   * ````
+   */
+  public getFunctionName(idxReverse: number): string | typeof this.dfValue {
+    if (!this.isNumber(idxReverse, true))
+      throw new Error(`${idxReverse} is not idx reverse valid`);
+    //❗Debe ser negativo y no 0❗
+    if (!this.isNumberSign(idxReverse, "-", false))
+      throw new Error(`${idxReverse} is not negative idx reverse valid`);
+    idxReverse = this.stringToNumber(idxReverse); //garantizar numérico
+    idxReverse = idxReverse - 1; //modificar el offset para no retornar el nombre de esta misma funcion
+    const idxToInject = this.toggleNumberSign(idxReverse, true) as number;
+    //procesar:
+    const error = new Error();
+    let stackLine = error.stack?.split("\n")[idxToInject]?.trim() || "";
+    // Expresión regular optimizada para todos los casos conocidos
+    const regex = /at\s+(?:[\w.]+\.)?([^(\s]+)|\(([^)]+)\)|([^\s]+)/;
+    const match = stackLine.match(regex);
+    // Extracción del nombre con prioridad
+    let functionName = this.dfValue as string;
+    if (match) {
+      functionName = match[1] || match[2] || match[3] || this.dfValue;
+      // Limpieza adicional para casos como "UtilNative.getNameFunction"
+      if (functionName.includes(".")) {
+        functionName = functionName.split(".").pop()!;
+      }
+      // Filtrado de casos como "<anonymous>", "eval", "[native code]"
+      const invalidNames = ["<anonymous>", "eval", "[native code]"];
+      if (invalidNames.includes(functionName)) {
+        functionName = this.dfValue;
+      }
+      // debe ser un nombre de funcion de acuerdo al estandar de definicion de nombres
+      if (!/^[a-zA-Z_$]\w*$/.test(functionName)) {
+        functionName = this.dfValue;
+      }
+    }
+    return functionName;
+  }
   //████ Generales ████████████████████████████████████████████████████
   /**
    * Realiza la clonación de objetos JSON o Arrays de JSONs a diferentes niveles de profundidad.
    *
-   * xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
    * ⚠ **NO** se puede clonar instancias de clase ⚠
-   * xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-   *
    *
    * @param {T} objOrArray El objeto a clonar. El tipo `T` se asume implícitamente al enviar el parámetro.
    * @param {"stringify" | "structuredClone"} driver `= "structuredClone"` el driver o libreria para hacer clonación.
