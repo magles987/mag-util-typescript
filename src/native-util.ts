@@ -2932,6 +2932,41 @@ export class UtilNative {
     return r;
   }
   /**
+   * Obtiene un elemento de un array utilizando índices negativos o positivos, asegurando compatibilidad con versiones anteriores.
+   *
+   * @param {TItem[]} arr El array del cual se obtendrá el elemento.
+   * @param {number} idx Índice del elemento a obtener. Puede ser negativo para acceder desde el final del array.
+   * @returns {TItem | undefined} Retorna el elemento correspondiente si el índice es válido, `undefined` de lo contrario.
+   *
+   * @example
+   * ```typescript
+   * let a = [10, 20, 30, 40, 50];
+   *
+   * // Índices positivos
+   * console.log(getItem(a, 2)); // salida `30`
+   *
+   * // Índices negativos
+   * console.log(getItem(a, -1)); // salida `50` (último elemento)
+   * console.log(getItem(a, -3)); // salida `30`
+   *
+   * // Índices fuera de rango
+   * console.log(getItem(a, -10)); // salida `undefined` (fuera de rango)
+   * console.log(getItem(a, 10));  // salida `undefined` (fuera de rango)
+   * ```
+   */
+  public getItem<TItem>(arr: TItem[], idx: number): TItem | undefined {
+    if (
+      !this.isArray(arr, true) ||
+      !this.isNumber(idx, false) //por seguridad no permite strings numéricos
+    )
+      return undefined;
+    const len = arr.length;
+    //verificar que idx no este fuera del rango del tamaño del array
+    if (idx < -len || idx >= len) return undefined;
+    if (idx < 0) idx = len + idx;
+    return arr[idx];
+  }
+  /**
    * permite ordenar un array de booleanos, numeros, cadenas de texto o objetos, con opciones de direccion, eliminacion de duplicados entre otras
    *
    * **⚠⚠ Importante los pesos de los tipos ⚠⚠**
