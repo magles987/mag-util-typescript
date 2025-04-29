@@ -2954,7 +2954,7 @@ export class UtilNative {
    * console.log(getItem(a, 10));  // salida `undefined` (fuera de rango)
    * ```
    */
-  public getItem<TItem>(arr: TItem[], idx: number): TItem | undefined {
+  public getArrayItem<TItem>(arr: TItem[], idx: number): TItem | undefined {
     if (
       !this.isArray(arr, true) ||
       !this.isNumber(idx, false) //por seguridad no permite strings numéricos
