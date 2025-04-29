@@ -9,6 +9,7 @@ import {
   TAExtValueType,
   IValueTypeOption,
   TExtValueType,
+  TRoundType,
 } from "./shared";
 //████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
 /**
@@ -406,6 +407,49 @@ export class UtilNative {
     return r;
   }
   /**
+   * Determina si un número es impar. Si el número es decimal, se puede especificar un tipo de redondeo
+   * para ajustar su valor antes de la verificación.
+   *
+   * @param {number | string} num - Número a evaluar. Puede ser un número o una cadena representando un número.
+   * @param {boolean} allowString - Indica si se permite el uso de cadenas como números (`true` para permitirlo).
+   * @param {TRoundType | undefined} roundType - Define el tipo de redondeo (`undefined` para no aplicar ninguno).
+   * @returns {boolean} `true` si el número es impar, `false` en caso contrario.
+   *
+   * @throws "Invalid number format" Si `num` no es un número válido o cadena numérica.
+   *
+   * @example
+   * ````typescript
+   * const result1 = isOddNumber(7); // `true`
+   * const result2 = isOddNumber(4); // `false`
+   * const result3 = isOddNumber("9", true); // `true`
+   * const result4 = isOddNumber(4.8, false, "round"); // `true` porque se redondea a 5
+   * const result4 = isOddNumber(4.8, false, "floor"); // `false` porque se redondea a 4
+   * const result4 = isOddNumber(4.8, false, "ceil"); // `true` porque se redondea a 5
+   * ````
+   */
+  public isOddNumber(
+    num: number | string,
+    allowString = false,
+    roundType: TRoundType | undefined = undefined
+  ): boolean {
+    if (!this.isNumber(num, allowString, false)) return false;
+    //convertir posible string a numero
+    num = this.stringToNumber(num as any) as number;
+    //los impares solo pueden ser enteros
+    const isInteger = Number.isInteger(num);
+    if (isInteger) {
+      return num % 2 !== 0;
+    } else {
+      //verificar si se desea redondeo
+      if (roundType) {
+        num = this.roundNumber(roundType, num, 0); //debe ser a la unidad (no sub múltiplos ni sub divisores)
+        return num % 2 !== 0;
+      } else {
+        return false;
+      }
+    }
+  }
+  /**
    * Obtiene un reporte básico del tipo de número.
    *
    * @param {number | string} num - El número o cadena numérica a analizar.
@@ -702,7 +746,7 @@ export class UtilNative {
    * - `${num} is not number or string-number valid`
    */
   public roundNumber(
-    type: "round" | "floor" | "ceil",
+    type: TRoundType,
     num: number | string,
     exponential: number
   ): number {
