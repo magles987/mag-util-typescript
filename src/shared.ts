@@ -181,6 +181,10 @@ export interface IOptionEqGtLt {
  */
 export type TCapitalizeFirstLetter<S extends string> =
   S extends `${infer First}${infer Rest}` ? `${Uppercase<First>}${Rest}` : S;
+/**tipado especial para definir un `Partial<>` profundo*/
+export type TDeepPartial<T> = {
+  [P in keyof T]?: T[P] extends object ? TDeepPartial<T[P]> : T[P];
+};
 /**tipado auxiliar para filtrar cada propiedad del esquema  extrayendo su tipo*/
 type TFilterStringKeys<TSchema> = keyof {
   [K in keyof TSchema as K extends string | number ? K : never]: TSchema[K];
