@@ -3,7 +3,7 @@
  */
 import lodash from "lodash";
 import { UtilNative } from "./native-util";
-import { TStrCase } from "./shared";
+import { TStrCase } from "./shared-types";
 //████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
 /** @info <hr>
  *

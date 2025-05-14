@@ -19,6 +19,8 @@ export type TExtPrimitiveTypes =
   | "array"
   | "tuple"
   | "function";
+/**tipos de redondeo de número */
+export type TRoundType = "round" | "floor" | "ceil";
 /**tipado interno para permitir la recursividad en el método isValueType */
 interface IRecursiveObjectForTypes {
   [key: string]: TAExtValueType;
@@ -179,6 +181,24 @@ export interface IOptionEqGtLt {
  */
 export type TCapitalizeFirstLetter<S extends string> =
   S extends `${infer First}${infer Rest}` ? `${Uppercase<First>}${Rest}` : S;
+/**tipado especial para definir un `Partial<>` profundo
+ *
+ * @example
+ * ````
+ * interface IZ{
+ *   p1: string;
+ *   p2: {p21: number; p22: string}
+ * }
+ * const n:TDeepPartial<IZ> = {};
+ * //todas las propiedades de todos
+ * // los niveles de `IZ` son opcionales
+ * ````
+ */
+export type TDeepPartial<TSchema> = {
+  [P in keyof TSchema]?: TSchema[P] extends object
+    ? TDeepPartial<TSchema[P]>
+    : TSchema[P];
+};
 /**tipado auxiliar para filtrar cada propiedad del esquema  extrayendo su tipo*/
 type TFilterStringKeys<TSchema> = keyof {
   [K in keyof TSchema as K extends string | number ? K : never]: TSchema[K];
