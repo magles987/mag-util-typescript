@@ -12,6 +12,17 @@ import {
   TRoundType,
 } from "./shared-types";
 //████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
+/**esquema opcional para la configuración de la utilidad */
+export type TUtilBaseConfig = Partial<
+  Pick<
+    UtilNative,
+    | "dfValue"
+    | "charSeparatorLogicPath"
+    | "charSeparatorUrlPath"
+    | "charWildcardArrayItem"
+    | "sepDateRegExp"
+  >
+>;
 /**
  *
  * utilidades nativas sin extensiones ni librerías
@@ -19,6 +30,7 @@ import {
 export class UtilNative {
   /**Utilidades implícitas en Node JS*/
   public readonly util_Node = Util_Node;
+  private _charSeparatorLogicPath = ".";
   /**
    * Carácter separador de ruta lógica.
    *
@@ -30,7 +42,10 @@ export class UtilNative {
    * console.log(path); // salida "root.object.subobject"
    * ```
    */
-  public readonly charSeparatorLogicPath = ".";
+  public get charSeparatorLogicPath() {
+    return this._charSeparatorLogicPath;
+  }
+  private _charSeparatorUrlPath = "/";
   /**
    * Carácter de separador de ruta para URL.
    *
@@ -42,7 +57,10 @@ export class UtilNative {
    * console.log(path); // salida "root/object/subobject"
    * ```
    */
-  public readonly charSeparatorUrlPath = "/";
+  public get charSeparatorUrlPath() {
+    return this._charSeparatorUrlPath;
+  }
+  private _charWildcardArrayItem = "#";
   /**
    * Carácter comodín especial que expresa cualquier indice en
    * un array, util para construir rutas (paths) con arrays
@@ -59,7 +77,10 @@ export class UtilNative {
    *                    //donde ese # indica que puede ser cualquier elemento de arrayProp
    * ```
    */
-  public readonly charWildcardArrayItem = "#";
+  public get charWildcardArrayItem() {
+    return this._charWildcardArrayItem;
+  }
+  private _sepDateRegExp = /\-|\/|\.|\#|\_|\:/;
   /**
    * expresion regular para dividir un string
    * de fecha con separadores:
@@ -74,11 +95,11 @@ export class UtilNative {
    *
    * `"."` ej. formato: `dd.mm.yyyy`
    */
-  public readonly sepDateRegExp = /\-|\/|\.|\#|\_|\:/;
-  /**determina si ya esta definido el valor predefinido*/
-  private static _isDfValue: boolean = false;
+  public get sepDateRegExp() {
+    return this._sepDateRegExp;
+  }
   /**valor predefinido global */
-  private static _dfValue: null | undefined = undefined;
+  private _dfValue: null | undefined = undefined;
   /**valor predefinido global*/ //para uso de instancia
   public get dfValue(): null | undefined {
     return UtilNative._dfValue;
@@ -91,15 +112,22 @@ export class UtilNative {
    * @param dfValue es el valor que se va a asumir
    * como valor predefinido cuando haya ausencia de valor
    */
-  constructor(
-    /**es el valor que se va a asumir como valor
-     * predefinido cuando haya ausencia de valor */
-    dfValue: null | undefined
-  ) {
-    //❗solo se puede modificar una vez❗
-    if (!UtilNative._isDfValue) {
-      UtilNative._dfValue = dfValue;
-      UtilNative._isDfValue = true;
+  constructor(baseConfig?: TUtilBaseConfig) {
+    if (this.isObject(baseConfig)) {
+      const bC = baseConfig;
+      this._dfValue = this.isUndefinedOrNull(bC.dfValue)
+        ? bC.dfValue
+        : this._dfValue;
+      this._charSeparatorLogicPath = this.isString(bC.charSeparatorLogicPath)
+        ? bC.charSeparatorLogicPath
+        : this._charSeparatorLogicPath;
+      this._charSeparatorUrlPath = this.isString(bC.charSeparatorUrlPath)
+        ? bC.charSeparatorUrlPath
+        : this._charSeparatorUrlPath;
+      this._charWildcardArrayItem = this.isString(bC.charWildcardArrayItem)
+        ? bC.charWildcardArrayItem
+        : this._charWildcardArrayItem;
+      this._sepDateRegExp = bC.sepDateRegExp ?? this._sepDateRegExp;
     }
   }
   /**
@@ -108,11 +136,11 @@ export class UtilNative {
    * @param dfValue es el valor que se va a asumir como valor
    * predefinido cuando haya ausencia de valor
    */
-  public static getInstance(dfValue: null | undefined): UtilNative {
+  public static getInstance(baseConfig?: TUtilBaseConfig): UtilNative {
     UtilNative.UtilNative_instance =
       UtilNative.UtilNative_instance === undefined ||
       UtilNative.UtilNative_instance === null
-        ? new UtilNative(dfValue)
+        ? new UtilNative(baseConfig)
         : UtilNative.UtilNative_instance;
     return UtilNative.UtilNative_instance;
   }
