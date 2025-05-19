@@ -102,7 +102,7 @@ export class UtilNative {
   private _dfValue: null | undefined = undefined;
   /**valor predefinido global*/ //para uso de instancia
   public get dfValue(): null | undefined {
-    return UtilNative._dfValue;
+    return this._dfValue;
   }
   /**
    * Almacena la instancia única de esta clase
