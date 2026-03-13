@@ -8,6 +8,7 @@ import {
 } from "./native-util";
 import { TStrCase } from "./shared-types";
 //████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
+/**esquema opcional para la configuración de la utilidad */
 export type TUtilBaseConfig = TSuperUtilBaseConfig;
 /** @info <hr>
  *
@@ -23,7 +24,9 @@ export class UtilExtension extends UtilNative {
    * ____
    */
   private static UtilExtension_instance: UtilExtension;
-  /** */
+  /**
+   * @param baseConfig configuraciones personalizadas para la utilidad
+   */
   constructor(baseConfig?: TUtilBaseConfig) {
     super(baseConfig);
     if (this.isObject(baseConfig)) {

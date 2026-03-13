@@ -109,8 +109,7 @@ export class UtilNative {
    */
   private static UtilNative_instance: UtilNative;
   /**
-   * @param dfValue es el valor que se va a asumir
-   * como valor predefinido cuando haya ausencia de valor
+   * @param baseConfig configuraciones personalizadas para la utilidad
    */
   constructor(baseConfig?: TUtilBaseConfig) {
     if (this.isObject(baseConfig)) {
