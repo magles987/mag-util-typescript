@@ -33,3 +33,6 @@ dist-ssr
 
 # Archivos de Vitest
 /.vitest
+
+# Paquetes de npm (empaquetados locales)
+*.tgz
