@@ -27,7 +27,7 @@ export class UtilExtension extends UtilNative {
   /**
    * @param baseConfig configuraciones personalizadas para la utilidad
    */
-  constructor(baseConfig?: TExtensionBaseConfig) {
+  private constructor(baseConfig?: TExtensionBaseConfig) {
     super(baseConfig);
     if (this.isObject(baseConfig)) {
       //...aqui propiedades de configuración
