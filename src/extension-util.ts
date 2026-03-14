@@ -2,9 +2,14 @@
  * @author MAG
  */
 import lodash from "lodash";
-import { UtilNative } from "./native-util";
+import {
+  UtilNative,
+  TUtilBaseConfig as TSuperUtilBaseConfig,
+} from "./native-util";
 import { TStrCase } from "./shared-types";
 //████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
+/**esquema opcional para la configuración de la utilidad */
+export type TExtensionBaseConfig = TSuperUtilBaseConfig;
 /** @info <hr>
  *
  * *Singleton*
@@ -19,9 +24,14 @@ export class UtilExtension extends UtilNative {
    * ____
    */
   private static UtilExtension_instance: UtilExtension;
-  /** */
-  constructor(dfValue: null | undefined) {
-    super(dfValue);
+  /**
+   * @param baseConfig configuraciones personalizadas para la utilidad
+   */
+  constructor(baseConfig?: TExtensionBaseConfig) {
+    super(baseConfig);
+    if (this.isObject(baseConfig)) {
+      //...aqui propiedades de configuración
+    }
   }
   /**
    * devuelve la instancia única de esta clase
@@ -29,11 +39,11 @@ export class UtilExtension extends UtilNative {
    * @param dfValue es el valor que se va a asumir como valor
    * predefinido cuando haya ausencia de valor
    */
-  public static getInstance(dfValue: null | undefined): UtilExtension {
+  public static getInstance(baseConfig?: TExtensionBaseConfig): UtilExtension {
     UtilExtension.UtilExtension_instance =
       UtilExtension.UtilExtension_instance === undefined ||
       UtilExtension.UtilExtension_instance === null
-        ? new UtilExtension(dfValue)
+        ? new UtilExtension(baseConfig)
         : UtilExtension.UtilExtension_instance;
     return UtilExtension.UtilExtension_instance;
   }
