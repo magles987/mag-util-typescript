@@ -111,7 +111,7 @@ export class UtilNative {
   /**
    * @param baseConfig configuraciones personalizadas para la utilidad
    */
-  constructor(baseConfig?: TUtilBaseConfig) {
+  protected constructor(baseConfig?: TUtilBaseConfig) {
     if (this.isObject(baseConfig)) {
       const bC = baseConfig;
       this._dfValue = this.isUndefinedOrNull(bC.dfValue)
