@@ -997,7 +997,7 @@ export class UtilNative {
       throw new Error(`${caseType} is not case convertion type valid`);
     //adapta casos especial como snake o kebab
     const adaptCasesWithSeparateChart = (
-      _type: Extract<TStrCase, "Snake" | "Kebab" | "Constant" | "Dot">,
+      type: Extract<TStrCase, "Snake" | "Kebab" | "Constant" | "Dot">,
       str: string,
       reOtherCase: RegExp,
       sp: string,
@@ -2766,7 +2766,7 @@ export class UtilNative {
                   ? propB
                   : propN;
           } else if (mode === "hard") {
-            // const _isPropB = key in base; // intentionally unused
+            const isPropB = key in base;
             const isPropN = key in newObj;
             target[key] = isPropN ? propN : propB;
           } else {
@@ -4403,7 +4403,7 @@ export class UtilNative {
             }
             const maxLimitArray = 1;
             if (aIdxSubArrayType.length <= maxLimitArray && !tupleSize) {
-              r = (anyValue as any[]).reduce((accV, _currV, idx) => {
+              r = (anyValue as any[]).reduce((accV, currV, idx) => {
                 if (accV === false) return accV; //si algun type no se cumplió, inabilita la reducción
                 const subAnyValue = anyValue[idx];
                 const r = this.isValueType(subAnyValue, type as any[], op);
