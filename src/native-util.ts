@@ -2,7 +2,7 @@
  * @author MAG magles978@gmail.com]
  *
  */
-import Util_Node from "util";
+import * as Util_Node from "util";
 import {
   TStrCase,
   IOptionEqGtLt,
@@ -248,7 +248,7 @@ export class UtilNative {
    */
   public nullToUndefined<T>(
     value: T,
-    isDeep = false //solo permite el primer nivel
+    isDeep = false, //solo permite el primer nivel
   ): T {
     //caso primitivo
     if (typeof value !== "object" || this.isNull(value))
@@ -321,13 +321,13 @@ export class UtilNative {
     anyToCast: any,
     castExceptions: Array<"isEmptyAsTrue" | "isZeroAsTrue" | "isNullAsTrue"> = [
       "isZeroAsTrue",
-    ]
+    ],
   ): boolean {
     let r = false;
     if (!Array.isArray(castExceptions))
       //❗❗❗Debe ser nativo❗❗❗
       throw new Error(
-        `${castExceptions} is not array of cast exceptions valid`
+        `${castExceptions} is not array of cast exceptions valid`,
       );
     castExceptions = [...new Set(castExceptions)]; // eliminación básica de duplicados primitivos
     if (typeof anyToCast === "string") {
@@ -363,7 +363,7 @@ export class UtilNative {
   public isNumber(
     num: unknown,
     allowString = false,
-    allowBigInt = false
+    allowBigInt = false,
   ): boolean {
     allowString = this.convertToBoolean(allowString);
     allowBigInt = this.convertToBoolean(allowBigInt);
@@ -418,7 +418,7 @@ export class UtilNative {
   public isNumberSign(
     num: unknown,
     sign: "+" | "-",
-    isZeroIncluded = false
+    isZeroIncluded = false,
   ): boolean {
     let r = false;
     // Verificar si el valor es un número
@@ -457,7 +457,7 @@ export class UtilNative {
   public isOddNumber(
     num: number | string,
     allowString = false,
-    roundType: TRoundType | undefined = undefined
+    roundType: TRoundType | undefined = undefined,
   ): boolean {
     if (!this.isNumber(num, allowString, false)) return false;
     //convertir posible string a numero
@@ -531,7 +531,7 @@ export class UtilNative {
     //especificamente bigInt no se permite su conversion aquí
     if (typeof strNum === "bigint")
       throw new Error(
-        `${strNum} is bigint type and is not cast process, please use \` .stringToBigint() \` method`
+        `${strNum} is bigint type and is not cast process, please use \` .stringToBigint() \` method`,
       );
     // Si el valor ya es un número, devolverlo sin cambios
     if (this.isNumber(strNum, false)) return strNum as any as number;
@@ -540,7 +540,7 @@ export class UtilNative {
     const strLen = (strNum as string).length;
     if (maxLenSafeInteger < strLen)
       throw new Error(
-        `${strNum} is too large string-number for number, please use \` .stringToBigint() \` method`
+        `${strNum} is too large string-number for number, please use \` .stringToBigint() \` method`,
       );
     //determinar si es un flotante
     const floatNum = parseFloat(strNum as string);
@@ -625,7 +625,7 @@ export class UtilNative {
       bigNum < BigInt(Number.MIN_SAFE_INTEGER)
     ) {
       console.warn(
-        `${bigNum} is too large to be safely converted to number. Precision may be lost.`
+        `${bigNum} is too large to be safely converted to number. Precision may be lost.`,
       );
     }
     let r = Number(bigNum);
@@ -661,12 +661,12 @@ export class UtilNative {
    */
   public toggleNumberSign(
     num: string | number,
-    allowString?: true
+    allowString?: true,
   ): string | number;
   public toggleNumberSign(num: number, allowString?: false): number;
   public toggleNumberSign(
     num: number | string,
-    allowString = false
+    allowString = false,
   ): number | string {
     allowString = this.convertToBoolean(allowString);
     if (!this.isNumber(num, allowString)) num;
@@ -775,7 +775,7 @@ export class UtilNative {
   public roundNumber(
     type: TRoundType,
     num: number | string,
-    exponential: number
+    exponential: number,
   ): number {
     let n = this.stringToNumber(num); //garantizar que es un numero
     let exp = this.stringToNumber(exponential); //garantizar que es un numero
@@ -820,7 +820,7 @@ export class UtilNative {
   public isNumberInRange(
     num: number,
     range: [number, number],
-    isInclusive: boolean
+    isInclusive: boolean,
   ): boolean {
     let r = false;
     if (!this.isNumber(num)) return r;
@@ -864,7 +864,7 @@ export class UtilNative {
    */
   public adaptNumberToRange(
     num: number | string,
-    range: [number | string, number | string]
+    range: [number | string, number | string],
   ): number {
     num = this.stringToNumber(num); //garantizar que es un numero
     if (!Array.isArray(range) || range.length != 2)
@@ -932,7 +932,7 @@ export class UtilNative {
   public isStringLike(
     str: string,
     strToSearch: string,
-    option: { likeType: "start" | "end" | "between" }
+    option: { likeType: "start" | "end" | "between" },
   ): boolean {
     let r = false;
     if (!this.isString(str, true) || !this.isString(strToSearch, true))
@@ -997,10 +997,10 @@ export class UtilNative {
       throw new Error(`${caseType} is not case convertion type valid`);
     //adapta casos especial como snake o kebab
     const adaptCasesWithSeparateChart = (
-      type: Extract<TStrCase, "Snake" | "Kebab" | "Constant" | "Dot">,
+      _type: Extract<TStrCase, "Snake" | "Kebab" | "Constant" | "Dot">,
       str: string,
       reOtherCase: RegExp,
-      sp: string
+      sp: string,
     ) => {
       str = str.replace(reOtherCase, sp); //reemplaza todos los caracteres de otros case
       const reUpper = /([A-ZÑ])/g;
@@ -1016,7 +1016,7 @@ export class UtilNative {
     //adapta caso especiales de camel y Pascal
     const adaptCasesWithoutSeparateChart = (
       type: Extract<TStrCase, "Camel" | "Pascal">,
-      str: string
+      str: string,
     ) => {
       let isInitialCamelWord = true; //flag especial para camel, determina si es la palabara inicial (NO vacia)
       str = str
@@ -1053,7 +1053,7 @@ export class UtilNative {
           "Snake",
           str,
           /[\s.:,;#*/><\-]/g,
-          "_"
+          "_",
         );
         return str;
         break;
@@ -1078,7 +1078,7 @@ export class UtilNative {
           "Constant",
           str,
           /[\s.:,;#*/><\-]/g,
-          "_"
+          "_",
         );
         return str.toUpperCase(); // Convertimos todo a mayúsculas
         break;
@@ -1175,7 +1175,7 @@ export class UtilNative {
       isJoinInitWithSeparator?: boolean;
       /**`= false` Determina si el `pathEnd` debe unirse al path con caracter separador.*/
       isJoinEndtWithSeparator?: boolean;
-    }
+    },
   ): string {
     if (
       !this.isValueType(aKeys, [["string"]], {
@@ -1272,7 +1272,7 @@ export class UtilNative {
    */
   public isKeyPath(
     keyOrKeysPath: string | string[],
-    separator: string = this.charSeparatorLogicPath
+    separator: string = this.charSeparatorLogicPath,
   ): boolean {
     if (!this.isString(separator))
       //el separador no puede ser "" vacio
@@ -1416,7 +1416,7 @@ export class UtilNative {
       includeFunctionProps?: boolean;
       /** `= true` Incluir paths de propiedades consideradas privadas (que tienen prefijo "_") */
       includePrivateProps?: boolean;
-    }
+    },
   ): string[] {
     if (!this.isObject(obj)) throw new Error(`${obj} is not object valid`);
     //constructor de opciones
@@ -1531,7 +1531,7 @@ export class UtilNative {
         | "is-not-undefined-and-not-null";
       /**`= false`, Determina si se permite que un objeto vacío sea válido. */
       allowEmpty?: boolean;
-    }
+    },
   ): boolean {
     if (
       this.isNotUndefinedAndNotNull(keyOrKeys) &&
@@ -1564,10 +1564,10 @@ export class UtilNative {
           propCondition === "it-exist"
             ? key in obj
             : propCondition === "is-not-undefined"
-            ? !this.isUndefined(obj[key])
-            : propCondition === "is-not-null"
-            ? !this.isNull(obj[key])
-            : this.isNotUndefinedAndNotNull(obj[key]);
+              ? !this.isUndefined(obj[key])
+              : propCondition === "is-not-null"
+                ? !this.isNull(obj[key])
+                : this.isNotUndefinedAndNotNull(obj[key]);
         return r;
       });
     } else {
@@ -1671,7 +1671,7 @@ export class UtilNative {
       charWildcard?: string;
       /**`= false`, Determina si se permite que un objeto vacío sea válido. */
       allowEmpty?: boolean;
-    }
+    },
   ): boolean {
     // Validación de keyOrKeysPath
     if (
@@ -2006,7 +2006,7 @@ export class UtilNative {
   public objectKeysToCase(
     objBase: object,
     caseType: TStrCase,
-    allowDuplicates: boolean = false
+    allowDuplicates: boolean = false,
   ): object {
     if (!this.isObject(objBase, false))
       throw new Error(`${objBase} is not object valid`);
@@ -2036,7 +2036,7 @@ export class UtilNative {
             currentResult[keyC] = value.map((item) =>
               this.isObject(item)
                 ? this.objectKeysToCase(item, caseType, allowDuplicates)
-                : item
+                : item,
             );
           } else {
             // Si el valor es un primitivo, lo copiamos directamente
@@ -2091,7 +2091,7 @@ export class UtilNative {
       keyOrKeysPathForDelete?: string | string[];
       /**`= "."` El carácter separador a utilizar entre los elementos del path. */
       charSeparator?: string;
-    }
+    },
   ): TExtractObj {
     if (!this.isObject(obj, true)) {
       throw new Error(`${obj} is not object valid`);
@@ -2104,8 +2104,8 @@ export class UtilNative {
       keyOrKeysPathForDelete: this.isArray(op.keyOrKeysPathForDelete, true)
         ? [...new Set(op.keyOrKeysPathForDelete as string[])] // Eliminar duplicados
         : this.isString(op.keyOrKeysPathForDelete)
-        ? [op.keyOrKeysPathForDelete]
-        : ([] as any[]), //predefinido []
+          ? [op.keyOrKeysPathForDelete]
+          : ([] as any[]), //predefinido []
       charSeparator: this.isString(op.charSeparator)
         ? op.charSeparator
         : this.charSeparatorLogicPath,
@@ -2137,7 +2137,7 @@ export class UtilNative {
         // Manejar arrays
         if (Array.isArray(source[key])) {
           target[key] = (source[key] as any[]).filter(
-            (item) => !this.isFunction(item) && typeof item !== "symbol"
+            (item) => !this.isFunction(item) && typeof item !== "symbol",
           );
         } else if (this.isObject(source[key], true)) {
           // Crear un nuevo objeto para el subobjeto
@@ -2239,7 +2239,7 @@ export class UtilNative {
    */
   public mutateToObjectLiteralOnlyFn<
     TObj extends object,
-    TExtractObj extends object
+    TExtractObj extends object,
   >(obj: TObj, thisBind?: any): TExtractObj {
     if (!this.isObject(obj)) throw new Error(`${obj} is not object valid`);
     const stack: Array<{ target: any; source: any }> = [];
@@ -2280,7 +2280,7 @@ export class UtilNative {
     wildcard: string,
     useWildcards: boolean,
     path: string,
-    keyPath: string
+    keyPath: string,
   ): boolean {
     // Determinar búsqueda básica
     if (!useWildcards) return path.includes(keyPath);
@@ -2289,9 +2289,9 @@ export class UtilNative {
       .replace(
         new RegExp(
           `\\${charSeparator}\\${wildcard}0(\\${charSeparator}|$)`,
-          "g"
+          "g",
         ),
-        `${charSeparator}`
+        `${charSeparator}`,
       )
       .replace(new RegExp(`^\\${wildcard}0\\${charSeparator}`, "g"), "");
     // Convertir el keyPath con comodines en una expresión regular
@@ -2320,7 +2320,7 @@ export class UtilNative {
   private isWildcardValid(
     charSeparator: string,
     wildcard: string,
-    keyPath: string
+    keyPath: string,
   ): boolean {
     const segments = keyPath.split(charSeparator);
     for (const segment of segments) {
@@ -2329,12 +2329,12 @@ export class UtilNative {
         // Es Comodín0 al inicio del path
         if (segment === `${wildcard}0` && segments.indexOf(segment) === 0)
           throw new Error(
-            `Invalid use of wildcard '${wildcard}' at the start of the keyPath: ${keyPath}`
+            `Invalid use of wildcard '${wildcard}' at the start of the keyPath: ${keyPath}`,
           );
         // Es Número antes del comodín (por ejemplo, "2*")
         if (new RegExp(`^\d+\\${wildcard}`).test(segment))
           throw new Error(
-            `Invalid use of wildcard '${wildcard}' with number before it in segment '${segment}': ${keyPath}`
+            `Invalid use of wildcard '${wildcard}' with number before it in segment '${segment}': ${keyPath}`,
           );
         // Es Comodín con número negativo (por ejemplo, "*-1")
         const numStr = segment.substring(1); // Extraer el número después del *
@@ -2342,7 +2342,7 @@ export class UtilNative {
           const num = parseInt(numStr);
           if (isNaN(num) || num < 0)
             throw new Error(
-              `Invalid use of wildcard '${wildcard}' with invalid number '${numStr}' in segment '${segment}': ${keyPath}`
+              `Invalid use of wildcard '${wildcard}' with invalid number '${numStr}' in segment '${segment}': ${keyPath}`,
             );
         }
       }
@@ -2429,7 +2429,7 @@ export class UtilNative {
       charSeparator?: string;
       /**`= this.getPropertyPathsOfObject(objBase, {charSeparator})` Array completo de paths en caso de ya tenerlos para no procesar nuevamente*/
       allPathsBase?: string[];
-    }
+    },
   ): any {
     if (!this.isObject(objBase))
       throw new Error(`${objBase} is not object valid`);
@@ -2466,7 +2466,7 @@ export class UtilNative {
       this.isWildcardValid(charSeparator, wildcard, keyPath);
     // Buscar el path que coincida con el keyPath
     const foundPath = allPaths.find((path) =>
-      this.isPathMatch(charSeparator, wildcard, useWildcard, path, keyPath)
+      this.isPathMatch(charSeparator, wildcard, useWildcard, path, keyPath),
     );
     // Si se encuentra el path, obtener el valor de la propiedad
     if (foundPath) {
@@ -2556,7 +2556,7 @@ export class UtilNative {
       charSeparator?: string;
       /**`= this.getPropertyPathsOfObject(objBase, {charSeparator})` Array completo de paths en caso de ya tenerlos para no procesar nuevamente*/
       allPathsBase?: string[];
-    }
+    },
   ): any[] {
     if (!this.isObject(objBase))
       throw new Error(`${objBase} is not object valid`);
@@ -2595,7 +2595,7 @@ export class UtilNative {
         this.isWildcardValid(charSeparator, wildcard, keyPath);
       // Buscar el path que coincida con el keyPath
       const foundPaths = allPaths.filter((path) =>
-        this.isPathMatch(charSeparator, wildcard, useWildcard, path, keyPath)
+        this.isPathMatch(charSeparator, wildcard, useWildcard, path, keyPath),
       );
       return foundPaths.map((foundPath) => {
         // Si se encuentra el path, obtener el valor de la propiedad
@@ -2717,7 +2717,7 @@ export class UtilNative {
        * comparativo que el valor `undefined`
        */
       isNullAsUndefined?: boolean;
-    }
+    },
   ): T {
     if (!this.isTuple(tObjToMerge, 2))
       throw new Error(`${tObjToMerge} is not tuple of objects valid`);
@@ -2762,11 +2762,11 @@ export class UtilNative {
               (isNullAsUndefined && this.isNull(propB))
                 ? propN
                 : this.isUndefined(propN) ||
-                  (isNullAsUndefined && this.isNull(propN))
-                ? propB
-                : propN;
+                    (isNullAsUndefined && this.isNull(propN))
+                  ? propB
+                  : propN;
           } else if (mode === "hard") {
-            const isPropB = key in base;
+            // const _isPropB = key in base; // intentionally unused
             const isPropN = key in newObj;
             target[key] = isPropN ? propN : propB;
           } else {
@@ -2871,7 +2871,7 @@ export class UtilNative {
    */
   public freezeObject<TObject extends object | any[]>(
     obj: TObject,
-    isAllowDeepLevel = true
+    isAllowDeepLevel = true,
   ): TObject {
     // Verificación primitiva (incluye arrays)
     if (typeof obj !== "object" || this.isNull(obj)) return obj;
@@ -2980,7 +2980,7 @@ export class UtilNative {
     value: TItem | TItem[],
     extractType: TExtValueType,
     defaultValue: TItem[] = this.dfValue,
-    option?: IValueTypeOption
+    option?: IValueTypeOption,
   ): TItem[] {
     let r: TItem[];
     if (
@@ -3155,7 +3155,7 @@ export class UtilNative {
        * ⚠ Aumenta el costo de rendimiento
        */
       isRemoveDuplicate?: boolean;
-    }
+    },
   ): T {
     if (!this.isArray(arrayToSort, true))
       throw new Error(`${arrayToSort} is not array to sort valid`);
@@ -3402,11 +3402,11 @@ export class UtilNative {
        * predefinido en `"last"`
        */
       itemConflictMode?: "first" | "last";
-    }
+    },
   ): T {
     if (!this.isArray(arrayToRemove, true))
       throw new Error(
-        `${arrayToRemove} is not array to remove duplicates valid`
+        `${arrayToRemove} is not array to remove duplicates valid`,
       );
     //constructor de opciones
     let op = this.isObject(option, true) ? option : ({} as typeof option); //default vacio
@@ -3426,7 +3426,7 @@ export class UtilNative {
         //reescritura de las funciones findIndex (por motivos de ES2020)
         const findIndexFn = <T>(
           arr: T[],
-          cb: (element: T, index?: number, array?: T[]) => boolean
+          cb: (element: T, index?: number, array?: T[]) => boolean,
         ) => {
           for (let i = 0; i < arr.length; i++) {
             if (cb(arr[i], i, arr)) {
@@ -3436,13 +3436,13 @@ export class UtilNative {
           return -1;
         };
         idx = findIndexFn(arrayToRemove, (item) =>
-          this.isEquivalentTo([itemBase, item], { ...op })
+          this.isEquivalentTo([itemBase, item], { ...op }),
         );
       } else if (itemConflictMode === "last") {
         //reescritura de las funciones findLastIndex (por motivos de ES2020)
         const findLastIndexFn = <T>(
           arr: T[],
-          cb: (element: T, index?: number, array?: T[]) => boolean
+          cb: (element: T, index?: number, array?: T[]) => boolean,
         ) => {
           let idxLast = -1;
           for (let i = arr.length - 1; i >= 0; i--) {
@@ -3459,7 +3459,7 @@ export class UtilNative {
         });
       } else {
         throw new Error(
-          `${itemConflictMode} is not configuration's item conflict mode to remove duplicate valid`
+          `${itemConflictMode} is not configuration's item conflict mode to remove duplicate valid`,
         );
       }
       const r = idxBase === idx;
@@ -3500,7 +3500,7 @@ export class UtilNative {
    */
   public getArrayUnion<TArray extends Array<any>>(
     tArraysToUnion: [TArray, TArray],
-    option?: Parameters<typeof this.removeArrayDuplicate>[1]
+    option?: Parameters<typeof this.removeArrayDuplicate>[1],
   ): TArray {
     if (!this.isValueType(tArraysToUnion, [[], []]))
       throw new Error(`${tArraysToUnion} is not tuple to union valid`);
@@ -3542,7 +3542,7 @@ export class UtilNative {
    */
   public getArrayIntersection<T extends Array<any>>(
     tArraysToIntersection: [T, T],
-    option?: Parameters<typeof this.removeArrayDuplicate>[1]
+    option?: Parameters<typeof this.removeArrayDuplicate>[1],
   ): T {
     if (!this.isValueType(tArraysToIntersection, [[], []]))
       throw new Error(`${tArraysToIntersection} is not tuple to union valid`);
@@ -3596,7 +3596,7 @@ export class UtilNative {
   public getArrayDifference<T extends Array<any>>(
     tArraysToDifference: [T, T],
     selector: "difference_A" | "difference_B",
-    option?: Parameters<typeof this.removeArrayDuplicate>[1]
+    option?: Parameters<typeof this.removeArrayDuplicate>[1],
   ): T {
     if (!this.isArray(tArraysToDifference) || tArraysToDifference.length > 2)
       throw new Error(`${tArraysToDifference} is not array of set valid`);
@@ -3702,7 +3702,7 @@ export class UtilNative {
   public searchItemsInArray<TArray extends Array<any>>(
     aData: TArray,
     searchArray: TArray,
-    option: Omit<IOptionEqGtLt, "isAllowEquivalent"> & {}
+    option: Omit<IOptionEqGtLt, "isAllowEquivalent"> & {},
   ): TArray {
     if (!this.isArray(aData))
       throw new Error(`${aData} is not root array valid`);
@@ -3780,7 +3780,7 @@ export class UtilNative {
    */
   public isTuple<TTuple>(
     tuple: TTuple,
-    size: number | [number, number]
+    size: number | [number, number],
   ): boolean {
     if (
       (!this.isNumber(size) || this.isNumberSign(size, "-")) &&
@@ -3815,7 +3815,7 @@ export class UtilNative {
   public isArrayTuple<TTuple>(
     aTuple: Array<TTuple>,
     length: number | [number, number],
-    allowEmpty = false
+    allowEmpty = false,
   ): boolean {
     if (!this.isArray(aTuple, allowEmpty)) return false;
     const r = aTuple.every((tuple) => this.isTuple(tuple, length));
@@ -3863,14 +3863,14 @@ export class UtilNative {
    * ```
    */
   public removeTupleArrayDuplicateByKey<TATuple>(
-    arrayTupleToRemove: TATuple
+    arrayTupleToRemove: TATuple,
   ): TATuple {
     if (
       !this.isArray(arrayTupleToRemove) ||
       !(arrayTupleToRemove as any[]).every((t) => this.isTuple(t, 2))
     ) {
       throw new Error(
-        `${arrayTupleToRemove} is not array of tuple to remove duplicates valid`
+        `${arrayTupleToRemove} is not array of tuple to remove duplicates valid`,
       );
     }
     const mapBf = new Map(arrayTupleToRemove as Array<[any, any]>);
@@ -4045,7 +4045,7 @@ export class UtilNative {
    */
   public clone<T>(
     objOrArray: T,
-    driver: "stringify" | "structuredClone" = "structuredClone"
+    driver: "stringify" | "structuredClone" = "structuredClone",
   ): T {
     if (
       typeof objOrArray != "object" || //❗solo clona los objetos (incluye array)❗
@@ -4082,7 +4082,7 @@ export class UtilNative {
    */
   public async runPromisesSequentially(
     fns: ((value: any) => Promise<any>)[],
-    options?: any
+    options?: any,
   ): Promise<any> {
     if (!Array.isArray(fns)) {
       throw new Error("No Array Promise"); //---falta definir ERROR--
@@ -4112,7 +4112,7 @@ export class UtilNative {
   private async _runPromisesSequentially(
     fns: ((value: any) => Promise<any>)[],
     options?: any,
-    rValues = []
+    rValues = [],
   ): Promise<any> {
     if (fns.length > 0) {
       const currentFn: (param?) => Promise<any> = fns[0].bind(this);
@@ -4312,7 +4312,7 @@ export class UtilNative {
   public isValueType(
     anyValue: any,
     types: TAExtValueType,
-    option?: IValueTypeOption
+    option?: IValueTypeOption,
   ): boolean {
     if (!this.isArray(types, true))
       throw new Error(`${types} is not array types valid`);
@@ -4403,7 +4403,7 @@ export class UtilNative {
             }
             const maxLimitArray = 1;
             if (aIdxSubArrayType.length <= maxLimitArray && !tupleSize) {
-              r = (anyValue as any[]).reduce((accV, currV, idx) => {
+              r = (anyValue as any[]).reduce((accV, _currV, idx) => {
                 if (accV === false) return accV; //si algun type no se cumplió, inabilita la reducción
                 const subAnyValue = anyValue[idx];
                 const r = this.isValueType(subAnyValue, type as any[], op);
@@ -4594,7 +4594,7 @@ export class UtilNative {
    */
   public isEquivalentTo(
     compareValues: [any, any],
-    option?: Omit<IOptionEqGtLt, "isAllowEquivalent" | "isMatrixCompared">
+    option?: Omit<IOptionEqGtLt, "isAllowEquivalent" | "isMatrixCompared">,
   ): boolean {
     if (!this.isTuple(compareValues, [0, 2])) {
       //verificar si almenos se intentó un array
@@ -4622,7 +4622,7 @@ export class UtilNative {
       keyOrKeysPath: this.castArrayByConditionType(
         op.keyOrKeysPath,
         "string",
-        []
+        [],
       ),
       charSeparator: this.isString(op.charSeparator)
         ? op.charSeparator
@@ -5033,7 +5033,7 @@ export class UtilNative {
    */
   public isGreaterTo(
     compareValues: [any, any],
-    option?: IOptionEqGtLt
+    option?: IOptionEqGtLt,
   ): boolean {
     if (!this.isTuple(compareValues, [0, 2]))
       throw new Error(`${option} is not tuple of compare values valid`);
@@ -5057,7 +5057,7 @@ export class UtilNative {
       keyOrKeysPath: this.castArrayByConditionType(
         op.keyOrKeysPath,
         "string",
-        []
+        [],
       ),
       charSeparator: this.isString(op.charSeparator)
         ? op.charSeparator
@@ -5160,8 +5160,8 @@ export class UtilNative {
               matrixResult === 0
                 ? isAllowEquivalent
                 : matrixResult > 0
-                ? true
-                : false;
+                  ? true
+                  : false;
             break;
           }
         }
@@ -5198,7 +5198,7 @@ export class UtilNative {
               {
                 ...op,
                 keyOrKeysPath: subKeysPathToCompare,
-              }
+              },
             );
             //tratamiento de equivalencias (para seguir al siguinte objeto)
             if (isEquivalent) {
@@ -5235,7 +5235,7 @@ export class UtilNative {
               [sValueBase, sValueToCompare],
               {
                 ...op,
-              }
+              },
             );
             //tratamiento de equivalencias (para seguir al siguinte objeto)
             if (isEquivalent) {
@@ -5604,7 +5604,7 @@ export class UtilNative {
    */
   public isLesserTo(
     compareValues: [any, any],
-    option?: IOptionEqGtLt
+    option?: IOptionEqGtLt,
   ): boolean {
     if (!this.isTuple(compareValues, [0, 2]))
       throw new Error(`${option} is not tuple of compare values valid`);
@@ -5628,7 +5628,7 @@ export class UtilNative {
       keyOrKeysPath: this.castArrayByConditionType(
         op.keyOrKeysPath,
         "string",
-        []
+        [],
       ),
       charSeparator: this.isString(op.charSeparator)
         ? op.charSeparator
@@ -5731,8 +5731,8 @@ export class UtilNative {
               matrixResult === 0
                 ? isAllowEquivalent
                 : matrixResult < 0
-                ? true
-                : false;
+                  ? true
+                  : false;
             break;
           }
         }
@@ -5772,7 +5772,7 @@ export class UtilNative {
                 isCompareSize,
                 isCompareStringToNumber,
                 keyOrKeysPath: subKeysPathToCompare,
-              }
+              },
             );
             //tratamiento de equivalencias (para seguir al siguinte objeto)
             if (isEquivalent) {
@@ -5817,7 +5817,7 @@ export class UtilNative {
                 isCompareSize,
                 isCompareStringToNumber,
                 keyOrKeysPath,
-              }
+              },
             );
             //tratamiento de equivalencias (para seguir al siguinte objeto)
             if (isEquivalent) {
@@ -6030,7 +6030,7 @@ export class UtilNative {
    */
   public compareTo(
     compareValues: [any, any],
-    option?: Omit<IOptionEqGtLt, "isAllowEquivalent">
+    option?: Omit<IOptionEqGtLt, "isAllowEquivalent">,
   ): number {
     option = this.isObject(option) ? option : {};
     const isEquivalent = this.isEquivalentTo(compareValues, { ...option });

@@ -1,11 +1,17 @@
 {
-  "name": "mag-util-typescript",
-  "version": "0.0.15",
-  "description": "",
-  "main": "index.js",
+  "name": "@magles/mag-util",
+  "version": "0.1.0",
+  "description": "Recopilación de utilidades para TypeScript",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "directories": {},
   "scripts": {
-    "test": "vitest"
+    "test": "vitest run",
+    "build": "tsc",
+    "prepublishOnly": "npm run test && npm run build"
   },
   "repository": {
     "type": "git",

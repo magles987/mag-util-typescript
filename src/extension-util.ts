@@ -9,7 +9,7 @@ import {
 import { TStrCase } from "./shared-types";
 //████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
 /**esquema opcional para la configuración de la utilidad */
-export type TUtilBaseConfig = TSuperUtilBaseConfig;
+export type TExtensionBaseConfig = TSuperUtilBaseConfig;
 /** @info <hr>
  *
  * *Singleton*
@@ -27,7 +27,7 @@ export class UtilExtension extends UtilNative {
   /**
    * @param baseConfig configuraciones personalizadas para la utilidad
    */
-  constructor(baseConfig?: TUtilBaseConfig) {
+  constructor(baseConfig?: TExtensionBaseConfig) {
     super(baseConfig);
     if (this.isObject(baseConfig)) {
       //...aqui propiedades de configuración
@@ -39,7 +39,7 @@ export class UtilExtension extends UtilNative {
    * @param dfValue es el valor que se va a asumir como valor
    * predefinido cuando haya ausencia de valor
    */
-  public static getInstance(baseConfig?: TUtilBaseConfig): UtilExtension {
+  public static getInstance(baseConfig?: TExtensionBaseConfig): UtilExtension {
     UtilExtension.UtilExtension_instance =
       UtilExtension.UtilExtension_instance === undefined ||
       UtilExtension.UtilExtension_instance === null
