@@ -45,6 +45,21 @@ export class UtilNative {
   public get charSeparatorLogicPath() {
     return this._charSeparatorLogicPath;
   }
+  /**
+   * Carácter separador de ruta lógica.
+   *
+   * @example
+   * ```typescript
+   * const charSeparatorLogicPath = ".";
+   * const sp = charSeparatorLogicPath;
+   * const path = `root${sp}object${sp}subObject`;
+   * console.log(path); // salida "root.object.subobject"
+   * ```
+   */
+  protected set charSeparatorLogicPath(v: string) {
+    if (!this.isString(v)) return; //no modifica si no es string
+    this._charSeparatorLogicPath = v;
+  }
   private _charSeparatorUrlPath = "/";
   /**
    * Carácter de separador de ruta para URL.
@@ -59,6 +74,21 @@ export class UtilNative {
    */
   public get charSeparatorUrlPath() {
     return this._charSeparatorUrlPath;
+  }
+  /**
+   * Carácter de separador de ruta para URL.
+   *
+   * @example
+   * ```typescript
+   * const charSeparatorUrlPath = "/";
+   * const sp = charSeparatorUrlPath;
+   * const path = `root${sp}object${sp}subObject`;
+   * console.log(path); // salida "root/object/subobject"
+   * ```
+   */
+  protected set charSeparatorUrlPath(v: string) {
+    if (!this.isString(v)) return; //no modifica si no es string
+    this._charSeparatorUrlPath = v;
   }
   private _charWildcardArrayItem = "#";
   /**
@@ -80,6 +110,26 @@ export class UtilNative {
   public get charWildcardArrayItem() {
     return this._charWildcardArrayItem;
   }
+  /**
+   * Carácter comodín especial que expresa cualquier indice en
+   * un array, util para construir rutas (paths) con arrays
+   * profundos
+   *
+   * @example
+   * ```typescript
+   * const charSeparatorLogicPath = ".";
+   * const sp = charSeparatorLogicPath;
+   * const charWildcardArrayItem = "#";
+   * const cw = charWildcardArrayItem;
+   * const path = `root${sp}object${sp}arrayProp${sp}${cw}${sp}subPropN`;
+   * console.log(path); // salida "root.object.arrayProp.#.subPropN" ,
+   *                    //donde ese # indica que puede ser cualquier elemento de arrayProp
+   * ```
+   */
+  protected set charWildcardArrayItem(v: string) {
+    if (!this.isString(v)) return; //no modifica si no es string
+    this._charWildcardArrayItem = v;
+  }
   private _sepDateRegExp = /\-|\/|\.|\#|\_|\:/;
   /**
    * expresion regular para dividir un string
@@ -98,11 +148,37 @@ export class UtilNative {
   public get sepDateRegExp() {
     return this._sepDateRegExp;
   }
+  /**
+   * expresion regular para dividir un string
+   * de fecha con separadores:
+   *
+   * `"-"` ej. formato: `"dd-mm-yyyy"`
+   *
+   * `"/"` ej. formato: `dd/mm/yyyy`
+   *
+   * `"_"` ej. formato: `dd_mm_yyyy`
+   *
+   * `"#"` ej. formato: `dd#mm#yyyy`
+   *
+   * `"."` ej. formato: `dd.mm.yyyy`
+   */
+  protected set sepDateRegExp(v: RegExp) {
+    if (!(v instanceof RegExp)) {
+      if (!this.isString(v)) return; //no modifica si no es string
+      v = new RegExp(v); // intetará crearla de forma básica
+    }
+    this._sepDateRegExp = v;
+  }
   /**valor predefinido global */
   private _dfValue: null | undefined = undefined;
   /**valor predefinido global*/ //para uso de instancia
   public get dfValue(): null | undefined {
     return this._dfValue;
+  }
+  /**valor predefinido global*/ //para uso de instancia
+  protected set dfValue(v: null | undefined) {
+    if (!this.isUndefinedOrNull(v)) return; //no modifica si no es undefined o null
+    this._dfValue = v;
   }
   /**
    * Almacena la instancia única de esta clase
