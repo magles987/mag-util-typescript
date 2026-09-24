@@ -36,3 +36,6 @@ dist-ssr
 
 # Paquetes de npm (empaquetados locales)
 *.tgz
+
+# Directorio de pruebas de IA local
+/tests-ia

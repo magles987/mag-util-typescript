@@ -165,7 +165,7 @@ export class UtilNative {
   protected set sepDateRegExp(v: RegExp) {
     if (!(v instanceof RegExp)) {
       if (!this.isString(v)) return; //no modifica si no es string
-      v = new RegExp(v); // intetará crearla de forma básica
+      v = new RegExp(v); // intentará crearla de forma básica
     }
     this._sepDateRegExp = v;
   }
@@ -189,18 +189,18 @@ export class UtilNative {
    */
   protected constructor(baseConfig?: TUtilBaseConfig) {
     if (this.isObject(baseConfig)) {
-      const bC = baseConfig;
+      const bC = baseConfig as TUtilBaseConfig;
       this._dfValue = this.isUndefinedOrNull(bC.dfValue)
         ? bC.dfValue
         : this._dfValue;
       this._charSeparatorLogicPath = this.isString(bC.charSeparatorLogicPath)
-        ? bC.charSeparatorLogicPath
+        ? (bC.charSeparatorLogicPath as string)
         : this._charSeparatorLogicPath;
       this._charSeparatorUrlPath = this.isString(bC.charSeparatorUrlPath)
-        ? bC.charSeparatorUrlPath
+        ? (bC.charSeparatorUrlPath as string)
         : this._charSeparatorUrlPath;
       this._charWildcardArrayItem = this.isString(bC.charWildcardArrayItem)
-        ? bC.charWildcardArrayItem
+        ? (bC.charWildcardArrayItem as string)
         : this._charWildcardArrayItem;
       this._sepDateRegExp = bC.sepDateRegExp ?? this._sepDateRegExp;
     }
@@ -269,7 +269,7 @@ export class UtilNative {
    * @param {boolean} isDeep `= false`, (solo para objetos o arrays) Si es `true`, el método procesará el objeto o array de forma recursiva. Si es `false` solo se procesará el primer nivel del objeto.
    * @returns {object | any[]}
    *  -Si `value` tiene asignado el valor `undefined` entonces retorna `null`, de lo contrario retorna el valor actual de `value`
-   *  -Si `value`es un objeto o array, retorna todas su propiedas (o items) que hallan tenido valor `undefined` en valor `null`, las demas propiedades no son modificadas
+   *  -Si `value`es un objeto o array, retorna todas su propiedades (o items) que hallan tenido valor `undefined` en valor `null`, las demás propiedades no son modificadas
    *
    * @example
    * ```typescript
@@ -279,15 +279,19 @@ export class UtilNative {
    * ```
    */
   public undefinedToNull<T>(value: T, isDeep = false): T {
-    //caso primitiv
+    //caso primitivo
     if (typeof value !== "object")
       //debe analizarse objeto (incluyendo null y arrays)
-      return this.isUndefined(value) ? null : value;
+      return this.isUndefined(value) ? (null as T) : value;
     //caso null directo
-    if (this.isNull(value)) return null;
+    if (this.isNull(value)) return null as T;
+
+    // Si es un objeto instanciado (no literal y no array), lo devolvemos tal cual para no destruir su prototipo
+    if (!Array.isArray(value) && !this.isLiteralObject(value)) return value;
+
     //caso objetos o arrays
     isDeep = this.convertToBoolean(isDeep);
-    let newObjOrArray = !Array.isArray(value)
+    let newObjOrArray: any = !Array.isArray(value)
       ? { ...(value as object) } //clonacion superficial objeto
       : [...(value as any[])]; //clonacion superficial array
     Object.keys(newObjOrArray).forEach((key) => {
@@ -313,7 +317,7 @@ export class UtilNative {
    * @param {boolean} isDeep `= false`, (solo para objetos o arrays) Si es `true`, el método procesará el objeto o array de forma recursiva. Si es `false` solo se procesará el primer nivel del objeto.
    * @returns {object | any[]}
    *  -Si `value` tiene asignado el valor `null` entonces retorna `undefined`, de lo contrario retorna el valor actual de `value`
-   *  -Si `value`es un objeto o array, retorna todas su propiedas (o items) que hallan tenido valor `null` en valor `undefined`, las demas propiedades no son modificadas
+   *  -Si `value`es un objeto o array, retorna todas su propiedades (o items) que hallan tenido valor `null` en valor `undefined`, las demás propiedades no son modificadas
    *
    * @example
    * ```typescript
@@ -328,10 +332,14 @@ export class UtilNative {
   ): T {
     //caso primitivo
     if (typeof value !== "object" || this.isNull(value))
-      return this.isNull(value) ? undefined : value;
+      return this.isNull(value) ? (undefined as T) : value;
+
+    // Si es un objeto instanciado (no literal y no array), lo devolvemos tal cual para no destruir su prototipo
+    if (!Array.isArray(value) && !this.isLiteralObject(value)) return value;
+
     //caso objetos o arrays
     isDeep = this.convertToBoolean(isDeep);
-    let newObjOrArray = !Array.isArray(value)
+    let newObjOrArray: any = !Array.isArray(value)
       ? { ...(value as object) } //clonacion superficial objeto
       : [...(value as any[])]; //clonacion superficial array
     Object.keys(newObjOrArray).forEach((key) => {
@@ -361,7 +369,7 @@ export class UtilNative {
    * console.log(result); // salida: true
    * ```
    */
-  public isBoolean(bool: unknown): boolean {
+  public isBoolean(bool: unknown): bool is boolean {
     return typeof bool === "boolean";
   }
   /**
@@ -973,7 +981,7 @@ export class UtilNative {
    * console.log(!isString(a, false)); // salida `true` niega el negar vacios (vacios prmitidos)
    * ```
    */
-  public isString(str: unknown, allowEmpty = false): boolean {
+  public isString(str: unknown, allowEmpty = false): str is string {
     allowEmpty = this.convertToBoolean(allowEmpty);
     const r = typeof str === "string" && (allowEmpty || str !== "");
     return r;
@@ -1262,7 +1270,9 @@ export class UtilNative {
       throw new Error(`${aKeys} is not array of strings valid`);
     }
     //constructor de opciones
-    let op = this.isObject(option, true) ? option : ({} as typeof option); //default vacio
+    let op = (this.isObject(option, true) ? option : {}) as Required<
+      NonNullable<typeof option>
+    >; //default vacio
     op = {
       ...op, //opciones adicionales no documentadas (si las hay)
       charSeparator: this.isString(op.charSeparator)
@@ -1393,7 +1403,10 @@ export class UtilNative {
    * console.log(isObject(a)); // salida `false` (un array (vacío o poblado) no lo considera objeto literal)
    * ```
    */
-  public isObject(value: unknown, allowEmpty = false): boolean {
+  public isObject(
+    value: unknown,
+    allowEmpty = false,
+  ): value is Record<string, any> {
     allowEmpty = this.convertToBoolean(allowEmpty);
     // Verificar si es un objeto (excluyendo null y arrays)
     const isObj =
@@ -1496,7 +1509,9 @@ export class UtilNative {
   ): string[] {
     if (!this.isObject(obj)) throw new Error(`${obj} is not object valid`);
     //constructor de opciones
-    let op = this.isObject(option, true) ? option : ({} as typeof option); //default vacio
+    let op = (this.isObject(option, true) ? option : {}) as Required<
+      NonNullable<typeof option>
+    >; //default vacio
     op = {
       ...op, //opciones adicionales no documentadas (si las hay)
       charSeparator: this.isString(op.charSeparator)
@@ -1527,7 +1542,7 @@ export class UtilNative {
         if (this.isObject(value, true)) {
           stack.push({ obj: value, currentPath: newPath });
         } else if (this.isArray(value)) {
-          value.forEach((item, index) => {
+          (value as any[]).forEach((item, index) => {
             const arrayPath = `${newPath}${charSeparator}${index}`;
             if (this.isObject(item, true)) {
               stack.push({ obj: item, currentPath: arrayPath });
@@ -1616,7 +1631,9 @@ export class UtilNative {
     )
       throw new Error(`${keyOrKeys as any} is not key or keys valid`);
     //constructor de opciones
-    let op = this.isObject(option, true) ? option : ({} as typeof option); //default vacio
+    let op = (this.isObject(option, true) ? option : {}) as Required<
+      NonNullable<typeof option>
+    >; //default vacio
     op = {
       ...op, //opciones adicionales no documentadas (si las hay)
       propCondition:
@@ -1758,7 +1775,9 @@ export class UtilNative {
       throw new Error(`${keyOrKeysPath} is not key or keys path valid`);
     }
     //constructor de opciones
-    let op = this.isObject(option, true) ? option : ({} as typeof option); //default vacio
+    let op = (this.isObject(option, true) ? option : {}) as Required<
+      NonNullable<typeof option>
+    >; //default vacio
     op = {
       ...op, //opciones adicionales no documentadas (si las hay)
       propCondition:
@@ -2101,22 +2120,22 @@ export class UtilNative {
           if (!allowDuplicates && currentResult.hasOwnProperty(keyC)) {
             throw new Error(`Duplicate key detected after conversion: ${keyC}`);
           }
-          const value = obj[key];
+          const value = (obj as any)[key];
           if (this.isObject(value)) {
             // Si el valor es un objeto, lo agregamos a la pila para procesarlo después
             const nestedResult = {} as object;
-            currentResult[keyC] = nestedResult;
+            (currentResult as any)[keyC] = nestedResult;
             stack.push({ obj: value, result: nestedResult });
           } else if (Array.isArray(value)) {
             // Si el valor es un array, procesamos cada elemento
-            currentResult[keyC] = value.map((item) =>
+            (currentResult as any)[keyC] = value.map((item) =>
               this.isObject(item)
                 ? this.objectKeysToCase(item, caseType, allowDuplicates)
                 : item,
             );
           } else {
             // Si el valor es un primitivo, lo copiamos directamente
-            currentResult[keyC] = value;
+            (currentResult as any)[keyC] = value;
           }
         }
       }
@@ -2512,7 +2531,9 @@ export class UtilNative {
     if (!this.isString(keyPath))
       throw new Error(`${keyPath} is not key path valid`);
     // Constructor de opciones
-    let op = this.isObject(option, true) ? option : ({} as typeof option);
+    let op = (this.isObject(option, true) ? option : {}) as Required<
+      NonNullable<typeof option>
+    >;
     op = {
       defaultReturnObj: !this.isUndefined(op.defaultReturnObj)
         ? op.defaultReturnObj
@@ -2640,7 +2661,9 @@ export class UtilNative {
       throw new Error(`${keyPaths} is not key or keys path valid`);
     keyPaths = Array.isArray(keyPaths) ? keyPaths : [keyPaths];
     // Constructor de opciones
-    let op = this.isObject(option, true) ? option : ({} as typeof option);
+    let op = (this.isObject(option, true) ? option : {}) as Required<
+      NonNullable<typeof option>
+    >;
     op = {
       defaultReturnObj: !this.isUndefined(op.defaultReturnObj)
         ? op.defaultReturnObj
@@ -2703,7 +2726,7 @@ export class UtilNative {
    *   - `tObjToMerge[0]`: Objeto base al cual se fusionará el nuevo objeto.
    *   - `tObjToMerge[1]`: Objeto a fusionar con el objeto base.
    * @param {object} option - Configuración para el proceso de fusión:
-   *   - `mode`: Modo de fusión par alos objetos
+   *   - `mode`: Modo de fusión par a los objetos
    *   - `isNullAsUndefined` Determina si se debe asumir que
    *     el valor `null` tiene el mismo peso comparativo que el valor `undefined`.
    * @returns {T} Retorna el objeto fusionado.
@@ -2778,12 +2801,12 @@ export class UtilNative {
       /**
        * determina el modo de fusion
        *
-       * - modo `"soft"`: sobreescribe la propiedad en
+       * - modo `"soft"`: sobrescribe la propiedad en
        * `objBase` solo si esta misma propiedad
        * en `objNew` **no** tiene valor como
        * `undefined` o `null`
        *
-       * - modo `"hard"`: sobreescribe la propiedad en
+       * - modo `"hard"`: sobrescribe la propiedad en
        * `objBase` sin importar si el valor es
        * `undefined` o `null`
        */
@@ -2857,7 +2880,7 @@ export class UtilNative {
    * Convierte un array de tuplas tipo entry (`[key, value]`) en un objeto.
    *
    * - la tupla debe ser de tipo `[key, value]` donde `key` es un tipo derivado de string.
-   * - ❗el array de tuplas puede estar vacio❗, en ese caso retorná un objeto literal `{}`
+   * - ❗el array de tuplas puede estar vacio❗, en ese caso retorna un objeto literal `{}`
    *
    * @param {Array<[any, any]>} aEntryTuple - El array de tuplas que se va a convertir en un objeto. Cada tupla consta de dos elementos de tipo `[key, value]`.
    * @throws {Error} - Lanza un error si `arrayOfEntries` no es un array de tuplas válido.
@@ -2879,7 +2902,7 @@ export class UtilNative {
       // la key debe ser un identificador
       if (this.isUndefinedOrNull(key))
         throw new Error(`${key} contain tuples not valid`);
-      a_obj[key] = value;
+      (a_obj as any)[key] = value;
       return a_obj;
     }, {}); //si el array es vacio retornaria un objeto literal vacio
     return obj;
@@ -2900,7 +2923,7 @@ export class UtilNative {
    * ```
    */
   public entriesToObject(entry: IterableIterator<[any, any]>): object {
-    //⚠ Obligatorio el testeo primitivo
+    //⚠ Obligatorio probar primitivo
     if (typeof entry !== "object")
       throw new Error(`${entry} is not entries (:IterableIterator) valid`);
     const arrayOfEntries = Array.from(entry);
@@ -2928,9 +2951,9 @@ export class UtilNative {
     return obj;
   }
   /**
-   * Congela un objeto para prevenir modificaciones en sus propiedades, con opcion de niveles profundos si sus propiedades son a su vez objetos.
+   * Congela un objeto para prevenir modificaciones en sus propiedades, con opción de niveles profundos si sus propiedades son a su vez objetos.
    *
-   * ⚠ Puede ser usado con array pero se aconseja usar el metodo `freezeArray()`
+   * ⚠ Puede ser usado con array pero se aconseja usar el método `freezeArray()`
    *
    * @param {TObject} obj - El objeto que se va a congelar.
    * @param {boolean} isAllowDeepLevel - Determina si se debe congelar el objeto a nivel profundo. Por defecto es `true`, lo que significa que se congelarán todas las propiedades del objeto que sean objetos.
@@ -2982,7 +3005,8 @@ export class UtilNative {
         }
       }
       // Si hay un padre, asignar el objeto congelado a la propiedad correspondiente
-      if (!this.isNull(parent) && !this.isNull(key)) parent[key] = currentObj;
+      if (!this.isNull(parent) && !this.isNull(key))
+        parent[key as string] = currentObj;
     }
     return obj;
   }
@@ -3114,7 +3138,7 @@ export class UtilNative {
     return arr[idx];
   }
   /**
-   * permite ordenar un array de booleanos, numeros, cadenas de texto o objetos, con opciones de direccion, eliminacion de duplicados entre otras
+   * permite ordenar un array de booleanos, números, cadenas de texto o objetos, con opciones de direccion, eliminacion de duplicados entre otras
    *
    * **⚠⚠ Importante los pesos de los tipos ⚠⚠**
    *
@@ -3138,14 +3162,14 @@ export class UtilNative {
    *  - `null` es mas pesado que `undefined`
    *
    * @param {T} arrayToSort el array a ordenar
-   * @param {object} option configuracion para el ordenamiento
+   * @param {object} option configuración para el ordenamiento
    * - `direction = "asc"`, direccion de ordenamiento
    * - `isRemoveDuplicate = false`, si se desea eliminar duplicados antes de retornar el array ordenado
    * - `keyOrKeysPath` (solo para elementos de tipo objeto) rutas de claves identificadoras para las propiedades que se usaran como base para la comparación
    * - `isCompareLength = false`, determina si debe comprar tamaños de lso arrays
    * - `isCompareSize = false`, determina si debe comparar cantidad de propiedades de los objetos
-   * - `isCompareStringToNumber = false`, determina si debe comparar strings numericos como numeros
-   * - `isCaseSensitiveForString = false`, determina si la comparacion es sensitiva a minusculas y mayusculas (solo string)
+   * - `isCompareStringToNumber = false`, determina si debe comparar strings numéricos como números
+   * - `isCaseSensitiveForString = false`, determina si la comparación es sensitiva a minusculas y mayusculas (solo string)
    * @returns el array ya ordenado
    *
    * @example
@@ -3158,13 +3182,13 @@ export class UtilNative {
    * r = sortMixedArray(aToSort, {direction: "asc"})
    * console.log(r); //salida: `[false, false, true, true, true]`
    *
-   * //array de numeros
+   * //array de números
    * aToSort = [-1,2,1,0,-2];
    * r = sortMixedArray(aToSort, {direction: "asc"})
    * console.log(r); //salida: `[-2,-1,0,1,2]`
    * ````
    *
-   * //array de string (direccion "asc" y sesnsitivo)
+   * //array de string (direccion "asc" y sensitivo)
    * aToSort = ["A", "B", "a", "b"];
    * r = sortMixedArray(aToSort, {
    *  direction: "asc",
@@ -3172,7 +3196,7 @@ export class UtilNative {
    * });
    * console.log(r); //salida: `["a", "A", "b", "B"]`
    *
-   * //array de string (direccion "desc" y no sesnsitivo)
+   * //array de string (direccion "desc" y no sensitivo)
    * aToSort = ["A", "B", "a", "b"];
    * r = sortMixedArray(aToSort, {
    *  direction: "desc",
@@ -3180,7 +3204,7 @@ export class UtilNative {
    * });
    * console.log(r); //salida: `["b", "B", "a", "A"]`
    *
-   * //array de string (direccion "desc" y sesnsitivo)
+   * //array de string (direccion "desc" y sensitivo)
    * aToSort = ["A", "B", "a", "b"];
    * r = sortMixedArray(aToSort, {
    *  direction: "desc",
@@ -3236,7 +3260,9 @@ export class UtilNative {
     if (!this.isArray(arrayToSort, true))
       throw new Error(`${arrayToSort} is not array to sort valid`);
     //constructor de opciones
-    let op = this.isObject(option, true) ? option : ({} as typeof option); //default vacio
+    let op = (this.isObject(option, true) ? option : {}) as Required<
+      NonNullable<typeof option>
+    >; //default vacio
     op = {
       ...op, //opciones adicionales no documentadas (si las hay)
       //las opciones de comparación se asignan en sus respectivos métodos
@@ -3252,8 +3278,8 @@ export class UtilNative {
     //Iniciar proceso
     const nDirection = direction === "asc" ? 1 : -1;
     //tratamiento de arrays internos
-    let arrayToSortClone = [] as T;
-    let aUndefined = [] as T;
+    let arrayToSortClone = [] as any[];
+    let aUndefined = [] as any[];
     for (const item of [...arrayToSort]) {
       //clonacion sencilla ya que no se modifican valores internamente
       //caso especial array
@@ -3293,21 +3319,21 @@ export class UtilNative {
         itemConflictMode: "last",
       });
     }
-    return arrayToSortClone;
+    return arrayToSortClone as T;
   }
   /**
    *
    * Elimina los elementos duplicados de un array.
    *
    * @param {Array} arrayToRemove El array del cual se eliminarán los duplicados.
-   * @param {object} option configuracion para el metodo
+   * @param {object} option configuración para el método
    * - `itemConflictMode` al encontrar un elemento repetido define el modo de resolver el conflicto de si se queda con el primero o el ultimo de los repetidos
-   * - `keyOrKeysPath` (solo para elementos de tipo objeto) rutas de claves identificadoras para las propiedades que se usaran como base para la comparacion
+   * - `keyOrKeysPath` (solo para elementos de tipo objeto) rutas de claves identificadoras para las propiedades que se usaran como base para la comparación
    * - `isCompareLength = false`, determina si debe comprar tamaños de lso arrays
    * - `isCompareSize = false`, determina si debe comparar cantidad de propiedades de los objetos
-   * - `isCompareStringToNumber = false`, determina si debe comparar strings numericos como numeros
-   * - `isCaseSensitiveForString = false`, determina si la comparacion es sensitiva a minusculas y mayusculas (solo string)
-   * - `isStringLocaleMode = false`, determina si la comparacion de strings es en modo region del sistema
+   * - `isCompareStringToNumber = false`, determina si debe comparar strings numéricos como números
+   * - `isCaseSensitiveForString = false`, determina si la comparación es sensitiva a minusculas y mayusculas (solo string)
+   * - `isStringLocaleMode = false`, determina si la comparación de strings es en modo region del sistema
    * @param {"first" | "last"} [itemConflictMode = "last"] - En caso de encontrar un duplicado, determina con cuál elemento se queda. Por defecto es `"last"`.
    * @returns {Array} - Retorna un nuevo array con los elementos repetidos o duplicados eliminados.
    *
@@ -3485,7 +3511,9 @@ export class UtilNative {
         `${arrayToRemove} is not array to remove duplicates valid`,
       );
     //constructor de opciones
-    let op = this.isObject(option, true) ? option : ({} as typeof option); //default vacio
+    let op = (this.isObject(option, true) ? option : {}) as Required<
+      NonNullable<typeof option>
+    >; //default vacio
     op = {
       ...op, //opciones adicionales no documentadas (si las hay)
       //las opciones de comparación se asignan en sus respectivos métodos
@@ -3551,12 +3579,12 @@ export class UtilNative {
    * - `tArraysToUnion[1]` es el array "B" a unir.
    * @param {object} option Configuración para el proceso de eliminación de duplicados. Las opciones son las mismas que para el método `arrayRemoveDuplicate`.
    * - `itemConflictMode` al encontrar un elemento repetido define el modo de resolver el conflicto de si se queda con el primero o el ultimo de los repetidos
-   * - `keyOrKeysPath` (solo para elementos de tipo objeto) rutas de claves identificadoras para las propiedades que se usaran como base para la comparacion
+   * - `keyOrKeysPath` (solo para elementos de tipo objeto) rutas de claves identificadoras para las propiedades que se usaran como base para la comparación
    * - `isCompareLength = false`, determina si debe comprar tamaños de lso arrays
    * - `isCompareSize = false`, determina si debe comparar cantidad de propiedades de los objetos
-   * - `isCompareStringToNumber = false`, determina si debe comparar strings numericos como numeros
-   * - `isCaseSensitiveForString = false`, determina si la comparacion es sensitiva a minusculas y mayusculas (solo string)
-   * - `isStringLocaleMode = false`, determina si la comparacion de strings es en modo region del sistema
+   * - `isCompareStringToNumber = false`, determina si debe comparar strings numéricos como números
+   * - `isCaseSensitiveForString = false`, determina si la comparación es sensitiva a minusculas y mayusculas (solo string)
+   * - `isStringLocaleMode = false`, determina si la comparación de strings es en modo region del sistema
    * @returns {TArray} Retorna un nuevo array que es la unión de los dos arrays de entrada, sin duplicados.
    * @throws {Error} Lanza un error si `tArraysToUnion` no es un array de dos elementos.
    *
@@ -3593,12 +3621,12 @@ export class UtilNative {
    * - `tArraysToUnion[1]` es el array "B" a unir.
    * @param {object} option Configuración para el proceso de eliminación de duplicados. Las opciones son las mismas que para el método `arrayRemoveDuplicate`.
    * - `itemConflictMode` al encontrar un elemento repetido define el modo de resolver el conflicto de si se queda con el primero o el ultimo de los repetidos
-   * - `keyOrKeysPath` (solo para elementos de tipo objeto) rutas de claves identificadoras para las propiedades que se usaran como base para la comparacion
+   * - `keyOrKeysPath` (solo para elementos de tipo objeto) rutas de claves identificadoras para las propiedades que se usaran como base para la comparación
    * - `isCompareLength = false`, determina si debe comprar tamaños de lso arrays
    * - `isCompareSize = false`, determina si debe comparar cantidad de propiedades de los objetos
-   * - `isCompareStringToNumber = false`, determina si debe comparar strings numericos como numeros
-   * - `isCaseSensitiveForString = false`, determina si la comparacion es sensitiva a minusculas y mayusculas (solo string)
-   * - `isStringLocaleMode = false`, determina si la comparacion de strings es en modo region del sistema
+   * - `isCompareStringToNumber = false`, determina si debe comparar strings numéricos como números
+   * - `isCaseSensitiveForString = false`, determina si la comparación es sensitiva a minusculas y mayusculas (solo string)
+   * - `isStringLocaleMode = false`, determina si la comparación de strings es en modo region del sistema
    * @returns {TArray} Retorna un nuevo array que es la unión de los dos arrays de entrada, sin duplicados.
    * @throws {Error} Lanza un error si `tArraysToUnion` no es un array de dos elementos.
    *
@@ -3640,12 +3668,12 @@ export class UtilNative {
    * @param {"difference_A" | "difference_B"} selector seleccion de array al cual se le aplica la diferencia (al array `tArraysToUnion[0]` que representa *A* o al array `tArraysToUnion[1]` que representa *B*).
    * @param {object} option Configuración para el proceso de eliminación de duplicados. Las opciones son las mismas que para el método `arrayRemoveDuplicate`.
    * - `itemConflictMode` al encontrar un elemento repetido define el modo de resolver el conflicto de si se queda con el primero o el ultimo de los repetidos
-   * - `keyOrKeysPath` (solo para elementos de tipo objeto) rutas de claves identificadoras para las propiedades que se usaran como base para la comparacion
+   * - `keyOrKeysPath` (solo para elementos de tipo objeto) rutas de claves identificadoras para las propiedades que se usaran como base para la comparación
    * - `isCompareLength = false`, determina si debe comprar tamaños de lso arrays
    * - `isCompareSize = false`, determina si debe comparar cantidad de propiedades de los objetos
-   * - `isCompareStringToNumber = false`, determina si debe comparar strings numericos como numeros
-   * - `isCaseSensitiveForString = false`, determina si la comparacion es sensitiva a minusculas y mayusculas (solo string)
-   * - `isStringLocaleMode = false`, determina si la comparacion de strings es en modo region del sistema
+   * - `isCompareStringToNumber = false`, determina si debe comparar strings numéricos como números
+   * - `isCaseSensitiveForString = false`, determina si la comparación es sensitiva a minusculas y mayusculas (solo string)
+   * - `isStringLocaleMode = false`, determina si la comparación de strings es en modo region del sistema
    * @returns {TArray} Retorna un nuevo array que es la unión de los dos arrays de entrada, sin duplicados.
    * @throws {Error} Lanza un error si `tArraysToUnion` no es un array de dos elementos.
    *
@@ -3680,7 +3708,7 @@ export class UtilNative {
       throw new Error(`${selector} is not selector valid`);
     }
     let [aAD, bAD] = tArraysToDifference;
-    let aR = [] as T;
+    let aR = [] as any[];
     if (selector === "difference_A") {
       aR = aAD.filter((a) => {
         const r = !bAD.some((b) => this.isEquivalentTo([a, b], option));
@@ -3695,7 +3723,7 @@ export class UtilNative {
       throw new Error(`${selector} is not selector valid`);
     }
     aR = this.removeArrayDuplicate(aR, option);
-    return aR;
+    return aR as T;
   }
   /**
    * busca elementos de un array
@@ -3760,15 +3788,15 @@ export class UtilNative {
    * @param aData el array de datos donde se desea buscar
    *
    * @param searchArray el array con elementos a buscar, si
-   * son objetos pueden ser extractos de objetos que almenos
+   * son objetos pueden ser extractos de objetos que al menos
    * contengan las propiedades que los identifican
    *
-   * ⚠ las propiedaes que se envien aqui
+   * ⚠ las propiedades que se envíen aqui
    *
    * @param keysForObj (opcional) array con identificadores
-   * de los objetos `searchArray` que seran usados para
-   * la comparacion, si no se reciben se asume que todos
-   * los propiedades de estos objetos seran comparados
+   * de los objetos `searchArray` que serán usados para
+   * la comparación, si no se reciben se asume que todos
+   * los propiedades de estos objetos serán comparados
    *
    * ____
    * @returns un array con los elementos que se
@@ -3802,7 +3830,7 @@ export class UtilNative {
     return findArray as TArray;
   }
   /**
-   * Congela un array para prevenir modificaciones en sus elementos, con opcion de niveles profundos si sus elementos son a su vez arrays.
+   * Congela un array para prevenir modificaciones en sus elementos, con opción de niveles profundos si sus elementos son a su vez arrays.
    *
    * @param {TArray} arr - El array que se va a congelar.
    * @param {boolean} isAllowDeepLevel - Determina si se debe congelar el array a nivel profundo. Por defecto es `true`, lo que significa que se congelarán todos los elementos del array que sean, a su vez, arrays.
@@ -3903,7 +3931,7 @@ export class UtilNative {
    * @param {TObj} obj El objeto literal que se va a convertir.
    * @returns {Array<[keyof TObj, (typeof obj)[keyof TObj]]>} Retorna un array de tuplas. Cada tupla consta de una clave y un valor del objeto de entrada.
    *
-   * ⚠ si el parametro no es de tipo objeto **literal**  se retornará un array vacio, ademas al ser un conversión de objeto a tupla esta siempre será de tipo clave-valor (`[key, value]`)
+   * ⚠ si el parámetro no es de tipo objeto **literal**  se retornará un array vacio, ademas al ser un conversión de objeto a tupla esta siempre será de tipo clave-valor (`[key, value]`)
    *
    * @example
    * ```typescript
@@ -3914,7 +3942,7 @@ export class UtilNative {
    */
   public convertObjectToArrayOfTuples<TObj>(obj: TObj) {
     if (!this.isLiteralObject(obj)) return [];
-    let aT = Object.keys(obj).map((k) => {
+    let aT = Object.keys(obj as any).map((k) => {
       const key = k as keyof TObj;
       const r = [key, obj[key]] as [keyof TObj, (typeof obj)[keyof TObj]];
       return r;
@@ -4038,9 +4066,9 @@ export class UtilNative {
    * 🧪 Experimental, posibles problemas en entornos antiguos 🧪
    *
    * @param {number} idxReverse - Índice inverso en el stack de llamadas. **Debe ser negativo y no igual a `0`.**, ejemplos:
-   *    - `idxReverse === -1`, la funcion que se está usando actualmente.
-   *    - `idxReverse === -2`, la funcion "padre" que llamó o invocó a esta que se está ejecutando.
-   *    - `idxReverse === -3`, la funcion "abuelo" que llamó o invocó a la padre que a su vez llamó o invocó a esta que se está ejecutando.
+   *    - `idxReverse === -1`, la función que se está usando actualmente.
+   *    - `idxReverse === -2`, la función "padre" que llamó o invocó a esta que se está ejecutando.
+   *    - `idxReverse === -3`, la función "abuelo" que llamó o invocó a la padre que a su vez llamó o invocó a esta que se está ejecutando.
    * @returns {string | typeof this.dfValue} Retorna el nombre de la función o el valor predeterminado `this.dfValue` si no se encuentra un nombre válido.
    *
    * @throws {Error} "`<valor>` is not idx reverse valid" Si el parámetro `idxReverse` no es un número válido.
@@ -4050,7 +4078,7 @@ export class UtilNative {
    * ````typescript
    * const util = UtilNative.getinstance();
    * function hacer_1(){
-   *   const fnName = util.getFunctionName(-2); //❗Punto de referencia❗, -2 solicita en nombre de la funcion "padre" que llamó a esta
+   *   const fnName = util.getFunctionName(-2); //❗Punto de referencia❗, -2 solicita en nombre de la función "padre" que llamó a esta
    *   console.log(functionName); // Salida: "hacer_2"
    *   return
    * }
@@ -4074,7 +4102,7 @@ export class UtilNative {
     if (!this.isNumberSign(idxReverse, "-", false))
       throw new Error(`${idxReverse} is not negative idx reverse valid`);
     idxReverse = this.stringToNumber(idxReverse); //garantizar numérico
-    idxReverse = idxReverse - 1; //modificar el offset para no retornar el nombre de esta misma funcion
+    idxReverse = idxReverse - 1; //modificar el offset para no retornar el nombre de esta misma función
     const idxToInject = this.toggleNumberSign(idxReverse, true) as number;
     //procesar:
     const error = new Error();
@@ -4083,9 +4111,10 @@ export class UtilNative {
     const regex = /at\s+(?:[\w.]+\.)?([^(\s]+)|\(([^)]+)\)|([^\s]+)/;
     const match = stackLine.match(regex);
     // Extracción del nombre con prioridad
-    let functionName = this.dfValue as string;
+    let functionName = this.dfValue as any as string;
     if (match) {
-      functionName = match[1] || match[2] || match[3] || this.dfValue;
+      functionName =
+        match[1] || match[2] || match[3] || (this.dfValue as any as string);
       // Limpieza adicional para casos como "UtilNative.getNameFunction"
       if (functionName.includes(".")) {
         functionName = functionName.split(".").pop()!;
@@ -4093,11 +4122,11 @@ export class UtilNative {
       // Filtrado de casos como "<anonymous>", "eval", "[native code]"
       const invalidNames = ["<anonymous>", "eval", "[native code]"];
       if (invalidNames.includes(functionName)) {
-        functionName = this.dfValue;
+        functionName = this.dfValue as any as string;
       }
-      // debe ser un nombre de funcion de acuerdo al estandar de definicion de nombres
+      // debe ser un nombre de función de acuerdo al estandar de definición de nombres
       if (!/^[a-zA-Z_$]\w*$/.test(functionName)) {
-        functionName = this.dfValue;
+        functionName = this.dfValue as any as string;
       }
     }
     return functionName;
@@ -4109,7 +4138,7 @@ export class UtilNative {
    * ⚠ **NO** se puede clonar instancias de clase ⚠
    *
    * @param {T} objOrArray El objeto a clonar. El tipo `T` se asume implícitamente al enviar el parámetro.
-   * @param {"stringify" | "structuredClone"} driver `= "structuredClone"` el driver o libreria para hacer clonación.
+   * @param {"stringify" | "structuredClone"} driver `= "structuredClone"` el driver o librería para hacer clonación.
    * @returns {T} Retorna el objeto (o array) clonado. Si no es un objeto (o array), el retorno es el mismo valor.
    *
    * @example
@@ -4131,7 +4160,7 @@ export class UtilNative {
     }
     let dataCopia: T;
     if (driver === "stringify") {
-      dataCopia = JSON.parse(JSON.stringify(objOrArray)); //metodo antiguo
+      dataCopia = JSON.parse(JSON.stringify(objOrArray)); //método antiguo
     } else if (driver === "structuredClone") {
       dataCopia = structuredClone(objOrArray); //Se implementará en typescript ^4.7.x
     } else {
@@ -4149,8 +4178,8 @@ export class UtilNative {
    * @param fns  array con las funciones a
    * ejecutar y que entregan una promesa
    *
-   * @param options (optional) opciones o parametros para
-   * cada funcion de promesa
+   * @param options (optional) opciones o parámetros para
+   * cada función de promesa
    * ____
    * @returns un array con cada resultado de
    * cada promesa
@@ -4175,11 +4204,11 @@ export class UtilNative {
    * @param fns  array con las funciones a
    * ejecutar y que entregan una promesa
    *
-   * @param options (optional) opciones o parametros para
-   * cada funcion de promesa
+   * @param options (optional) opciones o parámetros para
+   * cada función de promesa
    *
    * @param rValues un array con los resultados
-   * de cada Promesa anidadad una vez resuelta
+   * de cada Promesa anidada una vez resuelta
    * ____
    * @returns un array con cada resultado de
    * cada promesa
@@ -4188,10 +4217,10 @@ export class UtilNative {
   private async _runPromisesSequentially(
     fns: ((value: any) => Promise<any>)[],
     options?: any,
-    rValues = [],
+    rValues: any[] = [],
   ): Promise<any> {
     if (fns.length > 0) {
-      const currentFn: (param?) => Promise<any> = fns[0].bind(this);
+      const currentFn: (param?: any) => Promise<any> = fns[0].bind(this);
       rValues.push(await currentFn(options));
       await this._runPromisesSequentially(fns.slice(1), options, rValues);
     }
@@ -4218,14 +4247,14 @@ export class UtilNative {
    *                - Si `types` en uno o varios de sus items contiene objetos, se valida que `anyValue` sea un objeto y que sus propiedades cumplan con los tipos especificados en el esquema, si ese item es `{}` se asume que puede tener cualquier cantidad de propiedades y de cualquier tipo.
    *                - Si `types` en uno de sus items contiene un array, se valida que `anyValue` sea un array y que cada uno de sus elementos cumplan con los tipos especificados en el esquema, si ese item es `[]` se asume que cada uno de los elementos puede ser de cualquier tipo.
    *                - Si `types` contiene `"tuple"`, se valida que `anyValue` sea una tupla con el tamaño especificado en `option.tupleSize`.
-   *                - Si `types` en varios de sus items contiene arrays, implicitamente asume que validará una tupla, ❕Tiene en cuenta el orden en que esten esos item de tipo array, porque ese será el mismo orden en que verifique la tupla❕
+   *                - Si `types` en varios de sus items contiene arrays, implícitamente asume que validará una tupla, ❕Tiene en cuenta el orden en que estén esos item de tipo array, porque ese será el mismo orden en que verifique la tupla❕
    * @param option - Opciones adicionales para la validación:
    *                 - `allowNumber_String = false`: Permite que un string numérico sea validado como un número (por ejemplo, `"123"` siendo string, se permite analizar y validar como número).
    *                 - `allowBigint_String = false`: Permite que un string numérico gigante sea validado como un bigint.
    *                 - `allowStringEmpty = false`: Permite que un string vacío ( `""` ) sea considerado válido.
    *                 - `allowObjectEmpty = false`: Permite que un string vacío ( `{}` ) sea considerado válido.
    *                 - `allowArrayEmpty = false`: Permite que un string vacío ( `[]` ) sea considerado válido.
-   *                 - `tupleSize = undefined`: Define el tamaño esperado de una tupla. Puede ser un número (tamaño fijo) o un array de dos números `[min, max]` (tamaño variable), ❗este argumento es indispensable en caso que en algún nivel del esquema de `types` se verifique el tipo `"tuple"` (asi explicitamente en texto), por el contrario si la verificacion de la tupla se hace implicitamente (con varios items array), este argumento es opcional, pero si se asigna tendrá prioridad de verificación❗.
+   *                 - `tupleSize = undefined`: Define el tamaño esperado de una tupla. Puede ser un número (tamaño fijo) o un array de dos números `[min, max]` (tamaño variable), ❗este argumento es indispensable en caso que en algún nivel del esquema de `types` se verifique el tipo `"tuple"` (asi explícitamente en texto), por el contrario si la verificacion de la tupla se hace implícitamente (con varios items array), este argumento es opcional, pero si se asigna tendrá prioridad de verificación❗.
    *
    * @returns {boolean} - `true` si `anyValue` coincide con al menos uno de los tipos especificados en `types`, de lo contrario `false`.
    *
@@ -4246,11 +4275,11 @@ export class UtilNative {
    * r = util.isValueType(v, ["null"]);
    * console.log(r); //Salida: false, no es null
    *
-   * v = ()=>consle.log("lo que sea");
+   * v = ()=>console.log("lo que sea");
    * r = util.isValueType(v, ["function"]);
    * console.log(r); //Salida: true
    *
-   * //primitivos basicos
+   * //primitivos básicos
    *
    * v = false;
    * r = util.isValueType(v, ["boolean"]);
@@ -4262,7 +4291,7 @@ export class UtilNative {
    *
    * v = 10;
    * r = util.isValueType(v, ["boolean", "number"]);
-   * console.log(r); //Salida: true, es almenos número
+   * console.log(r); //Salida: true, es al menos número
    *
    * v = "10";
    * r = util.isValueType(v, ["number"]);
@@ -4270,7 +4299,7 @@ export class UtilNative {
    *
    * v = "10";
    * r = util.isValueType(v, ["number", "string"]);
-   * console.log(r); //Salida: true, es almenos string
+   * console.log(r); //Salida: true, es al menos string
    *
    * v = "10";
    * r = util.isValueType(v, ["number"], {allowNumber_String: true});
@@ -4282,15 +4311,15 @@ export class UtilNative {
    *
    * v = "";
    * r = util.isValueType(v, ["string"]);
-   * console.log(r); //Salida: false, No se permite string vácios ❗Comportamiento predefinido❗
+   * console.log(r); //Salida: false, No se permite string vacios ❗Comportamiento predefinido❗
    *
    * v = "";
    * r = util.isValueType(v, ["string"], {allowStringEmpty: true});
-   * console.log(r); //Salida: true, se permite string vácios
+   * console.log(r); //Salida: true, se permite string vacios
    *
    * v = "";
    * r = util.isValueType(v, ["undefined", "null", "string"]);
-   * console.log(r); //Salida: false, NO se permite string vácios
+   * console.log(r); //Salida: false, NO se permite string vacios
    *
    * v = null;
    * r = util.isValueType(v, ["undefined", "null", "string"]);
@@ -4300,7 +4329,7 @@ export class UtilNative {
    *
    * v = {};
    * r = util.isValueType(v, ["undefined", "null", "object"]);
-   * console.log(r); //Salida: false, No se permite objeto vácio ❗Comportamiento predefinido❗
+   * console.log(r); //Salida: false, No se permite objeto vacio ❗Comportamiento predefinido❗
    *
    * v = {};
    * r = util.isValueType(v, ["undefined", "null", "object"], {allowObjectEmpty: true});
@@ -4308,7 +4337,7 @@ export class UtilNative {
    *
    * v = {};
    * r = util.isValueType(v, ["undefined", "null", {}]);
-   * console.log(r); //Salida: false, No se permite objeto vácio ❗Comportamiento predefinido❗
+   * console.log(r); //Salida: false, No se permite objeto vacio ❗Comportamiento predefinido❗
    *
    * v = {};
    * r = util.isValueType(v, ["undefined", "null", {}], {allowObjectEmpty: true});
@@ -4320,27 +4349,27 @@ export class UtilNative {
    *
    * v = { a: 1 };
    * r = util.isValueType(v, ["undefined", "null", {a: ["string", "number"]}]);
-   * console.log(r); //Salida: true, la propiedad `a` es almenos es un número
+   * console.log(r); //Salida: true, la propiedad `a` es al menos es un número
    *
    * v = { a: { aa: 1 }};
    * r = util.isValueType(v, ["undefined", "null", {a: ["string", {}]}]);
-   * console.log(r); //Salida: true, la propiedad `a` es almenos es un objeto que puede tener cualquier propiedad ❗El objeto `{}` en el esquema `types` no significa que se permita vacio, indica que se permite cualquier tipo de propiedad❗
+   * console.log(r); //Salida: true, la propiedad `a` es al menos es un objeto que puede tener cualquier propiedad ❗El objeto `{}` en el esquema `types` no significa que se permita vacio, indica que se permite cualquier tipo de propiedad❗
    *
    * v = { a: 1, b: "lo que sea" };
    * r = util.isValueType(v, ["undefined", "null", {a: ["string", "number"]}]);
-   * console.log(r); //Salida: true, la propiedad `a` es almenos es un número y `b` es ignoraqda en la validación
+   * console.log(r); //Salida: true, la propiedad `a` es al menos es un número y `b` es ignorada en la validación
    *
    * v = "hola";
    * r = util.isValueType(v, ["string", {a: ["boolean", "number"]}]);
-   * console.log(r); //Salida: true, es almenos un texto
+   * console.log(r); //Salida: true, es al menos un texto
    *
    * v = { a: {aa: 1, ab: "hola"} };
    * r = util.isValueType(v, ["boolean", {a: [{aa: ["string", "number"]}, "number"]}]);
-   * console.log(r); //Salida: true, la propiedad `aa` es almenos es un número, `ab` es ignorada en la validación
+   * console.log(r); //Salida: true, la propiedad `aa` es al menos es un número, `ab` es ignorada en la validación
    *
    * v = [];
    * r = util.isValueType(v, ["undefined", "null", "array"]);
-   * console.log(r); //Salida: false, No se permite array vácio ❗Comportamiento predefinido❗
+   * console.log(r); //Salida: false, No se permite array vacio ❗Comportamiento predefinido❗
    *
    * v = [];
    * r = util.isValueType(v, ["undefined", "null", "array"], {allowObjectEmpty: true});
@@ -4348,7 +4377,7 @@ export class UtilNative {
    *
    * v = [];
    * r = util.isValueType(v, ["undefined", "null", []]);
-   * console.log(r); //Salida: false, No se permite array vácio ❗Comportamiento predefinido❗
+   * console.log(r); //Salida: false, No se permite array vacio ❗Comportamiento predefinido❗
    *
    * v = [];
    * r = util.isValueType(v, ["undefined", "null", []], {allowObjectEmpty: true});
@@ -4356,7 +4385,7 @@ export class UtilNative {
    *
    * v = [1,2,3];
    * r = util.isValueType(v, ["undefined", "null", []]);
-   * console.log(r); //Salida: true, ❗[] en el esquema de `types` no significa que se permita arryas vacios, indica que los elementos del array pueden ser de cualquier tipo❗
+   * console.log(r); //Salida: true, ❗[] en el esquema de `types` no significa que se permita arrays vacios, indica que los elementos del array pueden ser de cualquier tipo❗
    *
    * v = [1,2,3];
    * r = util.isValueType(v, ["null", ["boolean", "string"]]);
@@ -4371,12 +4400,12 @@ export class UtilNative {
    * console.log(r); //Salida: true, cumple con elemento de tipo number o elemento de tipo array de strings o elemento de tipo objeto `{a: string}`
    *
    * v = ["clave", "valor"]; //tupla
-   * r = util.isValueType(v, ["null", "tuple"], {tupleSize: 2}); //❗si se verifica explicitamente "tuple", es obligatorio asignar el tamaño de la tupla❗
-   * console.log(r); //Salida: true, almenos es una tupla de 2 elementos, no importa el tipo de cada elemento
+   * r = util.isValueType(v, ["null", "tuple"], {tupleSize: 2}); //❗si se verifica explícitamente "tuple", es obligatorio asignar el tamaño de la tupla❗
+   * console.log(r); //Salida: true, al menos es una tupla de 2 elementos, no importa el tipo de cada elemento
    *
    * v = ["clave", "valor"]; //tupla
-   * r = util.isValueType(v, ["null", ["string", "number"], ["string"]]); //❗si en el mismo nivel del esquema de `types` (en cualquier nivel pero que sea el mismo), se detecta que hay 2 o mas array internamente el metodo asume validacion de tupla❗
-   * console.log(r); //Salida: true, almenos es una tupla de 2 elementos (el primero es o number o string, el segundo es string)
+   * r = util.isValueType(v, ["null", ["string", "number"], ["string"]]); //❗si en el mismo nivel del esquema de `types` (en cualquier nivel pero que sea el mismo), se detecta que hay 2 o mas array internamente el método asume validación de tupla❗
+   * console.log(r); //Salida: true, al menos es una tupla de 2 elementos (el primero es o number o string, el segundo es string)
    *
    * v = ["clave", "valor"]; //tupla
    * r = util.isValueType(v, ["null", ["string", "number"], ["string"]], {tupleSize: 3}); //❗Prioridad de tamaño❗
@@ -4393,7 +4422,9 @@ export class UtilNative {
     if (!this.isArray(types, true))
       throw new Error(`${types} is not array types valid`);
     //constructor de opciones
-    let op = this.isObject(option, true) ? option : ({} as typeof option); //default vacio
+    let op = (this.isObject(option, true) ? option : {}) as Required<
+      NonNullable<typeof option>
+    >; //default vacio
     op = {
       ...op, //opciones adicionales no documentadas (si las hay)
       allowNumber_String: this.isBoolean(op.allowNumber_String)
@@ -4414,7 +4445,7 @@ export class UtilNative {
       tupleSize:
         this.isNumber(op.tupleSize) || this.isTuple(op.tupleSize, 2)
           ? op.tupleSize
-          : undefined,
+          : (undefined as any),
     };
     const {
       allowNumber_String,
@@ -4424,13 +4455,13 @@ export class UtilNative {
       allowArrayEmpty,
       tupleSize,
     } = op;
-    //eliminacion básica de duplicados (❗No toma encuenta, arrays ni objetos❗)
+    //eliminacion básica de duplicados (❗No toma en cuenta, arrays ni objetos❗)
     types = [...new Set(types)];
     //si no hay tipos se asume que se permite cualquier valor
     if (types.length === 0) return true;
     let r = false;
     for (const type of types) {
-      if (r) break; //se encontró almenos una validación
+      if (r) break; //se encontró al menos una validación
       //banderas para casos especiales
       const isTypeObject = this.isObject(type, true); //se debe permitir vacio
       const isTypeArray = this.isArray(type, true); //se debe permitir vacio
@@ -4455,10 +4486,14 @@ export class UtilNative {
           const entTypes = Object.entries(type);
           if (entTypes.length > 0) {
             r = entTypes.reduce((accV, currV) => {
-              if (accV === false) return false; //si algun type no se cumplió, inabilita la reducción
+              if (accV === false) return false; //si algún type no se cumplió, inhabilita la reducción
               const [key, typesForObjProp] = currV;
               const subAnyValue = anyValue[key];
-              const r = this.isValueType(subAnyValue, typesForObjProp, op);
+              const r = this.isValueType(
+                subAnyValue,
+                typesForObjProp as any,
+                op,
+              );
               return r;
             }, true);
           }
@@ -4469,10 +4504,10 @@ export class UtilNative {
           r &&
           !allowArrayEmpty &&
           isTypeArray &&
-          (type as any[]).length > 0
+          (type as any as any[]).length > 0 //❗type puede contener un array de type❗
         ) {
           if ((anyValue as any[]).length > 0) {
-            //verificar si dentro de type existe mas de un elemento array (posbile tuple)
+            //verificar si dentro de type existe mas de un elemento array (posible tuple)
             let aIdxSubArrayType: number[] = [];
             for (let idx = 0; idx < (types as any[]).length; idx++) {
               if (this.isArray(types[idx], true)) aIdxSubArrayType.push(idx);
@@ -4480,9 +4515,13 @@ export class UtilNative {
             const maxLimitArray = 1;
             if (aIdxSubArrayType.length <= maxLimitArray && !tupleSize) {
               r = (anyValue as any[]).reduce((accV, currV, idx) => {
-                if (accV === false) return accV; //si algun type no se cumplió, inabilita la reducción
+                if (accV === false) return accV; //si algún type no se cumplió, inhabilita la reducción
                 const subAnyValue = anyValue[idx];
-                const r = this.isValueType(subAnyValue, type as any[], op);
+                const r = this.isValueType(
+                  subAnyValue,
+                  type as any as any[], //❗type puede contener un array de type❗
+                  op,
+                );
                 return r;
               }, true);
             } else {
@@ -4567,37 +4606,37 @@ export class UtilNative {
    * let b;
    * let r;
    *
-   * //comparacion basica de primitivos (mismo tipo (1))
+   * //comparación básica de primitivos (mismo tipo (1))
    * a = 1;
    * b = 1;
-   * r = isEquivalentTo([a, b], {}); //sin configuracion
+   * r = isEquivalentTo([a, b], {}); //sin configuración
    * console.log(r); // Salida: true
    *
-   * //comparacion basica de primitivos (mismo tipo (2))
+   * //comparación básica de primitivos (mismo tipo (2))
    * a = -1;
    * b = 1;
-   * r = isEquivalentTo([a, b], {}); //sin configuracion
+   * r = isEquivalentTo([a, b], {}); //sin configuración
    * console.log(r); // Salida: false
    *
-   * //comparacion basica de primitivos (mismo tipo (3))
+   * //comparación básica de primitivos (mismo tipo (3))
    * a = ()=>"hola";
    * b = (p)=>p;
-   * r = isEquivalentTo([a, b], {}); //sin configuracion
+   * r = isEquivalentTo([a, b], {}); //sin configuración
    * console.log(r); // Salida: false (son diferentes funciones)
    *
-   * //comparacion basica de primitivos (diferente tipo (1))
+   * //comparación básica de primitivos (diferente tipo (1))
    * a = undefined;
    * b = null;
-   * r = isEquivalentTo([a, b], {}); //sin configuracion
+   * r = isEquivalentTo([a, b], {}); //sin configuración
    * console.log(r); // Salida: false
    *
-   * //comparacion basica de primitivos (diferente tipo (2))
+   * //comparación básica de primitivos (diferente tipo (2))
    * a = "1";
    * b = 1;
-   * r = isEquivalentTo([a, b], {}); //sin configuracion
+   * r = isEquivalentTo([a, b], {}); //sin configuración
    * console.log(r); // Salida: false ("1" es string y es diferente a number)
    *
-   * //comparacion basica de primitivos
+   * //comparación básica de primitivos
    * //(diferente tipo, con `isCompareStringToNumber` (3))
    * a = "1";
    * b = 1;
@@ -4606,22 +4645,22 @@ export class UtilNative {
    * });
    * console.log(r); // Salida: true
    *
-   * //comparacion basica de objetos
+   * //comparación básica de objetos
    * a = {a: "hola", b:31};
    * b = {a: "hola", b:15};
-   * r = isEquivalentTo([a, b], {}); //sin configuracion
+   * r = isEquivalentTo([a, b], {}); //sin configuración
    * console.log(r); // Salida: false (la propiedad `b` es diferente)
    *
-   * //comparacion basica de objetos (con keysOrKeysPath)
+   * //comparación básica de objetos (con keysOrKeysPath)
    * a = {a: "hola", b:31};
    * b = {a: "hola", b:15};
    * r = isEquivalentTo([a, b], {
    *   keyOrKeysPath: "a" //comparar por esta propiedad
-   * }); //sin configuracion
+   * }); //sin configuración
    * console.log(r); // Salida: true (la propiedad `b` es diferente,
    * //pero se esta comparando solo por la propiedad `a`)
    *
-   * //comparacion de objetos (con keysOrKeysPath y profundidad)
+   * //comparación de objetos (con keysOrKeysPath y profundidad)
    * a = {a: "hola", b:{c: 31, d: 15}};
    * b = {a: "hola", b:{c: 0, d: 15}};
    * r = isEquivalentTo([a, b], {
@@ -4629,42 +4668,42 @@ export class UtilNative {
    * });
    * console.log(r); // Salida: true
    *
-   * //comparacion basica de arrays
+   * //comparación básica de arrays
    * a = ["a", 1, false];
    * b = ["a", 1, true];
-   * r = isEquivalentTo([a, b], {}); //sin configuracion
+   * r = isEquivalentTo([a, b], {}); //sin configuración
    * console.log(r); // Salida: false (el ultimo elemento es diferente)
    *
-   * //comparacion basica de arrays
+   * //comparación básica de arrays
    * a = ["a", 1, false];
    * b = ["a", 1, false];
-   * r = isEquivalentTo([a, b], {}); //sin configuracion
+   * r = isEquivalentTo([a, b], {}); //sin configuración
    * console.log(r); // Salida: true
    *
-   * //comparacion basica de arrays (no tamaños)
+   * //comparación básica de arrays (no tamaños)
    * a = ["a", 1, false, 2];
    * b = ["a", 1, false];
-   * r = isEquivalentTo([a, b], {}); //sin configuracion
+   * r = isEquivalentTo([a, b], {}); //sin configuración
    * console.log(r); // Salida: true (porque no se esta comprando tamaños y
    * //se compararán los elementos del array mas pequeño con el mas grande
-   * //en la misma posicion donde estan)
+   * //en la misma posición donde están)
    *
-   * //comparacion basica de arrays (no tamaños)
+   * //comparación básica de arrays (no tamaños)
    * a = ["a", 1, 2, false,];
    * b = ["a", 1, false];
-   * r = isEquivalentTo([a, b], {}); //sin configuracion
+   * r = isEquivalentTo([a, b], {}); //sin configuración
    * console.log(r); // Salida: false (porque no se esta comprando tamaños pero
    * //se compararán los elementos del array mas pequeño con el mas grande
-   * //en la misma posicion donde estan (`2` es diferente a `false`))
+   * //en la misma posición donde están (`2` es diferente a `false`))
    *
-   * //comparacion basica de arrays (si tamaños)
+   * //comparación básica de arrays (si tamaños)
    * a = ["a", 1, false, 2];
    * b = ["a", 1, false];
    * r = isEquivalentTo([a, b], {
    *   isCompareLength: true
-   * }); //sin configuracion
-   * console.log(r); // Salida: fasle (los tamaños son difernetes,
-   * //las demas comparaciones internas se ignoran)
+   * }); //sin configuración
+   * console.log(r); // Salida: false (los tamaños son diferentes,
+   * //las demás comparaciones internas se ignoran)
    *
    * ````
    */
@@ -4673,7 +4712,7 @@ export class UtilNative {
     option?: Omit<IOptionEqGtLt, "isAllowEquivalent" | "isMatrixCompared">,
   ): boolean {
     if (!this.isTuple(compareValues, [0, 2])) {
-      //verificar si almenos se intentó un array
+      //verificar si al menos se intentó un array
       if (this.isArray(compareValues, true)) {
         //si es vacio es como comparar `undefined === undefined`
         if ((compareValues as any[]).length === 0) return true;
@@ -4683,7 +4722,9 @@ export class UtilNative {
       throw new Error(`${option} is not tuple of compare values valid`);
     }
     //constructor de opciones
-    let op = this.isObject(option, true) ? option : ({} as typeof option); //default vacio
+    let op = (this.isObject(option, true) ? option : {}) as Required<
+      NonNullable<typeof option>
+    >; //default vacio
     op = {
       ...op, //opciones adicionales no documentadas (si las hay)
       isCompareLength: this.isBoolean(op.isCompareLength)
@@ -4754,7 +4795,7 @@ export class UtilNative {
         //comprobar elemento por elemento
         for (let sIdx = 0; sIdx < lenItemRun; sIdx++) {
           if (isStrictArrayOrder) {
-            //comporbacion ordenada (menos costosa)
+            //comprobación ordenada (menos costosa)
             const itemVB = valueBase[sIdx];
             const itemVC = valueToCompare[sIdx];
             isEquivalent = this.isEquivalentTo([itemVB, itemVC], {
@@ -4762,7 +4803,7 @@ export class UtilNative {
               keyOrKeysPath: keysPath,
             });
           } else {
-            //comporbacion desordenada (muy muy costosa)
+            //comprobación desordenada (muy muy costosa)
             const itemVB = valueBase[sIdx];
             isEquivalent = (valueToCompare as any[]).some((itemVC) => {
               return this.isEquivalentTo([itemVB, itemVC], {
@@ -4894,7 +4935,7 @@ export class UtilNative {
    * - `compareValues[0]` el supuesto valor mayor.
    * - `compareValues[1]` el supuesto valor menor.
    * @param {object} option Configuración para realizar la comparación:
-   *   - `isAllowEquivalent` (**Obligatorio**) determina si se permite la equivalencia en la compracion
+   *   - `isAllowEquivalent` (**Obligatorio**) determina si se permite la equivalencia en la comparación
    *   - `keyOrKeysPath`: (solo para objetos o array de objetos) claves identificadoras de las propiedades que se usarán para comparar.
    *   - `isCompareLength`: (solo arrays) determina si se compara el tamaño de los arrays.
    *   - `isCompareSize`: (solo para objetos) determina si se comparan la cantidad de objetos.
@@ -4910,7 +4951,7 @@ export class UtilNative {
    * let b;
    * let r;
    *
-   * //comparacion basica de primitivos (mismo tipo (1))
+   * //comparación básica de primitivos (mismo tipo (1))
    * a = 1;
    * b = -1;
    * r = isGreaterTo([a, b], {
@@ -4918,7 +4959,7 @@ export class UtilNative {
    * });
    * console.log(r); // Salida: true
    *
-   * //comparacion basica de primitivos
+   * //comparación básica de primitivos
    * //(mismo tipo (2), sin permitir equivalencia)
    * a = 1;
    * b = 1;
@@ -4927,7 +4968,7 @@ export class UtilNative {
    * });
    * console.log(r); // Salida: false (la equivalencia no esta permitida)
    *
-   * //comparacion basica de primitivos
+   * //comparación básica de primitivos
    * //(mismo tipo (2), con permitir equivalencia)
    * a = 1;
    * b = 1;
@@ -4936,19 +4977,19 @@ export class UtilNative {
    * });
    * console.log(r); // Salida: true (la equivalencia si esta permitida)
    *
-   * //comparacion basica de primitivos (mismo tipo (3))
+   * //comparación básica de primitivos (mismo tipo (3))
    * a = ()=>"hola";
    * b = (p)=>p;
    * r = isGreaterTo([a, b], {
    *   isAllowEquivalent: false
    * });
    * console.log(r); // Salida: true (internamente las
-   * //funciones se comparan transformandolas en
-   * //string y comparando sus tamaños, esta trasformacion
-   * //elimina caracteres no necesarios para la comparacion
-   * //(saltos de linea, tabulaciones y demas))
+   * //funciones se comparan transformándolas en
+   * //string y comparando sus tamaños, esta trasformación
+   * //elimina caracteres no necesarios para la comparación
+   * //(saltos de linea, tabulaciones y demás))
    *
-   * //comparacion basica de primitivos (mismo tipo (4))
+   * //comparación básica de primitivos (mismo tipo (4))
    * a = "Edificio";
    * b = "Casa";
    * r = isGreaterTo([a, b], {
@@ -4956,7 +4997,7 @@ export class UtilNative {
    * });
    * console.log(r); // Salida: true (`"E"` de `"Edificio"` pesa mas que `"C"` de casa)
    *
-   * //comparacion de primitivos (mismo tipo (5))
+   * //comparación de primitivos (mismo tipo (5))
    * a = "Edificio";
    * b = "Edificacion";
    * r = isGreaterTo([a, b], {
@@ -4965,7 +5006,7 @@ export class UtilNative {
    * console.log(r); // Salida: true
    * // (`"Edifici"` pesa mas que `"Edifica"`)
    *
-   * //comparacion de primitivos (mismo tipo (6), si sensitivo)
+   * //comparación de primitivos (mismo tipo (6), si sensitivo)
    * a = "juan";
    * b = "Juan";
    * r = isGreaterTo([a, b], {
@@ -4974,7 +5015,7 @@ export class UtilNative {
    * });
    * console.log(r); // Salida: false (`"j"` pesa menos que `"J"`)
    *
-   * //comparacion de primitivos (mismo tipo (7),si equivalencia y no sensitivo)
+   * //comparación de primitivos (mismo tipo (7),si equivalencia y no sensitivo)
    * a = "juan";
    * b = "Juan";
    * r = isGreaterTo([a, b], {
@@ -4984,7 +5025,7 @@ export class UtilNative {
    * console.log(r); // Salida: true (`"j"` pesa menos que `"J"`
    * //pero al no se sensitivo, se asume que pesan igual)
    *
-   * //comparacion basica de primitivos (diferente tipo (1))
+   * //comparación básica de primitivos (diferente tipo (1))
    * a = undefined;
    * b = null;
    * r = isGreaterTo([a, b], {
@@ -4992,7 +5033,7 @@ export class UtilNative {
    * });
    * console.log(r); // Salida: false (por que undefined es menos pesado que null)
    *
-   * //comparacion basica de primitivos (diferente tipo (2))
+   * //comparación básica de primitivos (diferente tipo (2))
    * a = "1";
    * b = 2;
    * r = isGreaterTo([a, b], {
@@ -5000,7 +5041,7 @@ export class UtilNative {
    * });
    * console.log(r); // Salida: true (`"1"` es string es mas pesado que `2` number)
    *
-   * //comparacion basica de primitivos
+   * //comparación básica de primitivos
    * //(diferente tipo, con `isCompareStringToNumber` (3))
    * a = "1";
    * b = 2;
@@ -5009,7 +5050,7 @@ export class UtilNative {
    * });
    * console.log(r); // Salida: false (`"1"` se comparará a`2` como si ambos fueran number)
    *
-   * //comparacion basica de objetos
+   * //comparación básica de objetos
    * a = {a: "hola", b:31};
    * b = {a: "hola", b:15};
    * r = isGreaterTo([a, b], {
@@ -5017,7 +5058,7 @@ export class UtilNative {
    * });
    * console.log(r); // Salida: true (la propiedad `b` es mayor en el primer objeto)
    *
-   * //comparacion basica de objetos (con keysOrKeysPath)
+   * //comparación básica de objetos (con keysOrKeysPath)
    * a = {a: "hola", b:31};
    * b = {a: "hola", b:15};
    * r = isGreaterTo([a, b], {
@@ -5027,7 +5068,7 @@ export class UtilNative {
    * console.log(r); // Salida: false (la propiedad `b` es mayor
    * //pero se esta comparando solo por la propiedad `a`)
    *
-   * //comparacion basica de objetos (con keysOrKeysPath y equivalencia permitida)
+   * //comparación básica de objetos (con keysOrKeysPath y equivalencia permitida)
    * a = {a: "hola", b:15, c:1};
    * b = {a: "hola", b:15, c:6};
    * r = isGreaterTo([a, b], {
@@ -5035,9 +5076,9 @@ export class UtilNative {
    *   keyOrKeysPath: ["a", "b"] //comparar por estas propiedades
    * });
    * console.log(r); // Salida: true (las propiedades `a` y `b` que
-   * //se estan comparando son equivalentes)
+   * //se están comparando son equivalentes)
    *
-   * //comparacion basica de objetos (con keysOrKeysPath y equivalencia permitida)
+   * //comparación básica de objetos (con keysOrKeysPath y equivalencia permitida)
    * a = {a: "adios", b:15000, c: 1000};
    * b = {a: "hola", b:15, c: 6};
    * r = isGreaterTo([a, b], {
@@ -5045,9 +5086,9 @@ export class UtilNative {
    *   keyOrKeysPath: ["a", "b"] //comparar por estas propiedades ❗El orden es IMPORTANTE❗
    * });
    * console.log(r); // Salida: false (si bien la propiedad `b` es mayor en el primer objeto
-   * //la primera comparacion se hace en la propiedad `a` y la letra `"a"` es pesa menos que la letra `"h"`)
+   * //la primera comparación se hace en la propiedad `a` y la letra `"a"` es pesa menos que la letra `"h"`)
    *
-   * //comparacion de objetos (con keysOrKeysPath y profundidad)
+   * //comparación de objetos (con keysOrKeysPath y profundidad)
    * a = {a: "Que Mas", b:{c: 31, d: 15}};
    * b = {a: "hola", b:{c: 0, d: 15}};
    * r = isGreaterTo([a, b], {
@@ -5057,7 +5098,7 @@ export class UtilNative {
    * });
    * console.log(r); // Salida: true
    *
-   * //comparacion basica de arrays
+   * //comparación básica de arrays
    * a = ["a", 1, false];
    * b = ["a", 1, true];
    * r = isGreaterTo([a, b], {
@@ -5067,7 +5108,7 @@ export class UtilNative {
    * //del primer array pesa menos que el ultimo elemento `true`
    * //del segundo array)
    *
-   * //comparacion basica de arrays
+   * //comparación básica de arrays
    * a = ["a", 1, false];
    * b = ["a", 1, false];
    * r = isGreaterTo([a, b], {
@@ -5075,7 +5116,7 @@ export class UtilNative {
    * });
    * console.log(r); // Salida: false (no se permite la equivalencia)
    *
-   * //comparacion basica de arrays (no tamaños)
+   * //comparación básica de arrays (no tamaños)
    * a = ["a", 1, true];
    * b = ["a", 1, false, 2];
    * r = isGreaterTo([a, b], {
@@ -5083,9 +5124,9 @@ export class UtilNative {
    * });
    * console.log(r); // Salida: true (porque no se esta comparando tamaños y
    * //se compararán los elementos del array mas pequeño con el mas grande
-   * //en la misma posicion donde se encuentran)
+   * //en la misma posición donde se encuentran)
    *
-   * //comparacion basica de arrays (no tamaños)
+   * //comparación básica de arrays (no tamaños)
    * a = ["a", 1, null, false];
    * b = ["a", 1, false];
    * r = isGreaterTo([a, b], {
@@ -5093,17 +5134,17 @@ export class UtilNative {
    * });
    * console.log(r); // Salida: false (porque no se esta comprando tamaños pero
    * //se compararán los elementos del array mas pequeño con el mas grande
-   * //en la misma posicion donde se encuentran (`null` pesa menos que `false`))
+   * //en la misma posición donde se encuentran (`null` pesa menos que `false`))
    *
-   * //comparacion basica de arrays (si tamaños)
+   * //comparación básica de arrays (si tamaños)
    * a = ["a", 1, false, 2];
    * b = ["a", 1, false];
    * r = isGreaterTo([a, b], {,
    *   isAllowEquivalent: false,
    *   isCompareLength: true
-   * }); //sin configuracion
+   * }); //sin configuración
    * console.log(r); // Salida: true (el primer array es mas grande que el segundo,
-   * //las demas comparaciones internas se ignoran)
+   * //las demás comparaciones internas se ignoran)
    *
    * ````
    */
@@ -5114,7 +5155,9 @@ export class UtilNative {
     if (!this.isTuple(compareValues, [0, 2]))
       throw new Error(`${option} is not tuple of compare values valid`);
     //constructor de opciones
-    let op = this.isObject(option, true) ? option : ({} as typeof option); //default vacio
+    let op = (this.isObject(option, true) ? option : {}) as Required<
+      NonNullable<typeof option>
+    >; //default vacio
     op = {
       ...op, //opciones adicionales no documentadas (si las hay)
       isAllowEquivalent: this.isBoolean(op.isAllowEquivalent)
@@ -5211,9 +5254,9 @@ export class UtilNative {
             const isEquivalent = this.isEquivalentTo([itemVB, itemVC], {
               ...op,
             });
-            //tratamiento de equivalencias (para seguir al siguinte objeto)
+            //tratamiento de equivalencias (para seguir al siguiente objeto)
             if (isEquivalent) {
-              if (idx < lenItemRun - 1) continue; //solo continuará si esquivalente y no el último
+              if (idx < lenItemRun - 1) continue; //solo continuará si equivalente y no el último
               isGreater = isAllowEquivalent;
               break;
             }
@@ -5276,9 +5319,9 @@ export class UtilNative {
                 keyOrKeysPath: subKeysPathToCompare,
               },
             );
-            //tratamiento de equivalencias (para seguir al siguinte objeto)
+            //tratamiento de equivalencias (para seguir al siguiente objeto)
             if (isEquivalent) {
-              if (idx < lenKP - 1) continue; //solo continuará si esquivalente y no el último
+              if (idx < lenKP - 1) continue; //solo continuará si equivalente y no el último
               isGreater = isAllowEquivalent;
               break;
             }
@@ -5313,7 +5356,7 @@ export class UtilNative {
                 ...op,
               },
             );
-            //tratamiento de equivalencias (para seguir al siguinte objeto)
+            //tratamiento de equivalencias (para seguir al siguiente objeto)
             if (isEquivalent) {
               if (idx < lenKR - 1) continue;
               isGreater = isAllowEquivalent;
@@ -5465,7 +5508,7 @@ export class UtilNative {
    * - `compareValues[0]` el supuesto valor menor.
    * - `compareValues[1]` el supuesto valor mayor.
    * @param {object} option Configuración para realizar la comparación:
-   *   - `isAllowEquivalent` (**Obligatorio**) determina si se permite la equivalencia en la compracion
+   *   - `isAllowEquivalent` (**Obligatorio**) determina si se permite la equivalencia en la comparación
    *   - `keyOrKeysPath`: (solo para objetos o array de objetos) claves identificadoras de las propiedades que se usarán para comparar.
    *   - `isCompareLength`: (solo arrays) determina si se compara el tamaño de los arrays.
    *   - `isCompareSize`: (solo para objetos) determina si se comparan la cantidad de objetos.
@@ -5481,7 +5524,7 @@ export class UtilNative {
    * let b;
    * let r;
    *
-   * //comparacion basica de primitivos (mismo tipo (1))
+   * //comparación básica de primitivos (mismo tipo (1))
    * a = -1;
    * b = 1;
    * r = isLesserTo([a, b], {
@@ -5489,7 +5532,7 @@ export class UtilNative {
    * });
    * console.log(r); // Salida: true
    *
-   * //comparacion basica de primitivos
+   * //comparación básica de primitivos
    * //(mismo tipo (2), sin permitir equivalencia)
    * a = 1;
    * b = 1;
@@ -5498,7 +5541,7 @@ export class UtilNative {
    * });
    * console.log(r); // Salida: false (la equivalencia no esta permitida)
    *
-   * //comparacion basica de primitivos
+   * //comparación básica de primitivos
    * //(mismo tipo (2), con permitir equivalencia)
    * a = 1;
    * b = 1;
@@ -5507,19 +5550,19 @@ export class UtilNative {
    * });
    * console.log(r); // Salida: true (la equivalencia si esta permitida)
    *
-   * //comparacion basica de primitivos (mismo tipo (3))
+   * //comparación básica de primitivos (mismo tipo (3))
    * a = ()=>"hola";
    * b = (p)=>p;
    * r = isLesserTo([a, b], {
    *   isAllowEquivalent: false
    * });
    * console.log(r); // Salida: false (internamente las
-   * //funciones se comparan transformandolas en
-   * //string y comparando sus tamaños, esta trasformacion
-   * //elimina caracteres no necesarios para la comparacion
-   * //(saltos de linea, tabulaciones y demas))
+   * //funciones se comparan transformándolas en
+   * //string y comparando sus tamaños, esta trasformación
+   * //elimina caracteres no necesarios para la comparación
+   * //(saltos de linea, tabulaciones y demás))
    *
-   * //comparacion basica de primitivos (mismo tipo (4))
+   * //comparación básica de primitivos (mismo tipo (4))
    * a = "Casa";
    * b = "Edificio";
    * r = isLesserTo([a, b], {
@@ -5527,7 +5570,7 @@ export class UtilNative {
    * });
    * console.log(r); // Salida: true (`"C"` de casa` pesa menos que "E"` de `"Edificio"`)
    *
-   * //comparacion de primitivos (mismo tipo (5))
+   * //comparación de primitivos (mismo tipo (5))
    * a = "Edificio";
    * b = "Edificacion";
    * r = isLesserTo([a, b], {
@@ -5536,7 +5579,7 @@ export class UtilNative {
    * console.log(r); // Salida: false
    * // (`"Edifici"` pesa mas que `"Edifica"`)
    *
-   * //comparacion de primitivos (mismo tipo (6), si sensitivo)
+   * //comparación de primitivos (mismo tipo (6), si sensitivo)
    * a = "Juan";
    * b = "juan";
    * r = isLesserTo([a, b], {
@@ -5545,7 +5588,7 @@ export class UtilNative {
    * });
    * console.log(r); // Salida: false (`"J"` pesa mas que `"j"`)
    *
-   * //comparacion de primitivos (mismo tipo (7),si equivalencia y no sensitivo)
+   * //comparación de primitivos (mismo tipo (7),si equivalencia y no sensitivo)
    * a = "Juan";
    * b = "juan";
    * r = isLesserTo([a, b], {
@@ -5555,7 +5598,7 @@ export class UtilNative {
    * console.log(r); // Salida: true (`"J"` pesa mas que `"j"`
    * //pero al no se sensitivo, se asume que pesan igual)
    *
-   * //comparacion basica de primitivos (diferente tipo (1))
+   * //comparación básica de primitivos (diferente tipo (1))
    * a = undefined;
    * b = null;
    * r = isLesserTo([a, b], {
@@ -5563,7 +5606,7 @@ export class UtilNative {
    * });
    * console.log(r); // Salida: true (por que `undefined` es pesa menos que `null`)
    *
-   * //comparacion basica de primitivos (diferente tipo (2))
+   * //comparación básica de primitivos (diferente tipo (2))
    * a = "1";
    * b = 2;
    * r = isLesserTo([a, b], {
@@ -5571,7 +5614,7 @@ export class UtilNative {
    * });
    * console.log(r); // Salida: false (`"1"` es string es mas pesado que `2` number)
    *
-   * //comparacion basica de primitivos
+   * //comparación básica de primitivos
    * //(diferente tipo, con `isCompareStringToNumber` (3))
    * a = "1";
    * b = 2;
@@ -5580,7 +5623,7 @@ export class UtilNative {
    * });
    * console.log(r); // Salida: true (`"1"` se comparará a`2` como si ambos fueran number)
    *
-   * //comparacion basica de objetos
+   * //comparación básica de objetos
    * a = {a: "hola", b:31};
    * b = {a: "hola", b:15};
    * r = isLesserTo([a, b], {
@@ -5588,7 +5631,7 @@ export class UtilNative {
    * });
    * console.log(r); // Salida: false (la propiedad `b` es mayor en el primer objeto)
    *
-   * //comparacion basica de objetos (con keysOrKeysPath)
+   * //comparación básica de objetos (con keysOrKeysPath)
    * a = {a: "hola", b:15};
    * b = {a: "hola", b:31};
    * r = isLesserTo([a, b], {
@@ -5598,7 +5641,7 @@ export class UtilNative {
    * console.log(r); // Salida: false (la propiedad `b` es menor
    * //pero se esta comparando solo por la propiedad `a`)
    *
-   * //comparacion basica de objetos (con keysOrKeysPath y equivalencia permitida)
+   * //comparación básica de objetos (con keysOrKeysPath y equivalencia permitida)
    * a = {a: "hola", b:15, c:1};
    * b = {a: "hola", b:15, c:6};
    * r = isLesserTo([a, b], {
@@ -5606,9 +5649,9 @@ export class UtilNative {
    *   keyOrKeysPath: ["a", "b"] //comparar por estas propiedades
    * });
    * console.log(r); // Salida: true (las propiedades `a` y `b` que
-   * //se estan comparando son equivalentes)
+   * //se están comparando son equivalentes)
    *
-   * //comparacion basica de objetos (con keysOrKeysPath y equivalencia permitida)
+   * //comparación básica de objetos (con keysOrKeysPath y equivalencia permitida)
    * a = {a: "adios", b:15000, c: 1000};
    * b = {a: "hola", b:15, c: 6};
    * r = isLesserTo([a, b], {
@@ -5616,9 +5659,9 @@ export class UtilNative {
    *   keyOrKeysPath: ["a", "b"] //comparar por estas propiedades ❗El orden es IMPORTANTE❗
    * });
    * console.log(r); // Salida: true (si bien la propiedad `b` es mayor en el primer objeto
-   * //la primera comparacion se hace en la propiedad `a` y la letra `"a"` es pesa menos que la letra `"h"`)
+   * //la primera comparación se hace en la propiedad `a` y la letra `"a"` es pesa menos que la letra `"h"`)
    *
-   * //comparacion de objetos (con keysOrKeysPath y profundidad)
+   * //comparación de objetos (con keysOrKeysPath y profundidad)
    * a = {a: "hola", b:{c: 31, d: 15}};
    * b = {a: "que Mas", b:{c: 0, d: 15}};
    * r = isLesserTo([a, b], {
@@ -5628,7 +5671,7 @@ export class UtilNative {
    * });
    * console.log(r); // Salida: true
    *
-   * //comparacion basica de arrays
+   * //comparación básica de arrays
    * a = ["a", 1, false];
    * b = ["a", 1, true];
    * r = isLesserTo([a, b], {
@@ -5638,7 +5681,7 @@ export class UtilNative {
    * //del primer array pesa menos que el ultimo elemento `true`
    * //del segundo array)
    *
-   * //comparacion basica de arrays
+   * //comparación básica de arrays
    * a = ["a", 1, false];
    * b = ["a", 1, false];
    * r = isLesserTo([a, b], {
@@ -5646,7 +5689,7 @@ export class UtilNative {
    * });
    * console.log(r); // Salida: false (no se permite la equivalencia)
    *
-   * //comparacion basica de arrays (no tamaños)
+   * //comparación básica de arrays (no tamaños)
    * a = ["a", 1, true];
    * b = ["a", 1, false, 2];
    * r = isLesserTo([a, b], {
@@ -5654,9 +5697,9 @@ export class UtilNative {
    * });
    * console.log(r); // Salida: true (porque no se esta comparando tamaños y
    * //se compararán los elementos del array mas pequeño con el mas grande
-   * //en la misma posicion donde se encuentran)
+   * //en la misma posición donde se encuentran)
    *
-   * //comparacion basica de arrays (no tamaños)
+   * //comparación básica de arrays (no tamaños)
    * a = ["a", 1, null, false];
    * b = ["a", 1, false];
    * r = isLesserTo([a, b], {
@@ -5664,17 +5707,17 @@ export class UtilNative {
    * });
    * console.log(r); // Salida: true (porque no se esta comprando tamaños pero
    * //se compararán los elementos del array mas pequeño con el mas grande
-   * //en la misma posicion donde se encuentran (`null` pesa menos que `false`))
+   * //en la misma posición donde se encuentran (`null` pesa menos que `false`))
    *
-   * //comparacion basica de arrays (si tamaños)
+   * //comparación básica de arrays (si tamaños)
    * a = ["a", 1, false, 2];
    * b = ["a", 1, false];
    * r = isLesserTo([a, b], {,
    *   isAllowEquivalent: false,
    *   isCompareLength: true
-   * }); //sin configuracion
+   * }); //sin configuración
    * console.log(r); // Salida: false (el primer array es mas grande que el segundo,
-   * //las demas comparaciones internas se ignoran)
+   * //las demás comparaciones internas se ignoran)
    *
    * ````
    */
@@ -5685,7 +5728,9 @@ export class UtilNative {
     if (!this.isTuple(compareValues, [0, 2]))
       throw new Error(`${option} is not tuple of compare values valid`);
     //constructor de opciones
-    let op = this.isObject(option, true) ? option : ({} as typeof option); //default vacio
+    let op = (this.isObject(option, true) ? option : {}) as Required<
+      NonNullable<typeof option>
+    >; //default vacio
     op = {
       ...op, //opciones adicionales no documentadas (si las hay)
       isAllowEquivalent: this.isBoolean(op.isAllowEquivalent)
@@ -5782,9 +5827,9 @@ export class UtilNative {
               isCompareStringToNumber,
               keyOrKeysPath: keysPath,
             });
-            //tratamiento de equivalencias (para seguir al siguinte objeto)
+            //tratamiento de equivalencias (para seguir al siguiente objeto)
             if (isEquivalent) {
-              if (idx < lenItemRun - 1) continue; //solo continuará si esquivalente y no el ultimo
+              if (idx < lenItemRun - 1) continue; //solo continuará si equivalente y no el ultimo
               isLesser = isAllowEquivalent;
               break;
             }
@@ -5850,9 +5895,9 @@ export class UtilNative {
                 keyOrKeysPath: subKeysPathToCompare,
               },
             );
-            //tratamiento de equivalencias (para seguir al siguinte objeto)
+            //tratamiento de equivalencias (para seguir al siguiente objeto)
             if (isEquivalent) {
-              if (idx < lenKP - 1) continue; //solo continuará si esquivalente y no el ultmo
+              if (idx < lenKP - 1) continue; //solo continuará si equivalente y no el ultimo
               isLesser = isAllowEquivalent;
               break;
             }
@@ -5895,7 +5940,7 @@ export class UtilNative {
                 keyOrKeysPath,
               },
             );
-            //tratamiento de equivalencias (para seguir al siguinte objeto)
+            //tratamiento de equivalencias (para seguir al siguiente objeto)
             if (isEquivalent) {
               if (idx < lenKR - 1) continue;
               isLesser = isAllowEquivalent;

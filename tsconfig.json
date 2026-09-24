@@ -4,14 +4,16 @@
     "useDefineForClassFields": true,
     "module": "ESNext",
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["node"],
     "skipLibCheck": true,
 
     /* Bundler mode */
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": false,
 
     /* Emit settings */
+    "rootDir": "./src",
     "outDir": "./dist",
     "declaration": true,
     "declarationMap": true,
