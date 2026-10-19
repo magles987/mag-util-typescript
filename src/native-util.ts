@@ -10,9 +10,10 @@ import {
   IValueTypeOption,
   TExtValueType,
   TRoundType,
+  TStringToNumberFormatCleanOption,
 } from "./shared-types";
 //████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
-/**esquema opcional para la configuración de la utilidad */
+/** Configuración opcional de la utilidad. */
 export type TUtilBaseConfig = Partial<
   Pick<
     UtilNative,
@@ -23,16 +24,13 @@ export type TUtilBaseConfig = Partial<
     | "sepDateRegExp"
   >
 >;
-/**
- *
- * utilidades nativas sin extensiones ni librerías
- */
+/** Utilidades nativas sin extensiones ni bibliotecas externas. */
 export class UtilNative {
   /**Utilidades implícitas en Node JS*/
   public readonly util_Node = Util_Node;
   private _charSeparatorLogicPath = ".";
   /**
-   * Carácter separador de ruta lógica.
+   * Carácter que separa los segmentos de una ruta lógica.
    *
    * @example
    * ```typescript
@@ -46,7 +44,7 @@ export class UtilNative {
     return this._charSeparatorLogicPath;
   }
   /**
-   * Carácter separador de ruta lógica.
+   * Actualiza el carácter que separa los segmentos de una ruta lógica.
    *
    * @example
    * ```typescript
@@ -62,7 +60,7 @@ export class UtilNative {
   }
   private _charSeparatorUrlPath = "/";
   /**
-   * Carácter de separador de ruta para URL.
+   * Carácter que separa los segmentos de una ruta URL.
    *
    * @example
    * ```typescript
@@ -76,7 +74,7 @@ export class UtilNative {
     return this._charSeparatorUrlPath;
   }
   /**
-   * Carácter de separador de ruta para URL.
+   * Actualiza el carácter que separa los segmentos de una ruta URL.
    *
    * @example
    * ```typescript
@@ -92,9 +90,8 @@ export class UtilNative {
   }
   private _charWildcardArrayItem = "#";
   /**
-   * Carácter comodín especial que expresa cualquier indice en
-   * un array, util para construir rutas (paths) con arrays
-   * profundos
+   * Carácter comodín que representa cualquier índice de un array
+   * en una ruta profunda.
    *
    * @example
    * ```typescript
@@ -111,9 +108,7 @@ export class UtilNative {
     return this._charWildcardArrayItem;
   }
   /**
-   * Carácter comodín especial que expresa cualquier indice en
-   * un array, util para construir rutas (paths) con arrays
-   * profundos
+   * Actualiza el carácter comodín que representa cualquier índice de un array.
    *
    * @example
    * ```typescript
@@ -132,8 +127,8 @@ export class UtilNative {
   }
   private _sepDateRegExp = /\-|\/|\.|\#|\_|\:/;
   /**
-   * expresion regular para dividir un string
-   * de fecha con separadores:
+   * Expresión regular para dividir una fecha escrita como texto. Reconoce
+   * los siguientes separadores:
    *
    * `"-"` ej. formato: `"dd-mm-yyyy"`
    *
@@ -144,13 +139,14 @@ export class UtilNative {
    * `"#"` ej. formato: `dd#mm#yyyy`
    *
    * `"."` ej. formato: `dd.mm.yyyy`
+   *
+   * `":"` ej. formato: `dd:mm:yyyy`
    */
   public get sepDateRegExp() {
     return this._sepDateRegExp;
   }
   /**
-   * expresion regular para dividir un string
-   * de fecha con separadores:
+   * Actualiza la expresión regular usada para dividir una fecha escrita como texto.
    *
    * `"-"` ej. formato: `"dd-mm-yyyy"`
    *
@@ -161,6 +157,8 @@ export class UtilNative {
    * `"#"` ej. formato: `dd#mm#yyyy`
    *
    * `"."` ej. formato: `dd.mm.yyyy`
+   *
+   * `":"` ej. formato: `dd:mm:yyyy`
    */
   protected set sepDateRegExp(v: RegExp) {
     if (!(v instanceof RegExp)) {
@@ -169,9 +167,9 @@ export class UtilNative {
     }
     this._sepDateRegExp = v;
   }
-  /**valor predefinido global */
+  /** Valor global que se devuelve cuando no se especifica otro valor predeterminado. */
   private _dfValue: null | undefined = undefined;
-  /**valor predefinido global*/ //para uso de instancia
+  /** Valor global que se devuelve cuando no se especifica otro valor predeterminado. */
   public get dfValue(): null | undefined {
     return this._dfValue;
   }
@@ -185,7 +183,7 @@ export class UtilNative {
    */
   private static UtilNative_instance: UtilNative;
   /**
-   * @param baseConfig configuraciones personalizadas para la utilidad
+   * @param baseConfig Configuración inicial opcional de la utilidad.
    */
   protected constructor(baseConfig?: TUtilBaseConfig) {
     if (this.isObject(baseConfig)) {
@@ -206,10 +204,9 @@ export class UtilNative {
     }
   }
   /**
-   * devuelve la instancia única de esta clase
-   * ya sea que la crea o la que ya a sido creada
-   * @param dfValue es el valor que se va a asumir como valor
-   * predefinido cuando haya ausencia de valor
+   * Devuelve la instancia única de esta clase. La configuración solo se aplica
+   * cuando la instancia se crea por primera vez.
+   * @param baseConfig Configuración inicial opcional de la utilidad.
    */
   public static getInstance(baseConfig?: TUtilBaseConfig): UtilNative {
     UtilNative.UtilNative_instance =
@@ -221,61 +218,65 @@ export class UtilNative {
   }
   //████ undefined and Null ██████████████████████████████████████████
   /**
-   * @param value variable a comprobar
-   * ____
-   * @returns `true` si es `undefined`
-   * `false` si no no lo es
-   * ____
+   * Comprueba si un valor es `undefined`.
+   * @param value Valor que se desea comprobar.
+   * @returns `true` si el valor es `undefined`; de lo contrario, `false`.
+   * @example
+   * ```typescript
+   * util.isUndefined(undefined); // true
+   * util.isUndefined(null); // false
+   * ```
    */
   public isUndefined(value: any): boolean {
     return value === undefined;
   }
   /**
-   * @param value variable a comprobar
-   * ____
-   * @returns `true` si es `null`
-   * `false` si no no lo es
-   * ____
+   * Comprueba si un valor es `null`.
+   * @param value Valor que se desea comprobar.
+   * @returns `true` si el valor es `null`; de lo contrario, `false`.
+   * @example
+   * ```typescript
+   * util.isNull(null); // true
+   * util.isNull(undefined); // false
+   * ```
    */
   public isNull(value: any): boolean {
     return value === null;
   }
   /**
-   * @param value variable a comprobar
-   * ____
-   * @returns `true` si es `undefined` o `null`
-   * `false` si no no lo es
-   * ____
+   * Comprueba si un valor es `undefined` o `null`.
+   * @param value Valor que se desea comprobar.
+   * @returns `true` si el valor es `undefined` o `null`; de lo contrario, `false`.
    */
   public isUndefinedOrNull(value: any) {
     return this.isUndefined(value) || this.isNull(value);
   }
   /**
-   * @param value variable a comprobar
-   * ____
-   * @returns `true` si NO es `undefined` ni `null`
-   * `false` si lo es
-   * ____
+   * Comprueba si un valor no es ni `undefined` ni `null`.
+   * @param value Valor que se desea comprobar.
+   * @returns `true` si el valor no es `undefined` ni `null`; de lo contrario, `false`.
    */
   public isNotUndefinedAndNotNull(value: any) {
     return !this.isUndefined(value) && !this.isNull(value);
   }
   /**
-   * Este método convierte para:
-   *  - primitivos: valor `undefined` a `null`
-   *  - objetos (incluidos arrays): las propiedades con valor `undefined` de un objeto o array en valor `null`.
+   * Convierte `undefined` en `null` en valores primitivos, objetos literales y arrays.
+   * Para objetos y arrays devuelve una copia superficial; con `isDeep: true`,
+   * también procesa recursivamente los objetos literales y arrays anidados.
+   * Las instancias de clase se devuelven sin cambios.
    *
-   * @param {object | any[]} value El primitivo, objeto o array que se va a procesar.
-   * @param {boolean} isDeep `= false`, (solo para objetos o arrays) Si es `true`, el método procesará el objeto o array de forma recursiva. Si es `false` solo se procesará el primer nivel del objeto.
-   * @returns {object | any[]}
-   *  -Si `value` tiene asignado el valor `undefined` entonces retorna `null`, de lo contrario retorna el valor actual de `value`
-   *  -Si `value`es un objeto o array, retorna todas su propiedades (o items) que hallan tenido valor `undefined` en valor `null`, las demás propiedades no son modificadas
+   * @param value Valor primitivo, objeto o array que se va a procesar.
+   * @param isDeep `false` por defecto. Si es `true`, procesa también los valores anidados.
+   *
+   * @returns `null` si `value` es `undefined`; en los demás casos, devuelve el valor
+   * sin cambios o una copia del objeto/array con sus valores `undefined` convertidos a `null`.
    *
    * @example
    * ```typescript
+   * const util = UtilNative.getInstance();
    * const obj = { a: undefined, b: { c: undefined } };
-   * const result = undefinedToNull(obj, true);
-   * console.log(result); // salida { a: null, b: { c: null } }
+   * const r = util.undefinedToNull(obj, true);
+   * console.log(r); // salida { a: null, b: { c: null } }
    * ```
    */
   public undefinedToNull<T>(value: T, isDeep = false): T {
@@ -291,39 +292,58 @@ export class UtilNative {
 
     //caso objetos o arrays
     isDeep = this.convertToBoolean(isDeep);
-    let newObjOrArray: any = !Array.isArray(value)
-      ? { ...(value as object) } //clonacion superficial objeto
-      : [...(value as any[])]; //clonacion superficial array
-    Object.keys(newObjOrArray).forEach((key) => {
-      if (this.isUndefined(newObjOrArray[key])) {
-        newObjOrArray[key] = null;
-      } else if (
-        isDeep &&
-        typeof newObjOrArray[key] === "object" && //acepta arrays
-        !this.isNull(newObjOrArray[key])
-      ) {
-        newObjOrArray[key] = this.undefinedToNull(newObjOrArray[key], isDeep);
-      } else {
+    const clone = (source: object): any =>
+      Array.isArray(source) ? [...source] : { ...source };
+    const newObjOrArray = clone(value as object);
+    const clones = new WeakMap<object, object>([
+      [value as object, newObjOrArray],
+    ]);
+    const stack: Array<{ source: object; target: any }> = [
+      { source: value as object, target: newObjOrArray },
+    ];
+    while (stack.length > 0) {
+      const { target } = stack.pop()!;
+      for (const key of Object.keys(target)) {
+        const item = target[key];
+        if (this.isUndefined(item)) {
+          target[key] = null;
+        } else if (
+          isDeep &&
+          typeof item === "object" &&
+          !this.isNull(item) &&
+          (Array.isArray(item) || this.isLiteralObject(item))
+        ) {
+          let itemClone = clones.get(item);
+          if (!itemClone) {
+            const newItemClone = clone(item);
+            clones.set(item, newItemClone);
+            stack.push({ source: item, target: newItemClone });
+            itemClone = newItemClone;
+          }
+          target[key] = itemClone;
+        }
       }
-    });
+    }
     return newObjOrArray as T;
   }
   /**
-   * Este método convierte para:
-   *  - primitivos: valor `null` a `undefined`
-   *  - objetos (incluidos arrays): las propiedades con valor `null` de un objeto o array en valor `undefined`.
+   * Convierte `null` en `undefined` en valores primitivos, objetos literales y arrays.
+   * Para objetos y arrays devuelve una copia superficial; con `isDeep: true`,
+   * también procesa recursivamente los objetos literales y arrays anidados.
+   * Las instancias de clase se devuelven sin cambios.
    *
-   * @param {object | any[]} value El primitivo, objeto o array que se va a procesar.
-   * @param {boolean} isDeep `= false`, (solo para objetos o arrays) Si es `true`, el método procesará el objeto o array de forma recursiva. Si es `false` solo se procesará el primer nivel del objeto.
-   * @returns {object | any[]}
-   *  -Si `value` tiene asignado el valor `null` entonces retorna `undefined`, de lo contrario retorna el valor actual de `value`
-   *  -Si `value`es un objeto o array, retorna todas su propiedades (o items) que hallan tenido valor `null` en valor `undefined`, las demás propiedades no son modificadas
+   * @param value Valor primitivo, objeto o array que se va a procesar.
+   * @param isDeep `false` por defecto. Si es `true`, procesa también los valores anidados.
+   *
+   * @returns `undefined` si `value` es `null`; en los demás casos, devuelve el valor
+   * sin cambios o una copia del objeto/array con sus valores `null` convertidos a `undefined`.
    *
    * @example
    * ```typescript
+   * const util = UtilNative.getInstance();
    * const obj = { a: null, b: { c: null } };
-   * const result = undefinedToNull(obj, true);
-   * console.log(result); // salida { a: undefined, b: { c: undefined } }
+   * const r = util.nullToUndefined(obj, true);
+   * console.log(r); // salida { a: undefined, b: { c: undefined } }
    * ```
    */
   public nullToUndefined<T>(
@@ -339,66 +359,106 @@ export class UtilNative {
 
     //caso objetos o arrays
     isDeep = this.convertToBoolean(isDeep);
-    let newObjOrArray: any = !Array.isArray(value)
-      ? { ...(value as object) } //clonacion superficial objeto
-      : [...(value as any[])]; //clonacion superficial array
-    Object.keys(newObjOrArray).forEach((key) => {
-      if (this.isNull(newObjOrArray[key])) {
-        newObjOrArray[key] = undefined;
-      } else if (
-        isDeep &&
-        typeof newObjOrArray[key] === "object" //acepta arrays
-      ) {
-        newObjOrArray[key] = this.nullToUndefined(newObjOrArray[key], isDeep);
-      } else {
+    const clone = (source: object): any =>
+      Array.isArray(source) ? [...source] : { ...source };
+    const newObjOrArray = clone(value as object);
+    const clones = new WeakMap<object, object>([
+      [value as object, newObjOrArray],
+    ]);
+    const stack: Array<{ source: object; target: any }> = [
+      { source: value as object, target: newObjOrArray },
+    ];
+    while (stack.length > 0) {
+      const { target } = stack.pop()!;
+      for (const key of Object.keys(target)) {
+        const item = target[key];
+        if (this.isNull(item)) {
+          target[key] = undefined;
+        } else if (
+          isDeep &&
+          typeof item === "object" &&
+          (Array.isArray(item) || this.isLiteralObject(item))
+        ) {
+          let itemClone = clones.get(item);
+          if (!itemClone) {
+            const newItemClone = clone(item);
+            clones.set(item, newItemClone);
+            stack.push({ source: item, target: newItemClone });
+            itemClone = newItemClone;
+          }
+          target[key] = itemClone;
+        }
       }
-    });
+    }
     return newObjOrArray as T;
   }
   //████ Booleanos ███████████████████████████████████████████████████
   /**
-   * Determina si un valor es booleano.
+   * Comprueba si un valor es de tipo booleano.
    *
-   * @param {any} bool - El valor que se va a verificar.
-   * @returns {boolean} - Retorna `true` si el valor es booleano, de lo contrario retorna `false`.
+   * @param bool Valor que se desea comprobar.
+   * @returns `true` si el valor es booleano; de lo contrario, `false`.
    *
    * @example
    * ```typescript
-   * const value = true;
-   * const result = isBoolean(value);
-   * console.log(result); // salida: true
+   * const v = true;
+   * const r = isBoolean(v);
+   * console.log(r); // salida: true
    * ```
    */
   public isBoolean(bool: unknown): bool is boolean {
     return typeof bool === "boolean";
   }
   /**
-   * Convierte cualquier valor a un tipo booleano.
+   * Convierte un valor a booleano y permite definir cómo tratar los valores vacíos,
+   * el cero y `null`.
    *
-   * @param {any} anyToCast El valor a cambiar (castear).
-   * @param {Array<"isEmptyAsTrue" | "isZeroAsTrue" | "isNullAsTrue">} castExceptions `= ["isZeroAsTrue"]` Array con configuración de excepciones para hacer el cast. Las opciones son:
-   *   - `"isEmptyAsTrue"`: Los objetos vacíos (incluyendo arrays) son `true`.
-   *   - `"isZeroAsTrue"`: El valor `0` se asume como `true`.
-   *   - `"isNullAsTrue"`: El valor `null` se asume como `true`.
-   * @returns {boolean} Retorna el booleano correspondiente al valor recibido.
+   * @param anyToCast Valor que se desea convertir.
+   * @param castExceptions `["isZeroAsTrue"]` por defecto. Excepciones opcionales:
+   *   - `"isEmptyAsTrue"`: considera verdaderos los strings, objetos y arrays vacíos.
+   *   - `"isZeroAsTrue"`: considera verdadero el número `0`.
+   *   - `"isNullAsTrue"`: considera verdadero el valor `null`.
+   * Si se proporciona el array, solo se aplican las excepciones incluidas en él.
+   * @returns El valor convertido a booleano.
    *
    * @example
    * ```typescript
-   * const value1 = "hello";
-   * const result1 = convertToBoolean(value1);
-   * console.log(result1); // salida: true
+   * const v1 = "hello";
+   * const r1 = convertToBoolean(v1);
+   * console.log(r1); // salida: true
    *
-   * const value2 = "";
-   * const result2 = convertToBoolean(value2, ["isEmptyAsTrue"]);
-   * console.log(result2); // salida: true
+   * const v2 = "";
+   * const r2 = convertToBoolean(v2);
+   * console.log(r2); // salida: false
    *
-   * const value3 = 0;
-   * const result3 = convertToBoolean(value3, ["isZeroAsTrue"]);
-   * console.log(result3); // salida: true
+   * const v3 = "";
+   * const r3 = convertToBoolean(v3, ["isEmptyAsTrue"]);
+   * console.log(r3); // salida: true
    *
-   * const value4 = null;
-   * const result4 = convertToBoolean(value4, ["isNullAsTrue"]);
-   * console.log(result4); // salida: true
+   * const v4 = null;
+   * const r4 = convertToBoolean(v4, ["isNullAsTrue"]);
+   * console.log(r4); // salida: true
+   *
+   * const v5 = 0;
+   * //comportamiento predefinido (sin personalización)
+   * const r5 = convertToBoolean(v5);
+   * console.log(r5); // salida: true
+   *
+   * const v6 = 0;
+   * //explícitamente se configura el tratamiento de 0
+   * const r6 = convertToBoolean(v6, ["isZeroAsTrue"]);
+   * console.log(r6); // salida: true
+   *
+   * const v7 = 0;
+   * //verificación personalizada (no incluye tratamiento de 0 )
+   * const r7 = convertToBoolean(v7, ["isEmptyAsTrue"]);
+   * console.log(r7); // salida: false
+   *
+   * const v8 = 0;
+   * //verificación personalizada (ahora incluye tratamiento de 0)
+   * const r8 = convertToBoolean(v8, ["isEmptyAsTrue", "isZeroAsTrue"]);
+   * console.log(r8); // salida: true
+   *
    * ```
    */
   public convertToBoolean(
@@ -437,115 +497,234 @@ export class UtilNative {
   }
   //████ Números ██████████████████████████████████████████████████████
   /**
-   * Determina si el valor proporcionado es un número.
+   * Comprueba si el valor es un número finito.
    *
-   * @param {any} num El valor a verificar.
-   * @param {boolean} allowString `= false`. Determina si se permite que el número se reciba en tipo string.
-   * @param {boolean} allowBigInt `= false`. Determina si se permite que el número se reciba en tipo bigInt.
-   * @returns {boolean} Retorna `true` si el valor es un número, `false` de lo contrario.
+   * @param num Valor que se desea comprobar.
+   *
+   * @returns `true` si el valor es un número finito.
+   *
+   * @example
+   * ```typescript
+   * const v1 = 10;
+   * const r1 = isNumber(v1);
+   * console.log(r1); // salida: true
+   *
+   * const v2 = "10";
+   * const r2 = isNumber(v2);
+   * console.log(r2); // salida: false
+   * //Para convertirlo, se puede usar stringToNumber().
+   *
+   * const v3 = null;
+   * const r3 = isNumber(v3);
+   * console.log(r3); // salida: false
+   *
+   * const v4 = 10n; //bigint
+   * const r4 = isNumber(v4);
+   * console.log(r4); // salida: false
+   *
+   * ```
    */
-  public isNumber(
-    num: unknown,
-    allowString = false,
-    allowBigInt = false,
-  ): boolean {
-    allowString = this.convertToBoolean(allowString);
-    allowBigInt = this.convertToBoolean(allowBigInt);
+  public isNumber(num: unknown): num is number {
     let r: boolean;
     if (typeof num === "number") {
       r = !isNaN(num) && isFinite(num);
-    } else if (typeof num === "string" && allowString) {
-      const parse = parseFloat(num as string);
-      r = !isNaN(parse) && isFinite(parse);
-    } else if (typeof num === "bigint" && allowBigInt) {
-      r = true;
     } else {
       r = false;
     }
     return r;
   }
   /**
-   * Determina si el valor proporcionado es un entero gigante.
+   * Comprueba si el valor es de tipo `bigint`.
    *
-   * @param {any} bigNum El valor a verificar.
-   * @param {boolean} allowString `= false`. Determina si se permite que el entero gigante se reciba en tipo string.
-   * @returns {boolean} Retorna `true` si el valor es un entero gigante, `false` de lo contrario.
+   * @param bigNum Valor que se desea comprobar.
+   *
+   * @returns `true` si el valor es de tipo `bigint`; de lo contrario, `false`.
+   *
+   * @example
+   * ```typescript
+   * const v1 = 10;
+   * const r1 = isBigint(v1);
+   * console.log(r1); // salida: false
+   *
+   * const v2 = "1234567890123456789";
+   * const r2 = isBigint(v2);
+   * console.log(r2); // salida: false
+   * //Para convertirlo, se puede usar stringToBigint().
+   *
+   * const v3 = null;
+   * const r3 = isBigint(v3);
+   * console.log(r3); // salida: false
+   *
+   * const v4 = 10n; //bigint
+   * const r4 = isBigint(v4);
+   * console.log(r4); // salida: true
+   *
+   * ```
    */
-  public isBigint(bigNum: unknown, allowString = false): boolean {
-    allowString = this.convertToBoolean(allowString);
+  public isBigint(bigNum: unknown): bigNum is bigint {
     let r = false;
     if (typeof bigNum === "bigint") {
       r = true;
-    } else if (typeof bigNum === "string" && allowString) {
-      try {
-        BigInt(bigNum);
-        r = true;
-      } catch (error) {
-        //❗❗❗No importa el error❗❗❗
-        r = false;
-      }
     } else {
       r = false;
     }
     return r;
   }
   /**
-   * determina si el número proporcionado corresponde a
-   * la polaridad deseada (positiva o negativa)
+   * Comprueba si un número válido es entero.
+   * @param num Número que se desea comprobar.
    *
-   * @param {any} num el número a verificar (no se acepta string-number  `"1"`)
-   * @param {"+" | "-"} sign el signo (direccion o polaridad) que deberia tener el número
-   * @param {boolean} isZeroIncluded `= false`. Si se debe incluir el 0 en la verificacion
+   * @returns `true` si el número es entero; de lo contrario, `false`.
    *
-   * @return Retorna `true` si corresponde al signo o `false` si no corresponde a signo o no es un número
+   * @example
+   * ````typescript
+   *
+   * const v1 = 7;
+   * const r1 = isIntegerNumber(v1);
+   * console.log(r1); // salida: true
+   *
+   * const v2 = 7.1; //float
+   * const r2 = isIntegerNumber(v2);
+   * console.log(r2); // salida: false
+   *
+   * const v3 = "7";
+   * const r3 = isIntegerNumber(v3);
+   * console.log(r3); // salida: false
+   *
+   * const v4 = "lo que sea";
+   * const r4 = isIntegerNumber(v4);
+   * console.log(r4); // salida: false
+   *
+   * ````
+   */
+  public isIntegerNumber(num: number): boolean {
+    if (!this.isNumber(num)) return false;
+    return Number.isInteger(num);
+  }
+  /**
+   * Comprueba si un número válido tiene parte decimal.
+   * @param num Número que se desea comprobar.
+   *
+   * @returns `true` si el número tiene parte decimal; de lo contrario, `false`.
+   *
+   * @example
+   * ````typescript
+   *
+   * const v1 = 7; //integer
+   * const r1 = isFloatNumber(v1);
+   * console.log(r1); // salida: false
+   *
+   * const v2 = 7.1; //float
+   * const r2 = isFloatNumber(v2);
+   * console.log(r2); // salida: true
+   *
+   * const v3 = "7";
+   * const r3 = isFloatNumber(v3);
+   * console.log(r3); // salida: false
+   *
+   * const v4 = "lo que sea";
+   * const r4 = isFloatNumber(v4);
+   * console.log(r4); // salida: false
+   *
+   * ````
+   */
+  public isFloatNumber(num: number): boolean {
+    if (!this.isNumber(num)) return false;
+    return !Number.isInteger(num); //❗se usa el de isInteger() negado❗
+  }
+  /**
+   * Comprueba si un número tiene el signo solicitado. El cero no se considera
+   * positivo ni negativo, salvo que se habilite su inclusión.
+   *
+   * @param num Valor que se desea comprobar; los valores que no sean números válidos dan `false`.
+   * @param sign Signo que se desea comprobar: `"+"` o `"-"`.
+   * @param isZeroIncluded `false` por defecto. Si es `true`, incluye el cero en ambos signos.
+   *
+   * @returns `true` si el número cumple la condición; de lo contrario, `false`.
+   *
+   * @example
+   * ````typescript
+   *
+   * const v1 = 7;
+   * const r1 = isNumberSign(v1, "-");
+   * console.log(r1); // salida: false
+   *
+   * const v2 = 7.1;
+   * const r2 = isNumberSign(v2, "+");
+   * console.log(r2); // salida: true
+   *
+   * const v3 = "7"; //es un string (los string no tienen polaridad)
+   * const r3 = isNumberSign(v3, "+");
+   * console.log(r3); // salida: false
+   *
+   * const v4 = null;
+   * const r4 = isNumberSign(v4, "-");
+   * console.log(r4); // salida: false
+   *
+   * //❗el 0:❗
+   * //En el ámbito matemático, el 0 no tiene polaridad
+   *
+   * const v5 = 0;
+   * const r5 = isNumberSign(v5, "+");
+   * console.log(r5); // salida: false
+   *
+   * const v6 = 0;
+   * const r6 = isNumberSign(v6, "-");
+   * console.log(r6); // salida: false
+   *
+   * //Si se requiere incluirlo en alguna de las dos polaridades:
+   *
+   * const v7 = 0;
+   * const r7 = isNumberSign(v7, "+", true); //bandera de inclusión
+   * console.log(r7); // salida: true
+   *
+   * const v8 = 0;
+   * const r8 = isNumberSign(v8, "-", true); //bandera de inclusión
+   * console.log(r8); // salida: true
+   *
+   * ````
+   *
    */
   public isNumberSign(
     num: unknown,
     sign: "+" | "-",
     isZeroIncluded = false,
   ): boolean {
+    // Si no es número su signo no puede comprobarse por lo tanto es false
+    if (!this.isNumber(num)) return false;
     let r = false;
-    // Verificar si el valor es un número
-    if (!this.isNumber(num, false)) {
-      return r;
-    }
-    const _num = num as number; //número garantizado
-    if (sign === "+") r = isZeroIncluded ? _num >= 0 : _num > 0;
-    else if (sign === "-") r = isZeroIncluded ? _num <= 0 : _num < 0;
-    else {
-      throw new Error(`${sign} is not sign valid`);
-    }
+    if (sign === "+") r = isZeroIncluded ? num >= 0 : num > 0;
+    else if (sign === "-") r = isZeroIncluded ? num <= 0 : num < 0;
+    else throw new Error(`${sign} is not sign valid`);
     return r;
   }
   /**
-   * Determina si un número es impar. Si el número es decimal, se puede especificar un tipo de redondeo
-   * para ajustar su valor antes de la verificación.
+   * Comprueba si un número es impar. Si tiene parte decimal, se puede indicar
+   * un tipo de redondeo para ajustar el valor antes de comprobarlo.
    *
-   * @param {number | string} num - Número a evaluar. Puede ser un número o una cadena representando un número.
-   * @param {boolean} allowString - Indica si se permite el uso de cadenas como números (`true` para permitirlo).
-   * @param {TRoundType | undefined} roundType - Define el tipo de redondeo (`undefined` para no aplicar ninguno).
-   * @returns {boolean} `true` si el número es impar, `false` en caso contrario.
+   * @param num Número que se desea evaluar.
+   * @param roundType Tipo de redondeo: `"round"`, `"floor"` o `"ceil"`. Si se omite,
+   * los valores decimales no se consideran impares.
    *
-   * @throws "Invalid number format" Si `num` no es un número válido o cadena numérica.
+   * @returns `true` si el valor resultante es impar; si `num` no es válido, devuelve `false`.
    *
    * @example
    * ````typescript
-   * const result1 = isOddNumber(7); // `true`
-   * const result2 = isOddNumber(4); // `false`
-   * const result3 = isOddNumber("9", true); // `true`
-   * const result4 = isOddNumber(4.8, false, "round"); // `true` porque se redondea a 5
-   * const result4 = isOddNumber(4.8, false, "floor"); // `false` porque se redondea a 4
-   * const result4 = isOddNumber(4.8, false, "ceil"); // `true` porque se redondea a 5
+   *
+   * console.log(isOddNumber(7)); // Salida: true
+   * console.log(isOddNumber(4)); // Salida: false
+   * console.log(isOddNumber(4.8)); // Salida: false //⚠️un decimal no es ni par ni impar
+   * console.log(isOddNumber(4.8, "round")); // Salida: true //redondeado a 5
+   * console.log(isOddNumber(4.8, "floor")); // Salida: false //redondeado a 4
+   * console.log(isOddNumber(4.8, "ceil")); // Salida: true //redondeado a 5
    * ````
    */
   public isOddNumber(
-    num: number | string,
-    allowString = false,
+    num: number,
     roundType: TRoundType | undefined = undefined,
   ): boolean {
-    if (!this.isNumber(num, allowString, false)) return false;
-    //convertir posible string a numero
-    num = this.stringToNumber(num as any) as number;
+    //si no es un número su signo no puede comprobarse, por lo tanto es falso
+    if (!this.isNumber(num)) return false;
     //los impares solo pueden ser enteros
     const isInteger = Number.isInteger(num);
     if (isInteger) {
@@ -556,154 +735,110 @@ export class UtilNative {
         num = this.roundNumber(roundType, num, 0); //debe ser a la unidad (no sub múltiplos ni sub divisores)
         return num % 2 !== 0;
       } else {
-        return false;
+        return false; //los decimales no pueden ser impares
       }
     }
   }
   /**
-   * Obtiene un reporte básico del tipo de número.
+   * Comprueba si un número es par. Si tiene parte decimal, se puede indicar
+   * un tipo de redondeo para ajustar el valor antes de comprobarlo.
    *
-   * @param {number | string} num - El número o cadena numérica a analizar.
-   * @returns {object} - Retorna un objeto con las siguientes propiedades:
-   *   - `polarity`: Indica si el número es "positive" o "negative".
-   *   - `genericType`: Indica si el valor es un "number" o un "string-number".
-   *   - `strictType`: Indica si el número es un "int", "bigInt" o "float".
+   * @param num Número que se desea evaluar.
+   * @param roundType Tipo de redondeo: `"round"`, `"floor"` o `"ceil"`. Si se omite,
+   * los valores decimales no se consideran pares.
+   *
+   * @returns `true` si el valor resultante es par; si `num` no es válido, devuelve `false`.
    *
    * @example
-   * ```typescript
-   * let report = getTypeNumber("123");
-   * console.log(report);
-   * // Salida: { polarity: "positive", genericType: "string-number", strictType: "int" }
+   * ````typescript
    *
-   * report = getTypeNumber(-321.654);
-   * console.log(report);
-   * // Salida: { polarity: "negative", genericType: "number", strictType: "float" }
-   * ```
+   * console.log(isEvenNumber(7)); // Salida: false
+   * console.log(isEvenNumber(4)); // Salida: true
+   * console.log(isEvenNumber(4.8)); // Salida: false //⚠️un decimal no es ni par ni impar
+   * console.log(isEvenNumber(4.8, "round")); // Salida: false //redondeado a 5
+   * console.log(isEvenNumber(4.8, "floor")); // Salida: true //redondeado a 4
+   * console.log(isEvenNumber(4.8, "ceil")); // Salida: false //redondeado a 5
+   * ````
    */
-  public getNumberReport(num: number | string): {
-    polarity: "positive" | "negative";
-    genericType: "number" | "string-number";
-    strictType: "int" | "bigInt" | "float";
-  } {
-    let r = {
-      polarity: "" as "positive" | "negative",
-      genericType: "" as "number" | "string-number",
-      strictType: "" as "int" | "bigInt" | "float",
-    };
-    let n = this.stringToNumber(num);
-    r.polarity = n < 0 ? "negative" : "positive"; //el `0` se considera positivo
-    r.genericType = this.isString(num) ? "string-number" : "number";
-    if (typeof n === "bigint") {
-      r.strictType = "bigInt";
+  public isEvenNumber(
+    num: number,
+    roundType: TRoundType | undefined = undefined,
+  ): boolean {
+    //si no es un número su signo no puede comprobarse, por lo tanto es falso
+    if (!this.isNumber(num)) return false;
+    //los pares solo pueden ser enteros
+    const isInteger = Number.isInteger(num);
+    if (isInteger) {
+      return num % 2 === 0;
     } else {
-      r.strictType = !Number.isInteger(n) ? "float" : "int";
+      //verificar si se desea redondeo
+      if (roundType) {
+        num = this.roundNumber(roundType, num, 0); //debe ser a la unidad (no sub múltiplos ni sub divisores)
+        return num % 2 === 0;
+      } else {
+        return false; //los decimales no pueden ser pares
+      }
     }
-    return r;
   }
   /**
-   * Convierte un string a número si es posible.
+   * Convierte un número finito a `bigint`, truncando su parte decimal. Si recibe
+   * un `bigint`, lo devuelve sin cambios.
    *
-   * @param {string | number} strNum El string numérico a convertir. Si se recibe un número, se retornará sin hacer proceso.
-   * @returns {number} Retorna el número ya convertido.
-   * @throws {Error} Lanza un error si `strNum` no es un número válido o no se puede convertir.
-   * El mensaje de error es `${strNum} is not a valid number or string-number`.
-   */
-  public stringToNumber(strNum: string | number | bigint): number {
-    //verificar que el valor sea o numérico o texto-numérico o bigint
-    if (!this.isNumber(strNum, true, true))
-      throw new Error(`${strNum} is not number or string-number valid`);
-    //especificamente bigInt no se permite su conversion aquí
-    if (typeof strNum === "bigint")
-      throw new Error(
-        `${strNum} is bigint type and is not cast process, please use \` .stringToBigint() \` method`,
-      );
-    // Si el valor ya es un número, devolverlo sin cambios
-    if (this.isNumber(strNum, false)) return strNum as any as number;
-    // Verificar si el string es demasiado grande para ser manejado como number
-    const maxLenSafeInteger = Number.MAX_SAFE_INTEGER.toString().length;
-    const strLen = (strNum as string).length;
-    if (maxLenSafeInteger < strLen)
-      throw new Error(
-        `${strNum} is too large string-number for number, please use \` .stringToBigint() \` method`,
-      );
-    //determinar si es un flotante
-    const floatNum = parseFloat(strNum as string);
-    if (!isNaN(floatNum)) return floatNum;
-    //determinar si es un entero
-    const intNum = parseInt(strNum as string, 10);
-    if (!isNaN(intNum)) return intNum;
-    //normalmente no retornaria por aqui, se deja por protocolo
-    return strNum as any as number;
-  }
-  /**
-   * Convierte un string numérico o un `bigint` a `bigint`.
-   *
-   * @param {string | bigint} strBigNum - El string numérico o `bigint` a convertir.
-   * @returns {bigint} - El valor convertido a `bigint`.
-   * @throws {Error} - Lanza un error si el valor no es un `bigint` o un string numérico válido.
+   * @param num Número o `bigint` que se desea convertir.
+   * @returns El valor convertido a `bigint`.
+   * @throws {Error} Si el valor no es un número finito ni un `bigint`.
    *
    * @example
-   * ```typescript
+   * ````typescript
    *
-   * console.log(util.stringToBigint("123")); // Salida: 123n
-   * console.log(util.stringToBigint(456n)); // Salida: 456n
-   * console.log(util.stringToBigint("abc")); // Lanza un error: "abc is not bigint or string-bigint valid"
-   * ```
+   * const util = UtilNative.getInstance();
+   * const v1 = 7;
+   * const r1 = util.numberToBigint(v1);
+   * console.log(r1); // salida: 7n
+   *
+   * const v2 = 7.9; // La parte decimal se trunca, sin redondear.
+   * const r2 = util.numberToBigint(v2);
+   * console.log(r2); // salida: 7n
+   * ````
    */
-  public stringToBigint(strBigNum: string | bigint): bigint {
-    //verificar que el valor sea o bigint o texto-bigint o bigint
-    if (!this.isBigint(strBigNum, true))
-      throw new Error(`${strBigNum} is not bigint or string-bigint valid`);
-    let r = BigInt(strBigNum);
-    return r;
-  }
-  /**
-   * Convierte un número o un string numérico a `bigint`.
-   *
-   * @param {number | string} num - El número o string numérico a convertir.
-   * @returns {bigint} - El valor convertido a `bigint`.
-   * @throws {Error} - Lanza un error si el valor no es un número o un string numérico válido.
-   *
-   * @example
-   * ```typescript
-   * const util = new UtilNative(null);
-   *
-   * console.log(util.numberToBigint(123)); // Salida: 123n
-   * console.log(util.numberToBigint("456")); // Salida: 456n
-   * console.log(util.numberToBigint("abc")); // Lanza un error: "abc is not number or string-number valid"
-   * ```
-   */
-  public numberToBigint(num: number): bigint {
-    //verificar que el valor sea o numérico o texto-numérico o bigint
-    if (!this.isNumber(num, true, true))
+  public numberToBigint(num: number | bigint): bigint {
+    //si es un bigint lo retorna sin cambios
+    if (this.isBigint(num)) return num;
+    //verificar que el valor sea o numérico
+    if (!this.isNumber(num))
       throw new Error(`${num} is not number or string-number valid`);
+    //convertir el numero a entero OBLIGATORIO
+    num = Math.trunc(num);
     let r = BigInt(num);
     return r;
   }
   /**
-   * Convierte un `bigint` a `number`.
+   * Convierte un `bigint` a `number`. Si recibe un número finito, lo devuelve
+   * sin cambios. La conversión de valores grandes puede perder precisión.
    *
-   * ⚠ **Advertencia**: Si el `bigint` es demasiado grande para ser manejado como `number`,
+   * ⚠️Si el `bigint` es demasiado grande para ser manejado como `number`,
    * la conversión puede resultar en una pérdida de precisión.
    *
-   * @param {bigint} bigNum - El `bigint` a convertir.
-   * @returns {number} - El valor convertido a `number`.
-   * @throws {Error} - Lanza un error si el valor no es un `bigint` válido.
+   * @param bigNum `bigint` o número finito que se desea convertir.
+   * @returns El valor como `number`.
+   * @throws {Error} Si el valor no es un `bigint` ni un número finito.
    *
    * @example
    * ```typescript
-   * const util = new UtilNative(null);
+   * const util = UtilNative.getInstance();
    *
    * console.log(util.bigintToNumber(123n)); // Salida: 123
    * console.log(util.bigintToNumber(BigInt(Number.MAX_SAFE_INTEGER))); // Salida: 9007199254740991
    * console.log(util.bigintToNumber(BigInt(Number.MAX_SAFE_INTEGER) + 1n)); // Salida: 9007199254740992 (con advertencia de pérdida de precisión)
    * ```
    */
-  public bigintToNumber(bigNum: bigint): number {
-    //verificar que el valor sea o bigint o texto-bigint o bigint
-    if (!this.isBigint(bigNum, true))
+  public bigintToNumber(bigNum: bigint | number): number {
+    //si es un number lo retorna sin cambios
+    if (this.isNumber(bigNum)) return bigNum;
+    //verificar que el valor sea o bigint
+    if (!this.isBigint(bigNum))
       throw new Error(`${bigNum} is not number or string-number valid`);
-    // Advertencia si el bigint es demasiado grande para ser manejado como number
+    // Advertencia: si el bigint es demasiado grande para ser manejado como number
     if (
       bigNum > BigInt(Number.MAX_SAFE_INTEGER) ||
       bigNum < BigInt(Number.MIN_SAFE_INTEGER)
@@ -718,61 +853,36 @@ export class UtilNative {
   /**
    * Invierte el signo de un número dado.
    *
-   * Este método toma un número o una cadena numérica como entrada y devuelve el mismo valor con el signo invertido.
-   * Si el número es positivo, se devuelve negativo, y si es negativo, se devuelve positivo.
-   * Si el número es `0`, se devuelve `0`.
-   * Si el valor recibido no es numérico (o cadena numérica y `allowString` es `false`), retorna ese valor sin alterar.
-   * Si `allowString` es `true` y el valor es una cadena numérica, se convierte a número antes de invertir el signo y se devuelve como cadena.
+   * Recibe un número finito y devuelve el mismo valor con el signo invertido.
+   * El cero se devuelve sin cambios. No convierte strings numéricos.
    *
-   * @param {number | string} num El número o la cadena numérica cuyo signo se va a invertir.
-   * @param {boolean} allowString `= false` Indica si se permiten cadenas numéricas como entrada.
-   * @returns {number | string} El número o la cadena con el signo invertido.
+   * @param num Número cuyo signo se desea invertir.
+   * @returns El número con el signo invertido.
+   * @throws {Error} Si el valor no es un número finito.
    *
    * @example
    * ```typescript
    * const numP = 5;
    * const numN = -10;
-   * const stringNum = "-1";
-   * const stringNotNum = "abc";
    *
-   * console.log(toggleNumberSign(numP, false)); // Salida: -5
-   * console.log(toggleNumberSign(numN, false)); // Salida: 10
-   * console.log(toggleNumberSign(0, false)); // Salida: 0
-   * console.log(toggleNumberSign(stringNum, true)); // Salida: "1"
-   * console.log(toggleNumberSign(stringNotNum, false)); // Salida: "abc"
-   * console.log(toggleNumberSign(stringNotNum, true)); // Salida: "abc"
+   * console.log(toggleNumberSign(numP)); // Salida: -5
+   * console.log(toggleNumberSign(numN)); // Salida: 10
+   * console.log(toggleNumberSign(0)); // Salida: 0
    * ```
    */
-  public toggleNumberSign(
-    num: string | number,
-    allowString?: true,
-  ): string | number;
-  public toggleNumberSign(num: number, allowString?: false): number;
-  public toggleNumberSign(
-    num: number | string,
-    allowString = false,
-  ): number | string {
-    allowString = this.convertToBoolean(allowString);
-    if (!this.isNumber(num, allowString)) num;
-    let r: number | string;
-    const isOnlyNumber = this.isNumber(num, false); //solo numero
-    if (!allowString || isOnlyNumber) r = -num;
-    else r = `${-this.stringToNumber(num)}`;
-    return r;
+  public toggleNumberSign(num: number): number {
+    if (!this.isNumber(num)) throw new Error(`${num} is not number valid`);
+    return num === 0 ? num : -num;
   }
   /**
-   * Redondea un número y ajusta los decimales. Esta implementación se basa en la documentación oficial de Mozilla:
-   * MDN Web Docs - Math.round
+   * Redondea un número en la posición decimal indicada.
    *
-   * @param {"round" | "floor" | "ceil"} type - Define el tipo de redondeo:
-   * - `"none"`: Sin redondeo.
-   * - `"round"`: Redondeo estándar (arriba si es >=5 y abajo si es <5).
-   * - `"floor"`: Redondeo hacia abajo.
-   * - `"ceil"`: Redondeo hacia arriba.
+   * @param type Tipo de redondeo: `"round"`, `"floor"` o `"ceil"`, según las
+   * funciones de `Math` correspondientes.
    *
-   * @param {number | string} num - El número a redondear. Si no es un número válido, se retorna este valor.
+   * @param num Número finito que se desea redondear.
    *
-   * @param {number} exponential - El factor exponencial a redondear. El formato es el siguiente:
+   * @param exponential Posición decimal, que debe ser un entero:
    * - Enteros Positivos:
    *   - `exp = 0`: Redondeo predefinido por la librería Math.
    *   - `exp = 1`: Redondeo en decenas.
@@ -784,6 +894,11 @@ export class UtilNative {
    *   - `exp = -2`: Redondeo en centésimas.
    *   - `exp = -3`: Redondeo en milésimas.
    *   - ...
+   *
+   * @returns El número redondeado.
+   * @throws {Error} Si `num` o `exponential` no son números válidos, o si `exponential`
+   * no es un entero.
+   *
    * @example
    * ````typescript
    * //Ejemplo básico (no hay diferencia con `Math.round()`):
@@ -803,7 +918,7 @@ export class UtilNative {
    * data = 10.163;
    * exp = -2; //centesimas
    * r = roundNumber("round", data, exp);
-   * console.log(r); //Salida 10.17
+   * console.log(r); //Salida 10.16
    * //Ejemplo redondeando milesimas (x.xx0):
    * data = 10.1639;
    * exp = -3; //milesimas
@@ -841,31 +956,29 @@ export class UtilNative {
    * data = 1.2;
    * exp = 0; //estandar
    * r = roundNumber("ceil", data, exp);
-   * console.log(r); //Salida 2 (el mas cercano a 1.6 hacia arriba)
+   * console.log(r); //Salida 2 (redondeo hacia arriba)
    * //Ejemplo redondeando decimas (hacia abajo `"ceil"`) (x.0):
    * data = 1.62;
    * exp = -1; //decimas
    * r = roundNumber("ceil", data, exp);
-   * console.log(r); //Salida 1.7 (el mas cercano a 1.62 hacia arriba)
+   * console.log(r); //Salida 1.7 (redondeo hacia arriba a décimas)
    *
    * ````
-   *
-   * @returns {number} Retorna el número redondeado si fue posible redondearlo, de lo contrario retorna el mismo número.
-   * @throws instancia `Error`, mensajes casos:
-   * - `${type} is not type valid`
-   * - `${exponential} is not exponential factor valid`
-   * - `${num} is not number or string-number valid`
    */
   public roundNumber(
     type: TRoundType,
-    num: number | string,
+    num: number,
     exponential: number,
   ): number {
-    let n = this.stringToNumber(num); //garantizar que es un numero
-    let exp = this.stringToNumber(exponential); //garantizar que es un numero
+    if (!this.isNumber(num)) throw new Error(`${num} is not valid number`);
+    if (!this.isNumber(exponential))
+      throw new Error(`${exponential} is not valid exponential number`);
     if (!this.isString(type, true))
       throw new Error(`${type} is not type valid`);
-    if (this.getNumberReport(exp).strictType !== "int")
+    let n = num;
+    let exp = exponential;
+    //se prohíben los exponentes no validos (incluyendo exponentes decimales)
+    if (!this.isIntegerNumber(exp))
       throw new Error(`${exponential} is not exponential factor valid`);
     //caso especial si es 0 (no hay forma de redondear)
     if (n === 0) return n;
@@ -884,13 +997,11 @@ export class UtilNative {
     return n;
   }
   /**
-   * Determina si un número está en el rango solicitado.
+   * Comprueba si un número está dentro de un rango con límites inclusivos o exclusivos.
    *
-   * @param {number} num El número a verificar.
-   * @param {[number, number]} range Tupla que contiene el rango definido.
-   *   - `range[0]`: Valor mínimo del rango.
-   *   - `range[1]`: Valor máximo del rango.
-   * @param {boolean} isInclusive Determina si el rango es incluyente o excluyente.
+   * @param num Número que se desea comprobar. Si no es válido, devuelve `false`.
+   * @param range Tupla `[mínimo, máximo]` con dos números válidos.
+   * @param isInclusive Si es `true`, incluye los límites; si es `false`, los excluye.
    *
    * @example
    * ```typescript
@@ -899,31 +1010,37 @@ export class UtilNative {
    * r = isNumberInRange(num, [1,5], true); // Salida: true (es incluyente)
    * r = isNumberInRange(num, [1,5], false); // Salida: false (es excluyente)
    * ```
-   * @returns {boolean} Retorna `true` si el número está dentro del rango, `false` de lo contrario.
+   * @returns `true` si el número está dentro del rango; de lo contrario, `false`.
+   * @throws {Error} Si `range` no es una tupla de dos números válidos.
    */
   public isNumberInRange(
     num: number,
     range: [number, number],
     isInclusive: boolean,
   ): boolean {
-    let r = false;
-    if (!this.isNumber(num)) return r;
-    if (!Array.isArray(range) || range.length !== 2) return r;
-    let [min, max] = range;
-    if (!this.isNumber(min) || !this.isNumber(max)) return r;
-    r = isInclusive
+    // determina si es un número al cual verificable el rango
+    if (!this.isNumber(num)) return false;
+    //❗❗NO se pude verificar con isTuple por redundancia cíclica❗❗, toca manualmente
+    if (
+      !Array.isArray(range) ||
+      range.length !== 2 ||
+      range.some((rng) => !this.isNumber(rng))
+    )
+      throw new Error(`${range} is not range tuple [number, number] valid`);
+    const [min, max] = range;
+    const r = isInclusive
       ? min <= num && num <= max // incluyente
       : min < num && num < max; //excluyente
     return r;
   }
   /**
-   * Adapta un número al rango definido.
+   * Limita un número al intervalo definido: devuelve el mínimo o el máximo cuando
+   * el número queda fuera del rango, y el propio número cuando queda dentro.
    *
-   * @param {number} num El número a adaptar al rango.
-   * @param {[number, number]} range Tupla que contiene el rango definido para adaptar el número.
-   *   - `range[0]`: Valor mínimo del rango.
-   *   - `range[1]`: Valor máximo del rango.
-   * @returns {number} Retorna el número adaptado a los límites del rango (límites incluyentes).
+   * @param num Número finito que se desea limitar.
+   * @param range Tupla `[mínimo, máximo]` de números válidos, ordenada de menor a mayor.
+   * @returns El número dentro del rango, incluidos sus límites.
+   * @throws {Error} Si `num` no es finito o `range` no es una tupla de dos números válidos.
    *
    * @example
    * ````typescript
@@ -946,39 +1063,81 @@ export class UtilNative {
    * console.log(r);// Salida: 0
    * ````
    */
-  public adaptNumberToRange(
-    num: number | string,
-    range: [number | string, number | string],
-  ): number {
-    num = this.stringToNumber(num); //garantizar que es un numero
-    if (!Array.isArray(range) || range.length != 2)
-      throw new Error(`${range} is not tuple [number, number] valid`);
-    let [min, max] = range;
-    min = this.stringToNumber(min); //garantizar que es un numero
-    max = this.stringToNumber(max); //garantizar que es un numero
+  public adaptNumberToRange(num: number, range: [number, number]): number {
+    if (!this.isNumber(num)) throw new Error(`${num} is not number valid`);
+    //si el número está en el rango no hay que realizar proceso de acoplamiento
+    if (this.isNumberInRange(num, range, true)) return num;
+    const [min, max] = range;
     if (num < min || num > max) {
       num = num < min ? min : num;
       num = num > max ? max : num;
     }
     return num;
   }
-  //████ Textos █████████████████████████████████████████████████████
   /**
-   * Determina si un valor es un string, con la opción de aceptar o no string vacíos.
+   * Obtiene un reporte básico del tipo de número.
    *
-   * @param {any} str El valor a analizar.
-   * @param {boolean} allowEmpty = `false` Determina si se permite que el string vacío sea válido.
-   * @returns {boolean} Retorna `true` si el valor es un string, `false` de lo contrario.
+   * @param {number | string} num - El número o cadena numérica a analizar.
+   * @returns {object} - Retorna un objeto con las siguientes propiedades:
+   *   - `polarity`: Indica si el número es "positive" o "negative".
+   *   - `genericType`: Indica si el valor es un "number" o un "string-number".
+   *   - `strictType`: Indica si el número es un "int", "bigInt" o "float".
    *
    * @example
    * ```typescript
-   * let a;
-   * a = "";
-   * console.log(isString(a, true)); // salida `true` (es un string válido aunque está vacío)
-   * console.log((a, false)); // salida `false` (no es un string válido porque está vacío)
-   * console.log(!isString(a)); // salida `true` permite vacios y cualquier tipo de valor menos string
-   * console.log(!isString(a, true)); // salida `false` negar vacios
-   * console.log(!isString(a, false)); // salida `true` niega el negar vacios (vacios prmitidos)
+   * let report = getTypeNumber("123");
+   * console.log(report);
+   * // Salida: { polarity: "positive", genericType: "string-number", strictType: "int" }
+   *
+   * report = getTypeNumber(-321.654);
+   * console.log(report);
+   * // Salida: { polarity: "negative", genericType: "number", strictType: "float" }
+   * ```
+   */
+  /*----------------------------------------------------------------*/
+  /*----------------------------------------------------------------*/
+  /*---- <INICIO CONSTRUCCION> -------------------------------------*/
+  /*
+  public getNumberReport(num: number): {
+    polarity: "positive" | "negative";
+    genericType: "number" | "string-number";
+    strictType: "int" | "bigInt" | "float";
+  } {
+    let r = {
+      polarity: "" as "positive" | "negative",
+      genericType: "" as "number" | "string-number",
+      strictType: "" as "int" | "bigInt" | "float",
+    };
+    let n = this.stringToNumber(num);
+    r.polarity = n < 0 ? "negative" : "positive"; //el `0` se considera positivo
+    r.genericType = this.isString(num) ? "string-number" : "number";
+    if (typeof n === "bigint") {
+      r.strictType = "bigInt";
+    } else {
+      r.strictType = !Number.isInteger(n) ? "float" : "int";
+    }
+    return r;
+  }
+*/
+
+  /*---- <FIN CONSTRUCCIÓN> ----------------------------------------*/
+  /*----------------------------------------------------------------*/
+  /*----------------------------------------------------------------*/
+  //████ Textos █████████████████████████████████████████████████████
+  /**
+   * Comprueba si un valor es un string y permite configurar si se acepta vacío.
+   *
+   * @param str Valor que se desea comprobar.
+   * @param allowEmpty `false` por defecto. Si es `true`, acepta también `""`.
+   * @returns `true` si `str` es un string permitido; de lo contrario, `false`.
+   *
+   * @example
+   * ```typescript
+   * const value = "";
+   * console.log(util.isString(value, true)); // true
+   * console.log(util.isString(value)); // false
+   * console.log(util.isString("texto")); // true
+   * console.log(util.isString(10)); // false
    * ```
    */
   public isString(str: unknown, allowEmpty = false): str is string {
@@ -987,30 +1146,382 @@ export class UtilNative {
     return r;
   }
   /**
-   * Verifica si una cadena contiene otra cadena según el tipo de coincidencia especificado.
+   * Normaliza una cadena numérica aplicando las reglas internas de formato.
    *
-   * @param {string} str - La cadena completa en la que se buscará.
-   * @param {string} strToSearch - La subcadena que se buscará dentro de `str`.
-   * @param {object} option - Opciones de configuración para la búsqueda:
-   *   - `likeType`: El tipo de coincidencia a utilizar. Puede ser `"start"` para coincidencia al inicio, `"end"` para coincidencia al final, o `"between"` para coincidencia en cualquier parte de la cadena.
-   * @returns {boolean} - Retorna `true` si se encuentra la subcadena según el tipo de coincidencia especificado, de lo contrario retorna `false`.
-   * @throws {Error} - Lanza un error si `likeType` no es válido.
+   * Elimina espacios, paréntesis y comillas simples. Por defecto, interpreta
+   * el último punto como separador decimal y elimina las comas como agrupadores.
+   * Con `isDecimalPoint: true`, usa `charDecimalPoint` como separador decimal;
+   * con `isDecimalPoint: false`, elimina puntos y comas.
+   *
+   * @param str Cadena numérica que se desea normalizar.
+   * @param formatOption Opciones de separador decimal; si se omite, usa el punto.
+   * @returns La cadena normalizada, sin convertirla a `number` ni a `bigint`.
    *
    * @example
    * ```typescript
-   * const str = "Hello, world!";
-   * const strToSearch = "Hello";
-   * const result = isStringLike(str, strToSearch, { likeType: "start" });
-   * console.log(result); // salida: true
+   * const clean = this._cleanNumericString(" (1'000,500.25) ");
+   * console.log(clean); // "1000500.25"
+   * ```
    *
-   * const result2 = isStringLike(str, "world", { likeType: "end" });
-   * console.log(result2); // salida: false , termina en "world!"
+   * @example
+   * ```typescript
+   * const clean = this._cleanNumericString("1.000.500");
+   * console.log(clean); // "1000.500"
+   * ```
+   */
+  protected _cleanNumericString(
+    str: string,
+    formatOption?: TStringToNumberFormatCleanOption,
+  ): string {
+    //reconstrucción de las opciones
+    const isDecimalPointSpecified = this.isBoolean(
+      formatOption?.isDecimalPoint,
+    );
+    formatOption = (
+      this.isObject(formatOption) ? formatOption : {}
+    ) as TStringToNumberFormatCleanOption;
+    formatOption = {
+      ...formatOption,
+      isDecimalPoint: this.isBoolean(formatOption.isDecimalPoint)
+        ? formatOption.isDecimalPoint
+        : true, //encendido predefinidamente
+      charDecimalPoint: this.isString(formatOption.charDecimalPoint)
+        ? formatOption.charDecimalPoint
+        : ".", //como caracter separador de decimales
+    } as TStringToNumberFormatCleanOption;
+    //procesar formateo:
+    let cleanStr = str.trim();
+    // 1. Quitar paréntesis (ej: "(+57)" -> "+57")
+    cleanStr = cleanStr.replace(/[()]/g, "");
+    // 2. Quitar espacios internos (ej: "1 2 3" -> "123")
+    cleanStr = cleanStr.replace(/\s+/g, "");
+    // 3. Quitar comillas simples usadas como separador de miles (ej: "1'000'000" -> "1000000")
+    cleanStr = cleanStr.replace(/'/g, "");
+    if (isDecimalPointSpecified && !formatOption.isDecimalPoint) {
+      cleanStr = cleanStr.replace(/[.,]/g, "");
+    } else {
+      const decimalSeparator = isDecimalPointSpecified
+        ? formatOption.charDecimalPoint!
+        : ".";
+      const groupingSeparator = decimalSeparator === "." ? "," : ".";
+      cleanStr = cleanStr.split(groupingSeparator).join("");
+      const lastDecimalIndex = cleanStr.lastIndexOf(decimalSeparator);
+      if (lastDecimalIndex !== -1) {
+        const integerPart = cleanStr
+          .substring(0, lastDecimalIndex)
+          .split(decimalSeparator)
+          .join("");
+        const decimalPart = cleanStr.substring(lastDecimalIndex + 1);
+        cleanStr = `${integerPart}.${decimalPart}`;
+      }
+    }
+    return cleanStr;
+  }
+  /**
+   * Comprueba si un string puede interpretarse como un número finito.
    *
-   * const result3 = isStringLike(str, "lo, wo", { likeType: "between" });
-   * console.log(result3); // salida: true
+   * Primero aplica la limpieza o el formateador indicado y luego valida la
+   * cadena completa. Acepta enteros, decimales y notación exponencial, pero no
+   * convierte el valor ni acepta strings vacíos o prefijos numéricos seguidos
+   * de texto.
    *
-   * const result4 = isStringLike(str, "test", { likeType: "between" });
-   * console.log(result4); // salida: false
+   * @param str Valor que se desea analizar.
+   * @param formatCleanOption Objeto de formato, función personalizada o `false` para omitir la limpieza. Si se omite, aplica el formato predeterminado.
+   * @returns `true` si el string normalizado representa un número finito; de lo contrario, `false`.
+   *
+   * @example
+   * ```typescript
+   * console.log(util.isStringAsNumber("abc")); // false
+   * console.log(util.isStringAsNumber(123)); // false (❗ya es un número, no puede considerarse como numeric-string❗)
+   * console.log(util.isStringAsNumber("123")); // true
+   * console.log(util.isStringAsNumber("12abc")); // false (no acepta prefijos numéricos)
+   * console.log(util.isStringAsNumber("1 2 3")); // true (aplica limpieza predeterminada)
+   * console.log(util.isStringAsNumber("1 2 3", false)); // false (no aplica formateo interno y al tener espacios no se considera numeric-string)
+   * console.log(util.isStringAsNumber(" 1'000,500.25 ")); // true (aplica formateo interno para extraer el número 1000500.25
+   * ```
+   */
+  public isStringAsNumber(
+    str: unknown,
+    formatCleanOption?:
+      | TStringToNumberFormatCleanOption
+      | ((str: string) => string)
+      | false,
+  ): str is string {
+    if (!this.isString(str, false)) return false;
+    //formatear el string antes de verificar si es posible la conversión
+    if (this.isObject(formatCleanOption, true)) {
+      str = this._cleanNumericString(
+        str,
+        formatCleanOption as TStringToNumberFormatCleanOption,
+      );
+    } else if (this.isFunction(formatCleanOption)) {
+      const fn = formatCleanOption;
+      str = fn(str);
+    } else if (formatCleanOption === false) {
+      //explícitamente no hacer nada
+    } else {
+      //con las opciones predefinidas
+      str = this._cleanNumericString(
+        str,
+        {} as TStringToNumberFormatCleanOption,
+      );
+    }
+    //ExReg exclusiva para verificacion del string numérico
+    const strictNumericRegex = /^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/;
+    if (!strictNumericRegex.test(str as string)) return false;
+    const parse = parseFloat(str as string);
+    const r = !isNaN(parse) && isFinite(parse);
+    return r;
+  }
+  /**
+   * Determina si un valor puede considerarse una cadena valida para `bigint`.
+   *
+   * El valor se limpia según `applyFormatCleanStr` y debe representar un
+   * entero; no acepta parte decimal ni notación exponencial. Configura el
+   * separador decimal para evitar que se interprete como separador de miles.
+   * Este método no convierte el valor y no acepta cadenas vacías.
+   *
+   * @param str Valor que se desea analizar.
+   * @param applyFormatCleanStr `true` aplica la limpieza predeterminada; un objeto configura el separador decimal; una función aplica una limpieza personalizada; `false` no aplica limpieza.
+   * @returns `true` si el string normalizado representa un entero válido para `bigint`; de lo contrario, `false`.
+   *
+   * @example
+   * ```typescript
+   * console.log(util.isStringAsBigInt(123n)); // false (❗ya es bigint, no puede considerarse un big-numeric-string❗)
+   * console.log(util.isStringAsBigInt(" 1'000,000 ")); // true
+   * console.log(util.isStringAsBigInt("123.45")); // false (los bigint son enteros únicamente)
+   * console.log(util.isStringAsBigInt("1.234,56", {
+   *   isDecimalPoint: true,
+   *   charDecimalPoint: ",",
+   * })); // false (rechaza el separador decimal configurado)
+   * console.log(util.isStringAsBigInt("abc")); // false
+   * ```
+   */
+  public isStringAsBigInt(
+    str: unknown,
+    applyFormatCleanStr:
+      | boolean
+      | TStringToNumberFormatCleanOption
+      | ((str: string) => string) = true,
+  ): str is string {
+    if (!this.isString(str, false)) return false;
+    //formatear el string antes de verificar si es posible la conversión
+    if (this.isFunction(applyFormatCleanStr)) {
+      str = applyFormatCleanStr(str);
+    } else if (this.isObject(applyFormatCleanStr, true)) {
+      str = this._cleanNumericString(
+        str,
+        applyFormatCleanStr as TStringToNumberFormatCleanOption,
+      );
+    } else if (this.isBoolean(applyFormatCleanStr)) {
+      if (applyFormatCleanStr) str = this._cleanNumericString(str);
+    }
+    // Solo se aceptan enteros decimales.
+    const strictIntegerRegex = /^[+-]?\d+$/;
+    if (!strictIntegerRegex.test(str as string)) return false;
+    let r: boolean;
+    try {
+      BigInt(str as string);
+      r = true;
+    } catch (error) {
+      //❗❗❗No importa el error❗❗❗
+      r = false;
+    }
+    return r;
+  }
+  /**
+   * Convierte un numeric string a número, siempre que sea posible.
+   *
+   * ⚠️Es importante tener en cuenta si el string ya tienen implementado un formateo para no usar el interno o configurar de acuerdo a las necesidades el limpiador y formateador interno⚠️
+   *
+   * @param strNum String numérico o número finito. Los números se devuelven sin cambios.
+   * @param formatCleanOption Objeto de formato, función personalizada o `false` para omitir la limpieza. Si se omite, aplica el formato predeterminado.
+   *
+   * @returns El valor convertido a `number`.
+   * @throws {Error} Si el string no es numérico, no es finito o excede el tamaño admitido para `number`.
+   *
+   * @example
+   * ```typescript
+   * const v1 = "1000000";
+   * const r1 = stringToNumber(v1); //formateo y limpieza predeterminado
+   * console.log(r1); //Salida: 1000000
+   *
+   * const v2 = "1.000.000";
+   * const r2 = stringToNumber(v2); //formateo y limpieza predeterminado
+   * console.log(r2); //⚠️Salida: 1000 //⚠️El convertidor asume que el último "." es separador de decimales
+   *
+   * const v3 = "1.000.000";
+   * const r3 = stringToNumber(v3, { isDecimalPoint: false }); //explícitamente limpiar y formatear asumiendo que es número entero
+   * console.log(r3); //Salida: 1000000
+   *
+   * const v4 = "1'000,000"; //separadores de formato humano
+   * const r4 = stringToNumber(v4); //predefinídamente solo "." es el caracter que separa decimales
+   * console.log(r4); //Salida: 1000000
+   *
+   * const v5 = "1 000 000"; //separador de formato humano " "
+   * const r5 = stringToNumber(v5);
+   * console.log(r5); //Salida: 1000000
+   *
+   * const v6 = "1.000.000.00"; //Los últimos dos ceros se asumen como decimales
+   * const r6 = stringToNumber(v6);
+   * console.log(r6); //Salida: 1000000
+   *
+   * const v7 = "1.000.000.90";
+   * const r7 = stringToNumber(v7, {isDecimalPoint: false}); //el convertidor asume que el número es totalmente entero
+   * console.log(r7); //⚠️Salida: 100000090 // los dos últimos dígitos se agregan al entero
+   *
+   * const v8 = "1.000,000";
+   * const r8 = stringToNumber(v8);
+   * console.log(r8); //⚠️Salida: 1 // los dígitos después del último "." los asume como decimales
+   *
+   * const v9 = "(+1) 8000 1213";
+   * const r9 = stringToNumber(v9);
+   * console.log(r9); //Salida: 180001213
+   *
+   * const v10 = "1'000.000,99";
+   * const r10 = stringToNumber(v10);
+   * console.log(r10); //⚠️Salida: 1000.00099 //se asume el último "." como el separador de decimales
+   *
+   * const v11 = "1'000.000,99";
+   * //caracter de separación decimal personalizado
+   * const r11 = stringToNumber(v11, {isDecimalPoint: true, charDecimalPoint: ","});
+   * console.log(r11); //Salida: 1000000.99
+   *
+   * const v12 = "1000.99";
+   * const r12 = stringToNumber(v12, false); // No se aplica limpieza interna
+   * console.log(r12); //Salida: 1000.99
+   *
+   * const v13 = "1,000.99";
+   * const fn13 = (str:string)=>{
+   *   //...aqui limpieza y formateo totalmente personalizado
+   *   return str;
+   * }
+   * const r13 = stringToNumber(v13, fn13); //función con limpieza y formateo personalizado
+   * console.log(r13); //Salida: 1000.99
+   *
+   * ```
+   */
+  public stringToNumber(
+    strNum: string | number,
+    formatCleanOption?:
+      | TStringToNumberFormatCleanOption
+      | ((str: string) => string)
+      | false,
+  ): number {
+    // Si el valor ya es un número, devolverlo sin cambios
+    if (this.isNumber(strNum)) return strNum;
+    //formatear el string antes de verificar si es posible la conversión
+    if (this.isObject(formatCleanOption, true)) {
+      strNum = this._cleanNumericString(
+        strNum,
+        formatCleanOption as TStringToNumberFormatCleanOption,
+      );
+    } else if (this.isFunction(formatCleanOption)) {
+      const fn = formatCleanOption;
+      strNum = fn(strNum);
+    } else if (formatCleanOption === false) {
+      //explícitamente no hacer nada
+    } else {
+      //con las opciones predefinidas
+      strNum = this._cleanNumericString(
+        strNum,
+        {} as TStringToNumberFormatCleanOption,
+      );
+    }
+    //verifica si es un string que se pueda convertir en número (ya no se requiere la limpieza)
+    if (!this.isStringAsNumber(strNum, false))
+      throw new Error(`${strNum} is not numeric string valid`);
+    // Verificar si el string es demasiado grande para ser manejado como number
+    const maxLenSafeInteger = Number.MAX_SAFE_INTEGER.toString().length;
+    const strLen = (strNum as string).length;
+    if (maxLenSafeInteger < strLen)
+      throw new Error(
+        `${strNum} is too large string-number for number, please use \` .stringToBigint() \` method`,
+      );
+    //determinar si es un flotante
+    const floatNum = parseFloat(strNum as string);
+    if (!isNaN(floatNum)) return floatNum;
+    //determinar si es un entero
+    const intNum = parseInt(strNum as string, 10);
+    if (!isNaN(intNum)) return intNum;
+    //!No se encontró forma de convertirlo!
+    throw new Error(`${strNum} is unknown format, don't possible conversion`);
+  }
+  /**
+   * Convierte un numeric string entero a `bigint`. Rechaza partes decimales
+   * y notación exponencial. El separador decimal puede configurarse para que
+   * los formatos con punto o coma decimal no se interpreten como agrupación.
+   *
+   * @param {string | bigint} strBigNum - El string numérico o `bigint` a convertir.
+   * @param applyFormatCleanStr `true` aplica la limpieza predeterminada; un objeto configura el separador decimal; una función aplica una limpieza personalizada; `false` no aplica limpieza.
+   *
+   * @returns {bigint} - El valor convertido a `bigint`.
+   * @throws {Error} - Lanza un error si el valor no es un `bigint` o un string numérico válido.
+   *
+   * @example
+   * ```typescript
+   * const v1 = "98765432109876543210";
+   * const r1 = stringToBigint(v1); //formateo y limpieza predeterminado
+   * console.log(r1); //Salida: 98765432109876543210n
+   *
+   * const v2 = "9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0";
+   * const r2 = stringToBigint(v2); //formateo y limpieza predeterminado
+   * console.log(r2); //Salida: 98765432109876543210n
+   *
+   * const v3 = "98,765,432,109,876,543,210";
+   * const r3 = stringToBigint(v3); //formateo y limpieza predeterminado
+   * console.log(r3); //Salida: 98765432109876543210n
+   *
+   * const v4 = "9876543210.9876543210";
+   * const r4 = stringToBigint(v4); //formateo y limpieza predeterminado
+   * console.log(r4); //Lanza error, no se permite decimales
+   *
+   * ```
+   */
+  public stringToBigint(
+    strBigNum: string | bigint,
+    applyFormatCleanStr:
+      | boolean
+      | TStringToNumberFormatCleanOption
+      | ((str: string) => string) = true,
+  ): bigint {
+    //si el valor ya es bigint lo retorna sin cambios
+    if (this.isBigint(strBigNum)) return strBigNum;
+    //formatear el string antes de verificar si es posible la conversión
+    if (this.isFunction(applyFormatCleanStr)) {
+      strBigNum = applyFormatCleanStr(strBigNum);
+    } else if (this.isObject(applyFormatCleanStr, true)) {
+      strBigNum = this._cleanNumericString(
+        strBigNum,
+        applyFormatCleanStr as TStringToNumberFormatCleanOption,
+      );
+    } else if (this.isBoolean(applyFormatCleanStr)) {
+      if (applyFormatCleanStr) strBigNum = this._cleanNumericString(strBigNum);
+    }
+    if (!this.isStringAsBigInt(strBigNum, false))
+      throw new Error(`${strBigNum} is not big numeric string valid`);
+    return BigInt(strBigNum);
+  }
+  /**
+   * Comprueba si un string coincide literalmente con otro al inicio, al final
+   * o en cualquier posición.
+   *
+   * @param str String donde se desea buscar.
+   * @param strToSearch Texto literal que se desea encontrar; no se interpreta como expresión regular.
+   * @param option Define `likeType`: `"start"`, `"end"` o `"between"`.
+   * @returns `true` si coincide con el tipo solicitado; de lo contrario, `false`.
+   * @throws {Error} Si `likeType` no es válido.
+   *
+   * @example
+   * ```typescript
+   * const text = "Hello, world!";
+   * console.log(util.isStringLike(text, "Hello", { likeType: "start" })); // true
+   *
+   * console.log(util.isStringLike(text, "world", { likeType: "end" })); // false
+   *
+   * console.log(util.isStringLike(text, "lo, wo", { likeType: "between" })); // true
+   *
+   * console.log(util.isStringLike("a.b", ".", { likeType: "between" })); // true
    * ```
    */
   public isStringLike(
@@ -1035,30 +1546,23 @@ export class UtilNative {
       };
     }
     const { likeType } = option;
-    let re: RegExp;
-    if (likeType === "start") {
-      re = new RegExp(`^${strToSearch}`);
-    } else if (likeType === "end") {
-      re = new RegExp(`${strToSearch}$`);
-    } else if (likeType === "between") {
-      re = new RegExp(`${strToSearch}`);
-    } else {
+    if (likeType !== "start" && likeType !== "end" && likeType !== "between") {
       throw new Error(`${likeType} is not like-type valid`);
     }
-    r = re.test(str);
+    r =
+      likeType === "start"
+        ? str.startsWith(strToSearch)
+        : likeType === "end"
+          ? str.endsWith(strToSearch)
+          : str.includes(strToSearch);
     return r;
   }
   /**
-   * Convierte un string a un formato de *case* utilizado en programación para nombrar variables, métodos, clases, interfaces u objetos.
+   * Convierte un string a uno de los formatos de nomenclatura habituales en programación.
    *
-   * @param {string} str El string a convertir.
-   * @param {TStrCase} caseType El tipo de case a convertir. Las opciones son:
-   *   - "Snake": snake_case
-   *   - "Kebab": kebab-case
-   *   - "Camel": camelCase
-   *   - "Pascal": PascalCase
-   * @returns {string} Retorna el string convertido al tipo de case deseado
-   * (si no es un string se retorna ese valor sin modificacion).
+   * @param str String que se desea convertir.
+   * @param caseType Formato destino: `"Snake"`, `"Kebab"`, `"Camel"`, `"Pascal"`, `"Constant"` o `"Dot"`.
+   * @returns El string con el formato solicitado. Si `str` no es un string no vacío, lo devuelve sin cambios.
    *
    * @example
    * ```typescript
@@ -1073,6 +1577,10 @@ export class UtilNative {
    * console.log(r); // salida "holaComoEstas"
    * r = convertStringToCase(a, "Pascal");
    * console.log(r); // salida "HolaComoEstas"
+   * r = convertStringToCase(a, "Constant");
+   * console.log(r); // salida "HOLA_COMO_ESTAS"
+   * r = convertStringToCase(a, "Dot");
+   * console.log(r); // salida "hola.como.estas"
    * ```
    */
   public convertStringToCase(str: string, caseType: TStrCase): string {
@@ -1089,13 +1597,10 @@ export class UtilNative {
       str = str.replace(reOtherCase, sp); //reemplaza todos los caracteres de otros case
       const reUpper = /([A-ZÑ])/g;
       str = str.replace(reUpper, (char) => `${sp}${char.toLocaleLowerCase()}`); //reemplaza mayusculas por minusculas y antepone el `sp`
-      const reDeleteDuplicate = new RegExp(`(${sp})\\1+`, "g");
-      str = str.replace(reDeleteDuplicate, "$1"); //reemplaza (elimina) los caracteres `sp` repetidos consecutivamente
-      const reInit = new RegExp(`^${sp}`);
-      str = str.replace(reInit, ""); //reemplaza si inicia con el caracter `sp`
-      const reEnd = new RegExp(`${sp}$`);
-      str = str.replace(reEnd, ""); //reemplaza si finaliza con el caracter `sp`
-      return str;
+      return str
+        .split(sp)
+        .filter((word) => word !== "")
+        .join(sp);
     };
     //adapta caso especiales de camel y Pascal
     const adaptCasesWithoutSeparateChart = (
@@ -1177,20 +1682,21 @@ export class UtilNative {
     }
   }
   /**
-   * Permite capitalizar una palabra (la primera letra en mayúscula).
+   * Convierte a mayúscula la primera letra de un string y conserva el resto.
    *
-   * ⚠ Importante:
-   * Debe ser una palabra, si es una frase solo capitaliza la primera palabra.
+   * Si recibe una frase, solo cambia la primera letra. Un string vacío se
+   * devuelve vacío; un valor que no sea string produce un error.
    *
-   * @param {string} word La palabra a transformar.
-   * @returns {string} Retorna la palabra ya transformada con la primera letra en mayúscula,
-   * si la `word` no es un string valido es retornado sin modificaciones.
+   * @param word String que se desea capitalizar.
+   * @returns El string con su primera letra en mayúscula.
+   * @throws {Error} Si `word` no es un string.
    *
    * @example
    * ````typescript
-   * const txt = "hola mundo"
+   * const txt = "hola mundo";
    * const r = capitalizeString(txt);
    * console.log(r); // "Hola mundo"
+   * console.log(capitalizeString("")); // ""
    * ````
    */
   public capitalizeString(word: string): string {
@@ -1201,19 +1707,17 @@ export class UtilNative {
     return r;
   }
   /**
-   * construye un string path genérico a partir de un array de strings
+   * Construye una ruta a partir de segmentos de string, omitiendo los vacíos
+   * y recortando separadores repetidos al inicio y al final de cada segmento.
    *
-   * @param {string[]} aKeys - El array de strings que se utilizará para construir el path.
-   * @param {object} [option] - Opciones para personalizar la construcción del path:
-   *  - `charSeparator` (string) `= "."`: El carácter separador a utilizar entre los elementos del path.
-   *  - `pathInit` (string) `= ""`: El prefijo a añadir al inicio del path.
-   *  - `pathEnd` (string) `= ""`: El sufijo a añadir al final del path.
-   *  - `isStartWithSeparator` (boolean) `= false` Determina si el path debe iniciar con el caracter separador.
-   *  - `isStartWithSeparator` (boolean) `= false` Determina si el path debe iniciar con el caracter separador.
-   *  - `isInitWithSeparator` (boolean) `= false`: Determina si el `pathInit` debe unirse al path con caracter separador.
-   *  - `isEndtWithSeparator` (boolean) `= false` : Determina si el `pathEnd` debe unirse al path con caracter separador.
-   * @returns el string del path ya construido
-   * @throws {Error} - Lanza un error si `aKeys` no es un array válido de strings.
+   * @param aKeys Segmentos de la ruta; se permite un array vacío.
+   * @param option Opciones de construcción:
+   *   - `charSeparator`: separador entre segmentos; por defecto `charSeparatorLogicPath`.
+   *   - `pathInit` y `pathEnd`: prefijo y sufijo opcionales (`string` o `number`).
+   *   - `isStartWithSeparator` y `isFinishWithSeparator`: agregan separador al inicio o al final.
+   *   - `isJoinInitWithSeparator` y `isJoinEndtWithSeparator`: unen el prefijo o sufijo con el separador.
+   * @returns La ruta construida.
+   * @throws {Error} Si `aKeys` no es un array de strings.
    *
    * @example
    * ```typescript
@@ -1262,8 +1766,7 @@ export class UtilNative {
     },
   ): string {
     if (
-      !this.isValueType(aKeys, [["string"]], {
-        allowArrayEmpty: true,
+      !this.isValueType(aKeys, [["string"], []], {
         allowStringEmpty: true,
       })
     ) {
@@ -1308,16 +1811,13 @@ export class UtilNative {
     } = op;
     // Escapar el separador si es un carácter especial en regex
     const eSp = sp.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const re = new RegExp(`^${eSp}+|${eSp}+$`, "g");
+    const re = new RegExp(`^(?:${eSp})+|(?:${eSp})+$`, "g");
     let aKeys_clon = [...aKeys]; //clonacion sencilla
     //reducir:
-    let path = aKeys_clon.reduce((prePath, cKey, idx) => {
+    let path = aKeys_clon.reduce((prePath, cKey) => {
       const keyCC = cKey.replace(re, "");
-      let r = prePath;
-      if (keyCC !== "") {
-        r = idx !== 0 ? `${prePath}${sp}${keyCC}` : `${prePath}${keyCC}`;
-      }
-      return r;
+      if (keyCC === "") return prePath;
+      return prePath === "" ? keyCC : `${prePath}${sp}${keyCC}`;
     }, "");
     //formateo adicional:
     // Agregar prefijo y sufijo (eliminando separadores duplicados)
@@ -1339,21 +1839,23 @@ export class UtilNative {
     return path;
   }
   /**
-   * Valida si un una ruta (path) (o un array de paths) está construido correctamente.
+   * Comprueba si una ruta o una lista de rutas está correctamente construida.
    *
-   * Un path válido no debe comenzar ni terminar con el separador,
-   * no debe contener separadores consecutivos, y cada segmento debe ser una cadena no vacía.
+   * Cada ruta debe tener segmentos no vacíos y no puede comenzar ni terminar
+   * con el separador ni contener separadores consecutivos.
    *
-   * @param {string | string[]} keyOrKeysPath path o array de paths a validar
-   * @param {string} separator `= this.charSeparatorLogicPath` El separador utilizado en el `keyPath` (por defecto es ".").
-   * @returns {boolean} Retorna `true` si el `keyPath` es válido, `false` de lo contrario.
+   * @param keyOrKeysPath Ruta o lista de rutas que se desea validar.
+   * @param separator Separador usado en las rutas; por defecto es `charSeparatorLogicPath`.
+   * @returns `true` si todas las rutas son válidas; de lo contrario, `false`.
+   * @throws {Error} Si `separator` es vacío o no es un string.
    *
    * @example
    * ```typescript
-   * _validateKeyPath("prop1.prop2.propN"); // true
-   * _validateKeyPath(".prop1..prop2"); // false
-   * _validateKeyPath(["prop1.prop2", "prop3.prop4"]); // true
-   * _validateKeyPath(["prop1.prop2", ".prop3..prop4"]); // false
+   * util.isKeyPath("prop1.prop2.propN"); // true
+   * util.isKeyPath(".prop1..prop2"); // false
+   * util.isKeyPath(["prop1.prop2", "prop3.prop4"]); // true
+   * util.isKeyPath(["prop1.prop2", ".prop3..prop4"]); // false
+   * util.isKeyPath("prop1::prop2", "::"); // true
    * ```
    */
   public isKeyPath(
@@ -1380,27 +1882,23 @@ export class UtilNative {
   }
   //████ Objetos ████████████████████████████████████████████████████
   /**
-   * Determina si el valor recibido corresponde a un objeto.
+   * Comprueba si el valor es un objeto no nulo y no es un array.
    *
-   * @param {any} value El valor a analizar.
-   * @param {boolean} allowEmpty = `false`, determina si se permite que el objeto esté vacio `{}`
-   * @returns {boolean} Retorna `true` si es un objeto, de lo contrario retorna `false`.
+   * Por defecto, también requiere que tenga al menos una propiedad propia,
+   * enumerable o no enumerable. Con `allowEmpty: true` acepta objetos vacíos.
+   * Las instancias también cuentan como objetos si tienen propiedades propias.
+   *
+   * @param value Valor que se desea comprobar.
+   * @param allowEmpty `false` por defecto. Si es `true`, permite objetos sin propiedades propias.
+   * @returns `true` si cumple el criterio; de lo contrario, `false`.
    *
    * @example
    * ```typescript
-   * let a;
-   *
-   * //objeto vacio
-   * a = {};
-   * console.log(isObject(a, true)); // salida `true` (es un objeto válido aunque esté vacío)
-   * console.log(isObject(a, false)); // salida `false` (NO es un objeto válido porque está vacío)
-   * console.log(!isObject(a)); // salida `true` permite vacíos y cualquier tipo de valor menos object
-   * console.log(!isObject(a, true)); // salida `false` niega vacíos
-   * console.log(!isObject(a, false)); // salida `true` niega negar vacíos (vacíos aprobados)
-   *
-   * //ejemplo array:
-   * a = [];
-   * console.log(isObject(a)); // salida `false` (un array (vacío o poblado) no lo considera objeto literal)
+   * console.log(util.isObject({ value: 1 })); // true
+   * console.log(util.isObject({})); // false
+   * console.log(util.isObject({}, true)); // true
+   * console.log(util.isObject([], true)); // false
+   * console.log(util.isObject(null, true)); // false
    * ```
    */
   public isObject(
@@ -1418,17 +1916,20 @@ export class UtilNative {
     return Object.getOwnPropertyNames(value).length > 0;
   }
   /**
-   * Obtiene un array con todos los paths (rutas) de las propiedades de un objeto, incluyendo propiedades anidadas.
+   * Obtiene las rutas de las propiedades propias enumerables de un objeto,
+   * incluyendo propiedades anidadas y los índices de arrays. Devuelve primero
+   * cada ruta padre y recorre sus descendientes antes de pasar al siguiente
+   * hermano. Las referencias cíclicas se omiten mientras están en el recorrido.
    *
    * @param {TObj} obj - El objeto del cual se obtendrán los paths de las propiedades.
    * @param {object} [option] - Opciones para personalizar la obtención de paths:
-   *   - `charSeparator` (string) `= "."`: El carácter separador a utilizar entre los elementos del path.
-   *   - `includeFunctionProps` (boolean) `= true`: Determina si se incluyen las propiedades de tipo función en los paths.
-   *   - `includePrivateProps` (boolean) `= true`: Determina si se incluyen las propiedades consideradas privadas (que tienen prefijo "_") en los paths.
+   *   - `charSeparator`: separador de segmentos; por defecto `charSeparatorLogicPath`.
+   *   - `includeFunctionProps`: incluye propiedades función; por defecto `true`.
+   *   - `includePrivateProps`: incluye claves que comienzan con `_`; por defecto `true`.
    *
-   * @returns {string[]} - Retorna un array de strings, donde cada string es un path que representa la ruta completa hasta una propiedad del objeto.
+   * @returns Un array de rutas. Solo recorre claves propias enumerables de tipo string; omite símbolos y propiedades no enumerables.
    *
-   * @throws {Error} - Lanza un error si `obj` no es un objeto válido.
+   * @throws {Error} Si `obj` no es un objeto no vacío.
    *
    * @example
    * ```typescript
@@ -1457,12 +1958,15 @@ export class UtilNative {
    * //   "a.b.c",
    * //   "a.b.d",
    * //   "a.e",
+   * //   "a.e.0",
+   * //   "a.e.1",
+   * //   "a.e.2",
    * //   "f",
    * //   "_privateProp",
    * //   "g"
    * // ]
    *
-   * // Obtener todos los paths (excluyendo funciones y propiedades privadas)
+   * // Obtener todas las rutas (excluyendo funciones y claves privadas, también anidadas)
    * const paths2 = util.getPropertyPathsOfObject(obj, {
    *   includeFunctionProps: false,
    *   includePrivateProps: false,
@@ -1475,6 +1979,9 @@ export class UtilNative {
    * //   "a.b.c",
    * //   "a.b.d",
    * //   "a.e",
+   * //   "a.e.0",
+   * //   "a.e.1",
+   * //   "a.e.2",
    * //   "f"
    * // ]
    *
@@ -1490,6 +1997,9 @@ export class UtilNative {
    * //   "a/b/c",
    * //   "a/b/d",
    * //   "a/e",
+   * //   "a/e/0",
+   * //   "a/e/1",
+   * //   "a/e/2",
    * //   "f",
    * //   "_privateProp",
    * //   "g"
@@ -1526,88 +2036,85 @@ export class UtilNative {
     };
     const { charSeparator, includeFunctionProps, includePrivateProps } = op;
     const paths: string[] = [];
-    const stack: Array<{ obj: any; currentPath: string }> = [];
-    // Inicializar la pila con el objeto base
-    stack.push({ obj, currentPath: "" });
+    type TPathTraversalTask =
+      | { type: "visit"; value: object; path: string }
+      | { type: "emit"; path: string }
+      | { type: "leave"; value: object };
+    const stack: TPathTraversalTask[] = [
+      { type: "visit", value: obj, path: "" },
+    ];
+    const activeObjects = new WeakSet<object>();
     while (stack.length > 0) {
-      const { obj: currentObj, currentPath } = stack.pop()!;
-      // Obtener todas las claves del objeto (incluyendo Symbols si está habilitado)
-      const keys = Object.keys(currentObj);
-      for (const key of keys) {
-        const value = currentObj[key];
-        const newPath = currentPath
-          ? `${currentPath}${charSeparator}${key.toString()}`
-          : key.toString();
-        // Si el valor es un objeto y no es null, lo agregamos a la pila para seguir recorriendo
-        if (this.isObject(value, true)) {
-          stack.push({ obj: value, currentPath: newPath });
-        } else if (this.isArray(value)) {
-          (value as any[]).forEach((item, index) => {
-            const arrayPath = `${newPath}${charSeparator}${index}`;
-            if (this.isObject(item, true)) {
-              stack.push({ obj: item, currentPath: arrayPath });
-            }
-            if (this.isFunction(item) && !includeFunctionProps) return;
-            if (key.startsWith("_") && !includePrivateProps) return;
-            paths.push(arrayPath);
-          });
+      const task = stack.pop()!;
+      if (task.type === "emit") {
+        paths.push(task.path);
+        continue;
+      }
+      if (task.type === "leave") {
+        activeObjects.delete(task.value);
+        continue;
+      }
+      if (activeObjects.has(task.value)) continue;
+      activeObjects.add(task.value);
+      stack.push({ type: "leave", value: task.value });
+
+      if (Array.isArray(task.value)) {
+        for (let index = task.value.length - 1; index >= 0; index--) {
+          const item = task.value[index];
+          if (!includeFunctionProps && this.isFunction(item)) continue;
+          const itemPath = `${task.path}${charSeparator}${index}`;
+          if (
+            (this.isObject(item, true) || Array.isArray(item)) &&
+            typeof item === "object" &&
+            item !== null
+          ) {
+            stack.push({ type: "visit", value: item, path: itemPath });
+          }
+          stack.push({ type: "emit", path: itemPath });
         }
-        //restricciones:
-        if (this.isFunction(value) && !includeFunctionProps) continue;
-        if (key.startsWith("_") && !includePrivateProps) continue;
-        // Agregar el path actual al array de paths
-        paths.push(newPath);
+        continue;
+      }
+
+      const currentObj = task.value as Record<string, any>;
+      const keys = Object.keys(currentObj);
+      for (let index = keys.length - 1; index >= 0; index--) {
+        const key = keys[index];
+        const value = currentObj[key];
+        if (!includeFunctionProps && this.isFunction(value)) continue;
+        if (!includePrivateProps && key.startsWith("_")) continue;
+        const path = task.path ? `${task.path}${charSeparator}${key}` : key;
+        if (
+          (this.isObject(value, true) || Array.isArray(value)) &&
+          typeof value === "object" &&
+          value !== null
+        ) {
+          stack.push({ type: "visit", value, path });
+        }
+        stack.push({ type: "emit", path });
       }
     }
     return paths;
   }
   /**
-   * Verifica si un valor es un objeto y si determinadas propiedades cumplen una condición específica.
+   * Comprueba claves del primer nivel; no interpreta rutas profundas y no acepta
+   * arrays como objeto principal. Todas las claves solicitadas deben cumplir
+   * `propCondition`. La comprobación `"it-exist"` usa `in`, por lo que también
+   * considera propiedades heredadas.
    *
-   * ⚠ Solo verifica propiedades del primer nivel del objeto.
-   *
-   * ⚠ **No** reconoce arrays, solo objetos.
-   *
-   * @param {TObj} obj El objeto a verificar.
-   * @param {keyof TObj | Array<keyof TObj>} keyOrKeys Las claves identificadoras de las propiedades a verificar (❕No deben ser rutas, solo claves de las propiedades de primer nivel❕).
-   * @param {object} [option] Objeto de opciones para configurar la verificación con las siguientes propiedades:
-   *  - `charSeparator = "is-not-undefined-and-not-null"` Determina la condición que debe cumplir cada propiedad referenciada en `keyOrKeys`
-   * @returns {boolean} Retorna `true` si es un objeto y las propiedades cumplen la condición, `false` de lo contrario.
+   * @param obj Objeto cuyas propiedades se comprueban.
+   * @param keyOrKeys Clave no vacía, lista de claves no vacías o lista vacía. Si la lista está vacía, solo valida el objeto.
+   * @param option `propCondition` (`"it-exist"`, `"is-not-undefined"`, `"is-not-null"` o `"is-not-undefined-and-not-null"`); `allowEmpty` permite `{}`.
+   * @returns `true` si el objeto y todas las claves cumplen; de lo contrario, `false`.
+   * @throws {Error} Si `keyOrKeys` no es una clave string o una lista de strings.
    *
    * @example
    * ```typescript
-   * let obj;
-   * let r;
-   *
-   * // Ejemplo básico (evalúa como `isObject()`):
-   * obj = { p1: "hola", p2: 31 };
-   * r = util.isObjectWithProperties(obj);
-   * console.log(r); // Salida: `true`, es un objeto
-   *
-   * // Ejemplo verificando propiedad (no undefined y no null):
-   * obj = { p1: "hola", p2: 31 };
-   * r = util.isObjectWithProperties(obj, ["p1"], { propCondition: "is-not-undefined-and-not-null" });
-   * console.log(r); // Salida: `true`, es un objeto y `p1` no es undefined o null
-   *
-   * // Ejemplo verificando propiedad (es undefined o es null):
-   * obj = { p1: "hola", p2: 31 };
-   * r = util.isObjectWithProperties(obj, ["p3"], { propCondition: "is-not-undefined-and-not-null" });
-   * console.log(r); // Salida: `false`, es un objeto pero `p3` es undefined
-   *
-   * // Ejemplo diferencias de comprobación ("it-exist"):
-   * obj = { p1: "hola", p2: 31, p3: undefined };
-   * r = util.isObjectWithProperties(obj, ["p3"], { propCondition: "it-exist" });
-   * console.log(r); // Salida: `true`, es un objeto y `p3` existe (a pesar de tener asignado undefined)
-   *
-   * // Ejemplo diferencias de comprobación ("is-not-undefined"):
-   * obj = { p1: "hola", p2: 31, p3: undefined };
-   * r = util.isObjectWithProperties(obj, ["p3"], { propCondition: "is-not-undefined" });
-   * console.log(r); // Salida: `false`, es un objeto y `p3` tiene asignado undefined
-   *
-   * // Ejemplo comprobación profunda (NO habilitada):
-   * obj = { p1: "hola", p2: { p21: 3 } };
-   * r = util.isObjectWithProperties(obj, ["p2.p21"], { propCondition: "is-not-undefined-and-not-null" });
-   * console.log(r); // Salida: `false`, 🚫 NO está habilitada la verificación profunda, usar el método isObjectWithDeepProperties()
+   * const obj = { present: undefined, empty: null, nested: { value: 1 } };
+   * util.isObjectWithProperties(obj, "present", { propCondition: "it-exist" }); // true
+   * util.isObjectWithProperties(obj, "present", { propCondition: "is-not-undefined" }); // false
+   * util.isObjectWithProperties(obj, "empty", { propCondition: "is-not-null" }); // false
+   * util.isObjectWithProperties(obj, "nested.value"); // false: no busca rutas
+   * util.isObjectWithProperties({}, [], { allowEmpty: true }); // true
    * ```
    */
   public isObjectWithProperties<TObj extends object>(
@@ -1630,6 +2137,11 @@ export class UtilNative {
       !this.isArray(keyOrKeys, true) //❗Obligario permitir array vacio❗
     )
       throw new Error(`${keyOrKeys as any} is not key or keys valid`);
+    if (
+      Array.isArray(keyOrKeys) &&
+      !keyOrKeys.every((key) => this.isString(key))
+    )
+      throw new Error(`${keyOrKeys as any} is not key or keys valid`);
     //constructor de opciones
     let op = (this.isObject(option, true) ? option : {}) as Required<
       NonNullable<typeof option>
@@ -1646,10 +2158,10 @@ export class UtilNative {
       allowEmpty: this.isBoolean(op.allowEmpty) ? op.allowEmpty : false,
     };
     const { propCondition, allowEmpty } = op;
-    let keys = this.castArrayByConditionType(keyOrKeys, "string", []);
-    keys = [...new Set(keys)]; //eliminacion de repetidos sencilla
     //validación del objeto vacio
     if (!this.isObject(obj, allowEmpty)) return false;
+    let keys = this.castArrayByConditionType(keyOrKeys, "string", []);
+    keys = [...new Set(keys)]; //eliminacion de repetidos sencilla
     let r = false;
     if (keys.length > 0) {
       r = keys.every((key) => {
@@ -1734,34 +2246,6 @@ export class UtilNative {
         | "is-not-undefined-and-not-null";
       /**`= "."` El carácter separador a utilizar entre los elementos del path. */
       charSeparator?: string;
-      /**`= "#"` El carácter comodín para las rutas con profundidad en array
-       * y no se conoce el indice donde la continuación de las sub propiedades.
-       *
-       * @example
-       * ````
-       * const util = util.getInstance();
-       * const obj = {
-       *  a:{
-       *    b:[ //b es un array de sub objetos que pueden contener la propiedad c
-       *      {d: "d1"},
-       *      {e: "e2"},
-       *      {c: "c1"},
-       *      2,
-       *      "lo que sea"
-       *    ]
-       *  }
-       * };
-       * const keyPath = "a.b.#.c";//al ser b array entonces "#" indica que puede ser
-       *                          //cualquier indice de elemento de ese array que cumpla la condición
-       * util.isObjectWithDeepProperties(
-       *  obj,
-       *  false,
-       *  keyPath
-       * ); // retorna true, al menos un elemento de b es objeto y tiene la propiedad c.
-       *
-       * ````
-       */
-      charWildcard?: string;
       /**`= false`, Determina si se permite que un objeto vacío sea válido. */
       allowEmpty?: boolean;
     },
@@ -1790,12 +2274,13 @@ export class UtilNative {
       charSeparator: this.isString(op.charSeparator)
         ? op.charSeparator
         : this.charSeparatorLogicPath,
-      charWildcard: this.isString(op.charWildcard)
-        ? op.charWildcard
-        : this.charWildcardArrayItem,
       allowEmpty: this.isBoolean(op.allowEmpty) ? op.allowEmpty : false,
     };
-    const { propCondition, allowEmpty, charSeparator, charWildcard } = op;
+    const { propCondition, allowEmpty, charSeparator } = op;
+    //caracter especial para representar cualquier index
+    const charWildcardForIndex = "#";
+    //caracter especial para representar el multiplicador de niveles
+    const charWildcardForMultiply = "*";
     // Convertir keyOrKeysPath a un array de rutas
     let keysPath = this.castArrayByConditionType(keyOrKeysPath, "string", []);
     // Eliminar duplicados
@@ -1809,26 +2294,57 @@ export class UtilNative {
       // Recorrer la ruta de claves
       for (let idx = 0; idx < keys.length; idx++) {
         const key = keys[idx];
-        // Si es un comodín, verificar todos los elementos del array
-        if (key === charWildcard) {
-          // Si no es un array, no se puede aplicar el comodín
+        if (key === charWildcardForIndex) {
           if (!Array.isArray(currentObj)) return false;
-          // Verificar cada elemento del array
           for (const element of currentObj) {
             const remainingPath = keys.slice(idx + 1).join(charSeparator);
             if (
               this.isObjectWithDeepProperties(element, remainingPath, { ...op })
             ) {
-              return true; // Al menos un elemento cumple la condición
+              return true;
             }
           }
-          return false; // Ningún elemento cumple la condición
+          return false;
+        }
+        // Si es comodín multiplicador "*" o "*N"
+        if (key.startsWith(charWildcardForMultiply)) {
+          const num = parseInt(key.substring(1));
+          const depth = isNaN(num) || num < 1 ? 1 : num;
+          const remainingPath = keys.slice(idx + 1).join(charSeparator);
+
+          // Función recursiva interna para explorar subniveles de objetos o arrays
+          const searchInDepth = (curr: any, currentDepth: number): boolean => {
+            if (this.isUndefinedOrNull(curr)) return false;
+            if (currentDepth === depth) {
+              if (!remainingPath) return true;
+              return this.isObjectWithDeepProperties(curr, remainingPath, {
+                ...op,
+              });
+            }
+            if (Array.isArray(curr)) {
+              return curr.some((item) => searchInDepth(item, currentDepth + 1));
+            }
+            if (this.isObject(curr, true)) {
+              return Object.values(curr).some((val) =>
+                searchInDepth(val, currentDepth + 1),
+              );
+            }
+            return false;
+          };
+
+          return searchInDepth(currentObj, 0);
         }
         // Verificar si la clave existe en el objeto actual
+        const isArray = Array.isArray(currentObj);
+        const isArrayIndex =
+          isArray &&
+          /^(0|[1-9]\d*)$/.test(key) &&
+          Number(key) < currentObj.length &&
+          Object.prototype.hasOwnProperty.call(currentObj, key);
         if (
           this.isUndefinedOrNull(currentObj) ||
-          !this.isObject(currentObj, true) ||
-          !(key in currentObj)
+          (!isArray && !this.isObject(currentObj, true)) ||
+          (isArray ? !isArrayIndex : !(key in currentObj))
         )
           return false; // La ruta no existe
         // Verificar la condición de la propiedad
@@ -1856,12 +2372,12 @@ export class UtilNative {
     return true; // Todas las rutas son válidas
   }
   /**
-   * Determina si un objeto es literal (no es instanciado o fue creado por medio de `new`).
+   * Comprueba si el valor es un objeto literal por su prototipo. Acepta objetos
+   * con prototipo `Object.prototype` o `null`, incluidos los objetos vacíos.
+   * No considera literales los arrays ni los objetos con otros prototipos.
    *
-   * ⚠ se asume incluso si el objeto es vacio ⚠
-   *
-   * @param {any} obj El objeto a analizar.
-   * @returns {boolean} Retorna `true` si el objeto es literal, de lo contrario retorna `false`.
+   * @param obj Valor que se desea comprobar.
+   * @returns `true` si es un objeto literal; de lo contrario, `false`.
    *
    * @example
    * ```typescript
@@ -1892,17 +2408,17 @@ export class UtilNative {
   public isLiteralObject(obj: unknown) {
     // Verificar si es un objeto (incluyendo objetos vacíos)
     if (!this.isObject(obj, true)) return false;
-    // Verificar que no sea una instancia creada con `new`
-    if (obj.constructor && obj.constructor !== Object) return false;
     // Verificar que el prototipo sea el prototipo base de Object
     const proto = Object.getPrototypeOf(obj);
     return proto === Object.prototype || this.isNull(proto);
   }
   /**
-   * Determina si un objeto es instanciado o fue creado por medio de `new`.
+   * Comprueba si un objeto tiene un prototipo cuyo constructor es una función
+   * distinta de `Object`. Los objetos con prototipo `Object.prototype` o `null`
+   * y los arrays no se consideran instancias.
    *
-   * @param {any} obj El objeto a analizar.
-   * @returns {boolean} Retorna `true` si el objeto es una instancia, de lo contrario retorna `false`.
+   * @param obj Valor que se desea comprobar.
+   * @returns `true` si cumple el criterio de instancia; de lo contrario, `false`.
    *
    * @example
    * ```typescript
@@ -1933,15 +2449,15 @@ export class UtilNative {
    */
   public isInstance(obj: unknown) {
     if (!this.isObject(obj, true)) return false;
-    if (obj.constructor && obj.constructor !== Object) return true;
-    return false;
+    const constructor = Object.getPrototypeOf(obj)?.constructor;
+    return typeof constructor === "function" && constructor !== Object;
   }
   /**
-   * Obtiene el nombre de la clase de la instancia recibida.
+   * Obtiene el nombre del constructor de una instancia.
    *
-   * @param {object} instance - La instancia de la cual se desea obtener el nombre.
-   * @returns {string} - Retorna el nombre de la instancia a la que corresponde el objeto o `undefined` si no fue posible obtener el nombre (porque no es un objeto, o es un objeto literal o anónimo).
-   * @throws {Error} - Lanza un error si la instancia no es una instancia de una clase.
+   * @param instance Instancia cuyo constructor se consulta.
+   * @returns El nombre del constructor.
+   * @throws {Error} Si `instance` no cumple el criterio de `isInstance`.
    *
    * @example
    * ```typescript
@@ -1954,19 +2470,21 @@ export class UtilNative {
   public getClassName<TInst extends object>(instance: TInst): string {
     if (!this.isInstance(instance))
       throw new Error(`${instance} is not instance of class`);
-    let name = instance.constructor.name;
+    const name = Object.getPrototypeOf(instance).constructor.name;
     return name;
   }
   /**
-   * Convierte las claves identificadoras de un objeto literal a un formato específico (snakeCase, kebabCase, camelCase o pascalCase).
+   * Convierte recursivamente las claves propias enumerables de un objeto y de
+   * los objetos dentro de arrays. Los valores que no sean objetos se conservan.
+   * No elimina claves con prefijo `_`. Por defecto, lanza un error si dos claves
+   * quedan iguales después de convertirlas.
    *
-   * ⚠ Las claves identificadoras que tienen el prefijo "_" serán eliminadas.
+   * @param objBase Objeto no vacío cuyas claves se convertirán.
+   * @param caseType Formato destino: `TStrCase`.
+   * @param allowDuplicates `false` por defecto. Si es `true`, permite colisiones y conserva el último valor.
+   * @returns Un objeto nuevo con las claves convertidas.
+   * @throws {Error} Si el objeto base no es válido, el formato no es válido o hay claves duplicadas tras la conversión.
    *
-   * @param {object} objBase El objeto a convertir sus claves identificadoras.
-   * @param {string} caseType El tipo de case al cual se desea convertir las claves (Camel, Snake, Kebab o Pascal).
-   * @returns {object} Retorna el objeto con las claves de propiedades modificadas.
-   *
-   * @example
    * @example
    * ```typescript
    * const obj = {
@@ -2112,31 +2630,27 @@ export class UtilNative {
     stack.push({ obj: objBase, result });
     while (stack.length > 0) {
       const { obj, result: currentResult } = stack.pop()!;
-      for (const key in obj) {
-        //solo se aplica a propiedades definidas en el objeto (no prototipos ni herencias artesanales)
-        if (obj.hasOwnProperty(key)) {
-          const keyC = this.convertStringToCase(key, caseType);
-          // Verificamos si la clave ya existe en el resultado
-          if (!allowDuplicates && currentResult.hasOwnProperty(keyC)) {
-            throw new Error(`Duplicate key detected after conversion: ${keyC}`);
-          }
-          const value = (obj as any)[key];
-          if (this.isObject(value)) {
-            // Si el valor es un objeto, lo agregamos a la pila para procesarlo después
-            const nestedResult = {} as object;
-            (currentResult as any)[keyC] = nestedResult;
-            stack.push({ obj: value, result: nestedResult });
-          } else if (Array.isArray(value)) {
-            // Si el valor es un array, procesamos cada elemento
-            (currentResult as any)[keyC] = value.map((item) =>
-              this.isObject(item)
-                ? this.objectKeysToCase(item, caseType, allowDuplicates)
-                : item,
-            );
-          } else {
-            // Si el valor es un primitivo, lo copiamos directamente
-            (currentResult as any)[keyC] = value;
-          }
+      for (const key of Object.keys(obj)) {
+        const keyC = this.convertStringToCase(key, caseType);
+        if (
+          !allowDuplicates &&
+          Object.prototype.hasOwnProperty.call(currentResult, keyC)
+        ) {
+          throw new Error(`Duplicate key detected after conversion: ${keyC}`);
+        }
+        const value = (obj as any)[key];
+        if (this.isObject(value)) {
+          const nestedResult = {} as object;
+          (currentResult as any)[keyC] = nestedResult;
+          stack.push({ obj: value, result: nestedResult });
+        } else if (Array.isArray(value)) {
+          (currentResult as any)[keyC] = value.map((item) =>
+            this.isObject(item)
+              ? this.objectKeysToCase(item, caseType, allowDuplicates)
+              : item,
+          );
+        } else {
+          (currentResult as any)[keyC] = value;
         }
       }
     }
@@ -2389,17 +2903,25 @@ export class UtilNative {
         `${charSeparator}`,
       )
       .replace(new RegExp(`^\\${wildcard}0\\${charSeparator}`, "g"), "");
-    // Convertir el keyPath con comodines en una expresión regular
+    // Escape de caracteres especiales de Regex excluyendo los comodines * y #
+    // Reemplazar '.' con charSeparator escapado
+    const sepEscaped = charSeparator.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const regexPattern = keyPath
-      .replace(/\./g, `\\${charSeparator}`)
-      .replace(new RegExp(`\\${wildcard}\\d*`, "g"), (match) => {
-        const num = parseInt(match.substring(1));
-        if (isNaN(num) || num === 1) return `[^\\${charSeparator}]+`; // Comodín sin número, cualquier cosa
-        return `(?:[^\\${charSeparator}]+\\${charSeparator}){${
-          num - 1
-        }}[^\\${charSeparator}]+`;
-        //return `(?:[^\\${charSeparator}]+\\${charSeparator}){${num}}[^\\${charSeparator}]+`;
-      });
+      .split(charSeparator)
+      .map((segment) => {
+        if (segment === "#") {
+          return `[^\\${charSeparator}]+`;
+        }
+        if (segment.startsWith(wildcard)) {
+          const num = parseInt(segment.substring(1));
+          if (isNaN(num) || num === 1) return `[^\\${charSeparator}]+`;
+          return `(?:[^\\${charSeparator}]+\\${charSeparator}){${num - 1}}[^\\${charSeparator}]+`;
+        }
+        // Segmento normal
+        return segment.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      })
+      .join(sepEscaped);
+
     const regex = new RegExp(`^${regexPattern}$`);
     return regex.test(path);
   }
@@ -2418,8 +2940,16 @@ export class UtilNative {
     keyPath: string,
   ): boolean {
     const segments = keyPath.split(charSeparator);
+    const lastSegment = segments[segments.length - 1];
+    // No puede terminar en comodín multiplicador '*' ni '*N'
+    if (lastSegment.startsWith(wildcard)) {
+      throw new Error(
+        `Invalid use of wildcard '${wildcard}' at the end of keyPath: ${keyPath}`,
+      );
+    }
     for (const segment of segments) {
-      // Verificar si el segmento contiene un comodín
+      if (segment === "#") continue;
+      // Verificar si el segmento contiene un comodín '*'
       if (segment.includes(wildcard)) {
         // Es Comodín0 al inicio del path
         if (segment === `${wildcard}0` && segments.indexOf(segment) === 0)
@@ -2427,7 +2957,7 @@ export class UtilNative {
             `Invalid use of wildcard '${wildcard}' at the start of the keyPath: ${keyPath}`,
           );
         // Es Número antes del comodín (por ejemplo, "2*")
-        if (new RegExp(`^\d+\\${wildcard}`).test(segment))
+        if (new RegExp(`^\\d+\\${wildcard}`).test(segment))
           throw new Error(
             `Invalid use of wildcard '${wildcard}' with number before it in segment '${segment}': ${keyPath}`,
           );
@@ -2451,9 +2981,9 @@ export class UtilNative {
    * ⚠ **Importante**:
    * - La búsqueda se basa en una ruta (path) parcial de la subpropiedad. Si se desconoce el nombre de alguna propiedad padre (también llamado subnivel), se puede usar el comodín `"*"`. Si son varios subniveles desconocidos, se puede usar un multiplicador de comodín como `"*3"` (significa 3 niveles desconocidos).
    * - El uso del multiplicador siempre debe ser un número entero positivo. Si se usa `"*0"`, esto anula el comodín. Por ejemplo, si el fragmento de path es `"a.b.*0.d"`, se asume como `"a.b.d"` (omitiéndose el comodín).
-   * - El comodín `"*0"` **no puede inicializar el path**. Por ejemplo, el path `"0*.b.c.d"` es inválido.
+   * - El comodín `"*0"` **no puede inicializar el path**. Por ejemplo, el path `"*0.b.c.d"` es inválido.
    * - El comodín utilizado es `"*"`, y el `charSeparator` no puede asignársele el mismo carácter.
-   * - Si existen varias subpropiedades con el mismo fragmento de path, se selecciona la última de acuerdo al orden del array de todos los paths del objeto. **Recuerda**: no se toma en cuenta el nivel de profundidad, sino el orden del array de los paths.
+   * - Se prefiere una ruta exacta. Si no existe y varias rutas parciales coinciden, se selecciona la última según el orden del recorrido de `getPropertyPathsOfObject()`.
    *
    * @param {object} objBase  El objeto en el cual se buscará la propiedad.
    * @param {string} keyPath  La ruta de claves que identifica la propiedad a buscar (por ejemplo, `"a.b.c"`).
@@ -2555,16 +3085,59 @@ export class UtilNative {
       allPathsBase: allPaths,
     } = op;
     //configuración comodín
-    const wildcard = "*";
-    if (charSeparator === wildcard)
-      throw new Error(`character separator cannot be ${wildcard} `);
+    //caracter especial para representar cualquier index
+    const charWildcardForIndex = "#";
+    //caracter especial para representar el multiplicador de niveles
+    const charWildcardForMultiply = "*";
+    if (
+      charSeparator === charWildcardForMultiply ||
+      charSeparator === charWildcardForIndex
+    )
+      throw new Error(`character separator cannot be wildcard`);
     const useWildcard =
-      new RegExp(`\\${wildcard}`).test(keyPath) &&
-      this.isWildcardValid(charSeparator, wildcard, keyPath);
+      (new RegExp(`\\${charWildcardForMultiply}`).test(keyPath) ||
+        keyPath.split(charSeparator).includes(charWildcardForIndex)) &&
+      this.isWildcardValid(charSeparator, charWildcardForMultiply, keyPath);
     // Buscar el path que coincida con el keyPath
-    const foundPath = allPaths.find((path) =>
-      this.isPathMatch(charSeparator, wildcard, useWildcard, path, keyPath),
-    );
+    let foundPath = useWildcard
+      ? undefined
+      : allPaths.find((path) => path === keyPath);
+    if (!foundPath) {
+      const isArrayWildcardSearch = keyPath
+        .split(charSeparator)
+        .includes(charWildcardForIndex);
+      if (isArrayWildcardSearch) {
+        for (let index = 0; index < allPaths.length; index++) {
+          if (
+            this.isPathMatch(
+              charSeparator,
+              charWildcardForMultiply,
+              useWildcard,
+              allPaths[index],
+              keyPath,
+            )
+          ) {
+            foundPath = allPaths[index];
+            break;
+          }
+        }
+      } else {
+        for (let index = allPaths.length - 1; index >= 0; index--) {
+          if (
+            this.isPathMatch(
+              charSeparator,
+              charWildcardForMultiply,
+              useWildcard,
+              allPaths[index],
+              keyPath,
+            )
+          ) {
+            foundPath = allPaths[index];
+            break;
+          }
+        }
+      }
+    }
     // Si se encuentra el path, obtener el valor de la propiedad
     if (foundPath) {
       const keys = foundPath.split(charSeparator);
@@ -2590,7 +3163,7 @@ export class UtilNative {
    * - El uso del multiplicador siempre debe ser un número entero positivo. Si se usa `"*0"`, esto anula el comodín. Por ejemplo, si el fragmento de path es `"a.b.*0.d"`, se asume como `"a.b.d"` (omitiéndose el comodín).
    * - El comodín `"*0"` **no puede inicializar el path**. Por ejemplo, el path `"0*.b.c.d"` es inválido.
    * - El comodín utilizado es `"*"`, y el `charSeparator` no puede asignársele el mismo carácter.
-   * - Si existen varias subpropiedades con el mismo fragmento de path, se incluyen todas en el array de resultados.
+   * - Si varias rutas coinciden, se incluyen todas en el orden producido por `getPropertyPathsOfObject()` (profundidad primero, padre antes que descendientes).
    *
    * @param {object} objBase - El objeto en el cual se buscarán las propiedades.
    * @param {string | string[]} keyPaths - La ruta o rutas de claves que identifican las propiedades a buscar (por ejemplo, `"a.b.c"` o `["a.b.c", "x.y.z"]`).
@@ -2685,16 +3258,29 @@ export class UtilNative {
       allPathsBase: allPaths,
     } = op;
     //configuración comodín
-    const wildcard = "*";
-    if (charSeparator === wildcard)
-      throw new Error(`character separator cannot be ${wildcard} `);
+    //caracter especial para representar cualquier index
+    const charWildcardForIndex = "#";
+    //caracter especial para representar el multiplicador de niveles
+    const charWildcardForMultiply = "*";
+    if (
+      charSeparator === charWildcardForMultiply ||
+      charSeparator === charWildcardForIndex
+    )
+      throw new Error(`character separator cannot be wildcard`);
     return keyPaths.flatMap((keyPath) => {
       const useWildcard =
-        new RegExp(`\\${wildcard}`).test(keyPath) &&
-        this.isWildcardValid(charSeparator, wildcard, keyPath);
+        (new RegExp(`\\${charWildcardForMultiply}`).test(keyPath) ||
+          keyPath.split(charSeparator).includes(charWildcardForIndex)) &&
+        this.isWildcardValid(charSeparator, charWildcardForMultiply, keyPath);
       // Buscar el path que coincida con el keyPath
       const foundPaths = allPaths.filter((path) =>
-        this.isPathMatch(charSeparator, wildcard, useWildcard, path, keyPath),
+        this.isPathMatch(
+          charSeparator,
+          charWildcardForMultiply,
+          useWildcard,
+          path,
+          keyPath,
+        ),
       );
       return foundPaths.map((foundPath) => {
         // Si se encuentra el path, obtener el valor de la propiedad
@@ -2879,19 +3465,21 @@ export class UtilNative {
   /**
    * Convierte un array de tuplas tipo entry (`[key, value]`) en un objeto.
    *
-   * - la tupla debe ser de tipo `[key, value]` donde `key` es un tipo derivado de string.
-   * - ❗el array de tuplas puede estar vacio❗, en ese caso retorna un objeto literal `{}`
+   * - Cada entrada debe ser una tupla de exactamente dos elementos `[key, value]`.
+   * - `key` no puede ser `null` ni `undefined`; los demás tipos de clave siguen
+   *   las reglas de conversión de propiedades de JavaScript (los símbolos se conservan).
+   * - Se permiten arrays vacíos; en ese caso retorna `{}`.
    *
    * @param {Array<[any, any]>} aEntryTuple - El array de tuplas que se va a convertir en un objeto. Cada tupla consta de dos elementos de tipo `[key, value]`.
-   * @throws {Error} - Lanza un error si `arrayOfEntries` no es un array de tuplas válido.
-   * @throws {Error} - Lanza un error si `arrayOfEntries` contiene tuplas no validas (las tuplas deben ser: `[key, value]`).
-   * @returns {object} - Retorna un nuevo objeto donde cada propiedad es una tupla del array de entrada.
+   * @throws {Error} Si el argumento no es un array de tuplas válido o contiene una clave nula.
+   * @returns Un objeto nuevo con una propiedad por cada entrada. Las claves repetidas conservan el último valor.
    *
    * @example
    * ```
-   * const arrayOfEntries = [["key1", "value1"], ["key2", "value2"]];
-   * const obj = arrayEntriesToObject(arrayOfEntries);
-   * console.log(obj); // salida: { key1: "value1", key2: "value2" }
+   * const entries: Array<[string, unknown]> = [["key1", "value1"], ["key2", 2]];
+   * const obj = util.arrayEntriesToObject(entries);
+   * console.log(obj); // { key1: "value1", key2: 2 }
+   * console.log(util.arrayEntriesToObject([])); // {}
    * ```
    */
   public arrayEntriesToObject(aEntryTuple: Array<[any, any]>): object {
@@ -2902,46 +3490,59 @@ export class UtilNative {
       // la key debe ser un identificador
       if (this.isUndefinedOrNull(key))
         throw new Error(`${key} contain tuples not valid`);
-      (a_obj as any)[key] = value;
+      Object.defineProperty(a_obj, key, {
+        configurable: true,
+        enumerable: true,
+        value,
+        writable: true,
+      });
       return a_obj;
     }, {}); //si el array es vacio retornaria un objeto literal vacio
     return obj;
   }
   /**
-   * Convierte un iterable de tuplas en un objeto.
+   * Convierte un iterable de tuplas en un objeto. Cada elemento debe contener
+   * exactamente `[key, value]`; las reglas de clave son las mismas que en
+   * `arrayEntriesToObject`.
    *
-   * @param {IterableIterator<[any, any]>} entry - El iterable de tuplas que se va a convertir en un objeto.
-   * @throws {Error} - Lanza un error si `entries` no es un iterable de tuplas válido.
-   * @returns {object} - Retorna un nuevo objeto donde cada propiedad es una tupla del iterable de entrada.
+   * @param entry Iterable de tuplas que se desea convertir.
+   * @throws {Error} Si `entry` no es iterable o contiene tuplas inválidas.
+   * @returns Un objeto nuevo con una propiedad por cada entrada.
    *
    * @example
    * ```typescript
-   * const map = new Map([["key1", "value1"], ["key2", "value2"]]);
-   * const entries = map.entries();
-   * const obj = entriesToObject(entries);
-   * console.log(obj); // salida: { key1: "value1", key2: "value2" }
+   * const entries = new Map([["key1", "value1"], ["key2", "value2"]]).entries();
+   * const obj = util.entriesToObject(entries);
+   * console.log(obj); // { key1: "value1", key2: "value2" }
    * ```
    */
   public entriesToObject(entry: IterableIterator<[any, any]>): object {
     //⚠ Obligatorio probar primitivo
-    if (typeof entry !== "object")
+    if (
+      typeof entry !== "object" ||
+      this.isNull(entry) ||
+      typeof (entry as any)[Symbol.iterator] !== "function"
+    )
       throw new Error(`${entry} is not entries (:IterableIterator) valid`);
     const arrayOfEntries = Array.from(entry);
     const obj = this.arrayEntriesToObject(arrayOfEntries);
     return obj;
   }
   /**
-   * Convierte un objeto Map en un objeto literal.
+   * Convierte un `Map` en un objeto literal mediante sus entradas. Las claves
+   * `null` o `undefined` no son válidas; las demás se convierten según las
+   * reglas de propiedades de JavaScript. Si varias claves producen la misma
+   * propiedad, prevalece el último valor.
    *
-   * @param {Map<any, any>} map - El objeto Map que se va a convertir en un objeto literal.
-   * @throws {Error} - Lanza un error si `map` no es una instancia de Map.
-   * @returns {object} - Retorna un nuevo objeto literal que tiene las mismas propiedades que el objeto Map de entrada.
+   * @param map `Map` que se desea convertir.
+   * @throws {Error} Si `map` no es una instancia de `Map` o contiene una clave no válida.
+   * @returns Un objeto literal con las entradas del `Map`.
    *
    * @example
    * ```typescript
    * const map = new Map([["key1", "value1"], ["key2", "value2"]]);
-   * const obj = mapToObject(map);
-   * console.log(obj); // salida: { key1: "value1", key2: "value2" }
+   * const obj = util.mapToObject(map);
+   * console.log(obj); // { key1: "value1", key2: "value2" }
    * ```
    */
   public mapToObject(map: Map<any, any>): object {
@@ -2951,13 +3552,14 @@ export class UtilNative {
     return obj;
   }
   /**
-   * Congela un objeto para prevenir modificaciones en sus propiedades, con opción de niveles profundos si sus propiedades son a su vez objetos.
+   * Congela el valor recibido y, por defecto, recorre también los valores de
+   * propiedades propias enumerables (incluidos índices de arrays) que sean
+   * objetos o arrays. El recorrido admite ciclos. Con `isAllowDeepLevel: false`,
+   * solo congela el valor raíz. Devuelve el mismo objeto o array, sin clonarlo.
    *
-   * ⚠ Puede ser usado con array pero se aconseja usar el método `freezeArray()`
-   *
-   * @param {TObject} obj - El objeto que se va a congelar.
-   * @param {boolean} isAllowDeepLevel - Determina si se debe congelar el objeto a nivel profundo. Por defecto es `true`, lo que significa que se congelarán todas las propiedades del objeto que sean objetos.
-   * @returns {TObject} - Retorna el objeto congelado, si no es un objeto, retorna el valor sin modificaciones.
+   * @param obj Objeto o array que se desea congelar.
+   * @param isAllowDeepLevel `true` por defecto. Si es `false`, congela solo la raíz.
+   * @returns El mismo valor recibido, ya congelado. Los valores primitivos o `null` no cambian.
    *
    * @example
    * ```typescript
@@ -2966,6 +3568,9 @@ export class UtilNative {
    * //verifica si esta congelado
    * console.log(Object.isFrozen(frozenObj)); // salida: true
    * console.log(Object.isFrozen(frozenObj.b)); // salida: true
+   *
+   * const shallow = util.freezeObject({ nested: {} }, false);
+   * console.log(Object.isFrozen(shallow.nested)); // salida: false
    * ```
    */
   public freezeObject<TObject extends object | any[]>(
@@ -2974,39 +3579,18 @@ export class UtilNative {
   ): TObject {
     // Verificación primitiva (incluye arrays)
     if (typeof obj !== "object" || this.isNull(obj)) return obj;
-    // Congelar arrays directamente si no se requiere recursividad
-    if (Array.isArray(obj) && !isAllowDeepLevel)
-      return Object.freeze(obj) as TObject;
-    // Pila para manejar la congelación profunda de manera iterativa
-    const stack: Array<{ obj: any; parent: any; key: string | number | null }> =
-      [];
-    stack.push({ obj, parent: null, key: null });
+    if (!isAllowDeepLevel) return Object.freeze(obj) as TObject;
+    const stack: object[] = [obj];
+    const visited = new WeakSet<object>();
     while (stack.length > 0) {
-      const { obj: currentObj, parent, key } = stack.pop()!;
-      // Congelar el objeto actual
-      Object.freeze(currentObj);
-      // Si se requiere congelación profunda, agregar propiedades al stack
-      if (isAllowDeepLevel) {
-        for (const key in currentObj) {
-          if (currentObj.hasOwnProperty(key)) {
-            const value = currentObj[key];
-            if (this.isObject(value)) {
-              stack.push({ obj: value, parent: currentObj, key });
-            }
-          }
-        }
-        // Manejo específico para arrays
-        if (Array.isArray(currentObj)) {
-          for (let i = 0; i < currentObj.length; i++) {
-            if (this.isObject(currentObj[i])) {
-              stack.push({ obj: currentObj[i], parent: currentObj, key: i });
-            }
-          }
-        }
+      const currentObj = stack.pop()!;
+      if (visited.has(currentObj)) continue;
+      visited.add(currentObj);
+      for (const key of Object.keys(currentObj)) {
+        const value = (currentObj as Record<string, unknown>)[key];
+        if (value !== null && typeof value === "object") stack.push(value);
       }
-      // Si hay un padre, asignar el objeto congelado a la propiedad correspondiente
-      if (!this.isNull(parent) && !this.isNull(key))
-        parent[key as string] = currentObj;
+      Object.freeze(currentObj);
     }
     return obj;
   }
@@ -3045,7 +3629,7 @@ export class UtilNative {
    * de ese mismo valor, a partir del extracto de esquema de tipo de datos.
    *
    * @param value El valor a transformar.
-   * @param extractType El esquema (sencillo o extracto) del tipo de array que
+   * @param queryExtractType El esquema (sencillo o extracto) del tipo de array que
    *        se debe verificar para poder transformar.
    * @param defaultValue `= this.dfValue` Valor por defecto que se asignará si el `value` no
    *        cumple con las condiciones.
@@ -3060,43 +3644,41 @@ export class UtilNative {
    * let result;
    *
    * // Transformando un string a un array de strings
-   * result = instance.castArrayByConditionType("hello", "string");
+   * result = util.castArrayByConditionType("hello", "string");
    * console.log(result); // Salida: ["hello"]
    *
    * // Manteniendo un array existente si cumple con el tipo
-   * result = instance.castArrayByConditionType(["item1", "item2"], "string");
+   * result = util.castArrayByConditionType(["item1", "item2"], "string");
    * console.log(result); // Salida: ["item1", "item2"]
    *
    * // Retornando el valor por defecto si el tipo no es adecuado
-   * result = instance.castArrayByConditionType(42, "string");
-   * console.log(result); // Salida: this.dfValue
+   * result = util.castArrayByConditionType(42, "string");
+   * console.log(result); // Salida: [] vacio
    *
    * // Retornando el valor por defecto (personalizado) si el tipo no es adecuado
-   * result = instance.castArrayByConditionType(true, "string", ["hola"]);
+   * result = util.castArrayByConditionType(true, "string", ["hola"]);
    * console.log(result); // Salida: ["hola"]
    * ````
    */
   public castArrayByConditionType<TItem>(
     value: TItem | TItem[],
-    extractType: TExtValueType,
-    defaultValue: TItem[] = this.dfValue,
+    queryExtractType: TExtValueType,
+    defaultValue: TItem[] = [] as any[],
     option?: IValueTypeOption,
   ): TItem[] {
     let r: TItem[];
     if (
-      !this.isValueType(extractType, ["string", "array", "object"], {
-        allowObjectEmpty: true,
-        allowArrayEmpty: true,
-      })
+      !this.isValueType(queryExtractType, [
+        "string",
+        // [], //array no se permiten por ahora
+        {},
+      ])
     )
-      throw new Error(`${extractType} is not extract of types valid`);
+      throw new Error(`${queryExtractType} is not extract of types valid`);
     //convertir el extracto a tipo sencillo y array
-    const fullTypes: TAExtValueType = [extractType, [extractType]];
+    const fullTypes: TAExtValueType = [queryExtractType, [queryExtractType]];
     if (this.isValueType(value, fullTypes, option)) {
-      const allowArrayEmpty = this.isObject(option)
-        ? option.allowArrayEmpty
-        : false;
-      r = (this.isArray(value, allowArrayEmpty) ? value : [value]) as TItem[];
+      r = (this.isArray(value) ? value : [value]) as TItem[];
     } else {
       r = defaultValue;
     }
@@ -3126,11 +3708,10 @@ export class UtilNative {
    * ```
    */
   public getArrayItem<TItem>(arr: TItem[], idx: number): TItem | undefined {
-    if (
-      !this.isArray(arr, true) ||
-      !this.isNumber(idx, false) //por seguridad no permite strings numéricos
-    )
-      return undefined;
+    if (!this.isArray(arr, true)) throw new Error(`${arr} is not array valid`); //debe ser un array
+    if (!this.isIntegerNumber(idx)) {
+      throw new Error(`${idx} is not index valid`); //debe ser un número entero
+    }
     const len = arr.length;
     //verificar que idx no este fuera del rango del tamaño del array
     if (idx < -len || idx >= len) return undefined;
@@ -3991,8 +4572,9 @@ export class UtilNative {
    * @returns si es un timestamp valido
    */
   public isTimestamp(timestamp: any): boolean {
-    if (!this.isNumber(timestamp, true)) return false;
-    const timestampReduced = this.stringToNumber(timestamp) / 1000; //reducirlo a segundos para evitar problemas de memoria (en año 2038)
+    if (!this.isNumber(timestamp)) return false;
+    const timestampReduced =
+      this.stringToNumber(timestamp, { isDecimalPoint: false }) / 1000; //reducirlo a segundos para evitar problemas de memoria (en año 2038)
     if (this.isNumberSign(timestampReduced, "-", false)) return false; //un timestamp SIEMPRE será positivo
     return true;
   }
@@ -4028,7 +4610,7 @@ export class UtilNative {
    * console.log(result2); // salida: false
    * ```
    */
-  public isFunction(fn: unknown): boolean {
+  public isFunction(fn: unknown): fn is Function {
     const r = typeof fn === "function";
     return r;
   }
@@ -4096,14 +4678,14 @@ export class UtilNative {
    * ````
    */
   public getFunctionName(idxReverse: number): string | typeof this.dfValue {
-    if (!this.isNumber(idxReverse, true))
+    if (!this.isNumber(idxReverse))
       throw new Error(`${idxReverse} is not idx reverse valid`);
     //❗Debe ser negativo y no 0❗
     if (!this.isNumberSign(idxReverse, "-", false))
       throw new Error(`${idxReverse} is not negative idx reverse valid`);
-    idxReverse = this.stringToNumber(idxReverse); //garantizar numérico
+    idxReverse = this.stringToNumber(idxReverse, false); //garantizar numérico
     idxReverse = idxReverse - 1; //modificar el offset para no retornar el nombre de esta misma función
-    const idxToInject = this.toggleNumberSign(idxReverse, true) as number;
+    const idxToInject = this.toggleNumberSign(idxReverse);
     //procesar:
     const error = new Error();
     let stackLine = error.stack?.split("\n")[idxToInject]?.trim() || "";
@@ -4232,29 +4814,40 @@ export class UtilNative {
    *
    * @param anyValue El valor que se desea validar.
    * @param types Un array de tipos o esquemas de tipos que `anyValue` debe cumplir.
-   *                Puede contener tipos básicos como:
-   *                `"string"`,
-   *                `"number"`,
-   *                `"boolean"`,
-   *                `"undefined"`,
-   *                `"null"`,
-   *                `"function"`,
-   *                `"object"`,
-   *                `"array"`,
-   *                `"tuple"`,
-   *                etc o estructuras más complejas como objetos y arrays anidados que definen esquemas de validación.
-   *                - Si `types` es un array vacío (`[]`), se asume que cualquier valor es válido.
-   *                - Si `types` en uno o varios de sus items contiene objetos, se valida que `anyValue` sea un objeto y que sus propiedades cumplan con los tipos especificados en el esquema, si ese item es `{}` se asume que puede tener cualquier cantidad de propiedades y de cualquier tipo.
-   *                - Si `types` en uno de sus items contiene un array, se valida que `anyValue` sea un array y que cada uno de sus elementos cumplan con los tipos especificados en el esquema, si ese item es `[]` se asume que cada uno de los elementos puede ser de cualquier tipo.
-   *                - Si `types` contiene `"tuple"`, se valida que `anyValue` sea una tupla con el tamaño especificado en `option.tupleSize`.
-   *                - Si `types` en varios de sus items contiene arrays, implícitamente asume que validará una tupla, ❕Tiene en cuenta el orden en que estén esos item de tipo array, porque ese será el mismo orden en que verifique la tupla❕
+   *              Puede contener tipos básicos como:
+   *              `"string"`,
+   *              `"number"`,
+   *              `"boolean"`,
+   *              `"undefined"`,
+   *              `"null"`,
+   *              `"function"`,
+   *              `"object"`,
+   *              `"array"`,
+   *              `"tuple"`
+   *
+   *              *Estructuras complejas*
+   *              como objetos y arrays anidados que definen esquemas de validación.
+   *              - Si `types` es un array vacío (`[]`), se asume que cualquier valor es válido.
+   *              - Si `types` en uno o varios de sus items contiene objetos, se valida que `anyValue` sea un objeto y que sus propiedades cumplan con los tipos especificados.
+   *                ❕ **Comportamiento implícito:** Si ese item es un objeto vacío `{}` (sin propiedades definidas), actúa como un comodín abierto que acepta **cualquier objeto** (ya sea vacío o con propiedades). Si el objeto en el esquema tiene propiedades (ej. `{ a: "string" }`), el objeto evaluado **no puede estar vacío** y debe cumplir con la estructura.
+   *              - Si `types` en uno de sus items contiene un array, se valida que `anyValue` sea un array.
+   *                ❕ **Comportamiento implícito:** Si ese item es un array vacío `[]`, actúa como un comodín abierto que acepta **cualquier array** (vacío o con elementos de cualquier tipo). Si el array en el esquema contiene definiciones (ej. `["string"]`), los elementos evaluados deben cumplir estrictamente con dichos tipos.
+   *              - Si `types` contiene `"tuple"`, se valida que `anyValue` sea una tupla con el tamaño especificado en `option.tupleSize`.
+   *              - Si `types` en varios de sus items contiene arrays, implícitamente asume que validará una tupla. ❕Tiene en cuenta el orden en que estén esos items de tipo array, porque ese será el mismo orden en que verifique la tupla❕
+   *
+   *              ❗ Ejemplos detallados❗
+   *              ````
+   *              types = ["null", "string"]; // se consulta si el valor es null o string
+   *              types = [["null", "string"]]; // se consulta si el valor es un array de nulls o strings
+   *              types = [[]]; // se consulta si el valor es un array de cualquier tipo (vacío o poblado)
+   *              types = ["null", {}]; // se consulta si el valor es null o cualquier objeto (vacío o poblado)
+   *              types = [{a:["string"]}]; // se consulta si el valor es un objeto con al menos la propiedad "a" que sea de tipo string (el objeto evaluado no puede estar vacío)
+   *              types = [{a: [["string"]]}]; // se consulta si el valor es un objeto con al menos la propiedad "a" que sea de tipo array de string
+   *              ````
+   *
    * @param option - Opciones adicionales para la validación:
-   *                 - `allowNumber_String = false`: Permite que un string numérico sea validado como un número (por ejemplo, `"123"` siendo string, se permite analizar y validar como número).
-   *                 - `allowBigint_String = false`: Permite que un string numérico gigante sea validado como un bigint.
    *                 - `allowStringEmpty = false`: Permite que un string vacío ( `""` ) sea considerado válido.
-   *                 - `allowObjectEmpty = false`: Permite que un string vacío ( `{}` ) sea considerado válido.
-   *                 - `allowArrayEmpty = false`: Permite que un string vacío ( `[]` ) sea considerado válido.
-   *                 - `tupleSize = undefined`: Define el tamaño esperado de una tupla. Puede ser un número (tamaño fijo) o un array de dos números `[min, max]` (tamaño variable), ❗este argumento es indispensable en caso que en algún nivel del esquema de `types` se verifique el tipo `"tuple"` (asi explícitamente en texto), por el contrario si la verificacion de la tupla se hace implícitamente (con varios items array), este argumento es opcional, pero si se asigna tendrá prioridad de verificación❗.
+   *                 - `tupleSize = undefined`: Define el tamaño esperado de una tupla. Puede ser un número (tamaño fijo) o un array de dos números `[min, max]` (tamaño variable), ❗este argumento es indispensable en caso que en algún nivel del esquema de `types` se verifique el tipo `"tuple"` (así explícitamente en texto), por el contrario si la verificación de la tupla se hace implícitamente (con varios items array), este argumento es opcional, pero si se asigna tendrá prioridad de verificación❗.
    *
    * @returns {boolean} - `true` si `anyValue` coincide con al menos uno de los tipos especificados en `types`, de lo contrario `false`.
    *
@@ -4265,154 +4858,140 @@ export class UtilNative {
    * let v: any;
    * let r: boolean;
    *
-   * //casos de control:
+   * // Casos de control:
    *
    * v = null;
    * r = util.isValueType(v, ["undefined"]);
-   * console.log(r); //Salida: false, no es undefined
+   * console.log(r); // Salida: false, no es undefined
    *
    * v = 2;
    * r = util.isValueType(v, ["null"]);
-   * console.log(r); //Salida: false, no es null
+   * console.log(r); // Salida: false, no es null
    *
-   * v = ()=>console.log("lo que sea");
+   * v = () => console.log("lo que sea");
    * r = util.isValueType(v, ["function"]);
-   * console.log(r); //Salida: true
+   * console.log(r); // Salida: true
    *
-   * //primitivos básicos
+   * // Primitivos básicos
    *
    * v = false;
    * r = util.isValueType(v, ["boolean"]);
-   * console.log(r); //Salida: true
+   * console.log(r); // Salida: true
    *
    * v = 15;
    * r = util.isValueType(v, ["number"]);
-   * console.log(r); //Salida: true
+   * console.log(r); // Salida: true
    *
    * v = 10;
    * r = util.isValueType(v, ["boolean", "number"]);
-   * console.log(r); //Salida: true, es al menos número
+   * console.log(r); // Salida: true, es al menos número
    *
    * v = "10";
    * r = util.isValueType(v, ["number"]);
-   * console.log(r); //Salida: false, es un string
+   * console.log(r); // Salida: false, es un string
    *
    * v = "10";
    * r = util.isValueType(v, ["number", "string"]);
-   * console.log(r); //Salida: true, es al menos string
-   *
-   * v = "10";
-   * r = util.isValueType(v, ["number"], {allowNumber_String: true});
-   * console.log(r); //Salida: true, por que se permite analizar string numérico
+   * console.log(r); // Salida: true, es al menos string
    *
    * v = "lo que sea";
    * r = util.isValueType(v, ["null", "string"]);
-   * console.log(r); //Salida: true
+   * console.log(r); // Salida: true
    *
    * v = "";
    * r = util.isValueType(v, ["string"]);
-   * console.log(r); //Salida: false, No se permite string vacios ❗Comportamiento predefinido❗
+   * console.log(r); // Salida: false, no se permiten strings vacíos por defecto ❗Comportamiento predefinido❗
    *
    * v = "";
-   * r = util.isValueType(v, ["string"], {allowStringEmpty: true});
-   * console.log(r); //Salida: true, se permite string vacios
+   * r = util.isValueType(v, ["string"], { allowStringEmpty: true });
+   * console.log(r); // Salida: true, se permiten strings vacíos explícitamente
    *
    * v = "";
    * r = util.isValueType(v, ["undefined", "null", "string"]);
-   * console.log(r); //Salida: false, NO se permite string vacios
+   * console.log(r); // Salida: false, No se permiten strings vacíos
    *
    * v = null;
    * r = util.isValueType(v, ["undefined", "null", "string"]);
-   * console.log(r); //Salida: true, al menos es nulo
+   * console.log(r); // Salida: true, al menos es nulo
    *
-   * //agrupaciones (objetos y arrays)
-   *
-   * v = {};
-   * r = util.isValueType(v, ["undefined", "null", "object"]);
-   * console.log(r); //Salida: false, No se permite objeto vacio ❗Comportamiento predefinido❗
+   * // Agrupaciones (Objetos y Arrays)
    *
    * v = {};
-   * r = util.isValueType(v, ["undefined", "null", "object"], {allowObjectEmpty: true});
-   * console.log(r); //Salida: true
+   * r = util.isValueType(v, ["undefined", "null", "object"]); //⚠️ Usar mejor `{}` en vez de "object"
+   * console.log(r); // Salida: false, el tipo genérico "object" no acepta objetos vacíos
+   *
+   * v = {a:1};
+   * r = util.isValueType(v, ["undefined", "null", "object"]); //⚠️ Usar mejor `{}` en vez de "object"
+   * console.log(r); // Salida: true
    *
    * v = {};
    * r = util.isValueType(v, ["undefined", "null", {}]);
-   * console.log(r); //Salida: false, No se permite objeto vacio ❗Comportamiento predefinido❗
+   * console.log(r); // Salida: true, ❗un esquema `{}` vacío actúa como comodín implícito y acepta cualquier objeto (vacío o con propiedades)❗
    *
    * v = {};
-   * r = util.isValueType(v, ["undefined", "null", {}], {allowObjectEmpty: true});
-   * console.log(r); //Salida: true
-   *
-   * v = {};
-   * r = util.isValueType(v, ["undefined", "null", {a: ["string", "number"]}], {allowObjectEmpty: true});
-   * console.log(r); //Salida: true
+   * r = util.isValueType(v, ["undefined", "null", { a: ["string", "number"] }]);
+   * console.log(r); // Salida: false, el objeto evaluado está vacío pero el esquema exige propiedades
    *
    * v = { a: 1 };
-   * r = util.isValueType(v, ["undefined", "null", {a: ["string", "number"]}]);
-   * console.log(r); //Salida: true, la propiedad `a` es al menos es un número
+   * r = util.isValueType(v, ["undefined", "null", { a: ["string", "number"] }]);
+   * console.log(r); // Salida: true, la propiedad `a` es al menos un número
    *
-   * v = { a: { aa: 1 }};
-   * r = util.isValueType(v, ["undefined", "null", {a: ["string", {}]}]);
-   * console.log(r); //Salida: true, la propiedad `a` es al menos es un objeto que puede tener cualquier propiedad ❗El objeto `{}` en el esquema `types` no significa que se permita vacio, indica que se permite cualquier tipo de propiedad❗
+   * v = { a: { aa: 1 } };
+   * r = util.isValueType(v, ["undefined", "null", { a: ["string", {}] }]); //`a` pude ser o string o un objeto
+   * console.log(r); // Salida: true, la propiedad `a` es un objeto que cumple con el comodín `{}` interno
    *
    * v = { a: 1, b: "lo que sea" };
-   * r = util.isValueType(v, ["undefined", "null", {a: ["string", "number"]}]);
-   * console.log(r); //Salida: true, la propiedad `a` es al menos es un número y `b` es ignorada en la validación
+   * r = util.isValueType(v, ["undefined", "null", { a: ["string", "number"] }]);
+   * console.log(r); // Salida: true, la propiedad `a` cumple y `b` es ignorada en la validación
    *
    * v = "hola";
-   * r = util.isValueType(v, ["string", {a: ["boolean", "number"]}]);
-   * console.log(r); //Salida: true, es al menos un texto
+   * r = util.isValueType(v, ["string", { a: ["boolean", "number"] }]);
+   * console.log(r); // Salida: true, es al menos un texto
    *
-   * v = { a: {aa: 1, ab: "hola"} };
-   * r = util.isValueType(v, ["boolean", {a: [{aa: ["string", "number"]}, "number"]}]);
-   * console.log(r); //Salida: true, la propiedad `aa` es al menos es un número, `ab` es ignorada en la validación
-   *
-   * v = [];
-   * r = util.isValueType(v, ["undefined", "null", "array"]);
-   * console.log(r); //Salida: false, No se permite array vacio ❗Comportamiento predefinido❗
+   * v = { a: { aa: 1, ab: "hola" } };
+   * r = util.isValueType(v, ["boolean", { a: [{ aa: ["string", "number"] }, "number"] }]);
+   * console.log(r); // Salida: true, la propiedad `aa` cumple con el número y `ab` es ignorada
    *
    * v = [];
-   * r = util.isValueType(v, ["undefined", "null", "array"], {allowObjectEmpty: true});
-   * console.log(r); //Salida: true
+   * r = util.isValueType(v, ["undefined", "null", "array"]); //⚠️ Usar mejor `[]` en vez de "array"
+   * console.log(r); // Salida: false, el tipo genérico "array" no acepta arrays vacíos
+   *
+   * v = [1,2,3];
+   * r = util.isValueType(v, ["undefined", "null", "array"]); //⚠️ Usar mejor `[]` en vez de "array"
+   * console.log(r); // Salida: true
    *
    * v = [];
    * r = util.isValueType(v, ["undefined", "null", []]);
-   * console.log(r); //Salida: false, No se permite array vacio ❗Comportamiento predefinido❗
+   * console.log(r); // Salida: true, ❗un esquema `[]` vacío actúa como comodín implícito y acepta cualquier array (vacío o poblado)❗
    *
-   * v = [];
-   * r = util.isValueType(v, ["undefined", "null", []], {allowObjectEmpty: true});
-   * console.log(r); //Salida: true
-   *
-   * v = [1,2,3];
+   * v = [1, 2, 3];
    * r = util.isValueType(v, ["undefined", "null", []]);
-   * console.log(r); //Salida: true, ❗[] en el esquema de `types` no significa que se permita arrays vacios, indica que los elementos del array pueden ser de cualquier tipo❗
+   * console.log(r); // Salida: true, acepta el array poblado gracias al comodín `[]`
    *
-   * v = [1,2,3];
+   * v = [1, 2, 3];
    * r = util.isValueType(v, ["null", ["boolean", "string"]]);
-   * console.log(r); //Salida: false, los elementos del array son solo números
+   * console.log(r); // Salida: false, los elementos del array son solo números y el esquema exige booleano o string
    *
-   * v = [1,"hola",3];
+   * v = [1, "hola", 3];
    * r = util.isValueType(v, ["null", ["boolean", "string"]]);
-   * console.log(r); //Salida: false, solo un elemento del array es string, para que sea valido todos los elementos del array deben ser "boolean" o "string"
+   * console.log(r); // Salida: false, todos los elementos deben cumplir con los tipos especificados en el array del esquema
    *
-   * v = [1,["a", "b", "c"], {a: "hola"}];
-   * r = util.isValueType(v, [["number", ["string"], {a: ["string"]}]]);
-   * console.log(r); //Salida: true, cumple con elemento de tipo number o elemento de tipo array de strings o elemento de tipo objeto `{a: string}`
+   * v = [1, ["a", "b", "c"], { a: "hola" }];
+   * r = util.isValueType(v, [["number", ["string"], { a: ["string"] }]]);
+   * console.log(r); // Salida: true, cumple con los elementos permitidos en la estructura del array
    *
-   * v = ["clave", "valor"]; //tupla
-   * r = util.isValueType(v, ["null", "tuple"], {tupleSize: 2}); //❗si se verifica explícitamente "tuple", es obligatorio asignar el tamaño de la tupla❗
-   * console.log(r); //Salida: true, al menos es una tupla de 2 elementos, no importa el tipo de cada elemento
+   * v = ["clave", "valor"]; // Tupla
+   * r = util.isValueType(v, ["null", "tuple"], { tupleSize: 2 }); // ❗si se verifica explícitamente "tuple", es obligatorio asignar el tamaño de la tupla❗
+   * console.log(r); // Salida: true, al menos es una tupla de 2 elementos
    *
-   * v = ["clave", "valor"]; //tupla
-   * r = util.isValueType(v, ["null", ["string", "number"], ["string"]]); //❗si en el mismo nivel del esquema de `types` (en cualquier nivel pero que sea el mismo), se detecta que hay 2 o mas array internamente el método asume validación de tupla❗
-   * console.log(r); //Salida: true, al menos es una tupla de 2 elementos (el primero es o number o string, el segundo es string)
+   * v = ["clave", "valor"]; // Tupla
+   * r = util.isValueType(v, ["null", ["string", "number"], ["string"]]); // ❗si en el mismo nivel del esquema se detectan 2 o más arrays, se asume validación de tupla implícita❗
+   * console.log(r); // Salida: true, es una tupla de 2 elementos válida
    *
-   * v = ["clave", "valor"]; //tupla
-   * r = util.isValueType(v, ["null", ["string", "number"], ["string"]], {tupleSize: 3}); //❗Prioridad de tamaño❗
-   * console.log(r); //Salida: false, la tupla a verificar debe tener 3 elementos
-   *
+   * v = ["clave", "valor"]; // Tupla
+   * r = util.isValueType(v, ["null", ["string", "number"], ["string"]], { tupleSize: 3 }); // ❗Prioridad de tamaño❗
+   * console.log(r); // Salida: false, la tupla a verificar debe tener 3 elementos según la opción
    * ````
-   *
    */
   public isValueType(
     anyValue: any,
@@ -4421,50 +5000,33 @@ export class UtilNative {
   ): boolean {
     if (!this.isArray(types, true))
       throw new Error(`${types} is not array types valid`);
-    //constructor de opciones
+
+    // Constructor de opciones (ya sin las banderas de vacíos)
     let op = (this.isObject(option, true) ? option : {}) as Required<
       NonNullable<typeof option>
-    >; //default vacio
+    >;
     op = {
-      ...op, //opciones adicionales no documentadas (si las hay)
-      allowNumber_String: this.isBoolean(op.allowNumber_String)
-        ? op.allowNumber_String
-        : false,
-      allowBigint_String: this.isBoolean(op.allowBigint_String)
-        ? op.allowBigint_String
-        : false,
+      ...op,
       allowStringEmpty: this.isBoolean(op.allowStringEmpty)
         ? op.allowStringEmpty
-        : false,
-      allowObjectEmpty: this.isBoolean(op.allowObjectEmpty)
-        ? op.allowObjectEmpty
-        : false,
-      allowArrayEmpty: this.isBoolean(op.allowArrayEmpty)
-        ? op.allowArrayEmpty
-        : false,
+        : false, //NO se permiten string vacíos
       tupleSize:
         this.isNumber(op.tupleSize) || this.isTuple(op.tupleSize, 2)
           ? op.tupleSize
           : (undefined as any),
     };
-    const {
-      allowNumber_String,
-      allowBigint_String,
-      allowStringEmpty,
-      allowObjectEmpty,
-      allowArrayEmpty,
-      tupleSize,
-    } = op;
-    //eliminacion básica de duplicados (❗No toma en cuenta, arrays ni objetos❗)
+    const { tupleSize } = op;
+    // Eliminación básica de duplicados (❗No toma en cuenta arrays ni objetos❗)
     types = [...new Set(types)];
-    //si no hay tipos se asume que se permite cualquier valor
+    // Si no hay tipos se asume que se permite cualquier valor
     if (types.length === 0) return true;
     let r = false;
     for (const type of types) {
-      if (r) break; //se encontró al menos una validación
-      //banderas para casos especiales
-      const isTypeObject = this.isObject(type, true); //se debe permitir vacio
-      const isTypeArray = this.isArray(type, true); //se debe permitir vacio
+      if (r) break; // Se encontró al menos una validación exitosa
+
+      const isTypeObject = this.isObject(type, true);
+      const isTypeArray = this.isArray(type, true);
+
       if (type === "undefined") {
         r = this.isUndefined(anyValue);
       } else if (type === "null") {
@@ -4474,40 +5036,51 @@ export class UtilNative {
       } else if (type === "boolean") {
         r = this.isBoolean(anyValue);
       } else if (type === "number") {
-        r = this.isNumber(anyValue, allowNumber_String);
+        r = this.isNumber(anyValue);
       } else if (type === "bigint") {
-        r = this.isBigint(anyValue, allowBigint_String);
+        r = this.isBigint(anyValue);
       } else if (type === "string") {
-        r = this.isString(anyValue, allowStringEmpty);
+        r = this.isString(anyValue, op.allowStringEmpty);
       } else if (type === "object" || isTypeObject) {
-        r = this.isObject(anyValue, allowObjectEmpty);
-        if (r && !allowObjectEmpty && isTypeObject) {
-          //casos profundos
+        // Comportamiento implícito: Un objeto '{}' vacío en types permite CUALQUIER objeto (vacío o no).
+        // Si tiene propiedades (ej. { id: "number" }), exige que el objeto evaluado no esté vacío.
+        const isTypeObjectEmpty =
+          isTypeObject && Object.keys(type).length === 0;
+
+        r = this.isObject(anyValue, isTypeObjectEmpty);
+
+        if (r && !isTypeObjectEmpty && isTypeObject) {
+          // Casos profundos con esquema estructurado
           const entTypes = Object.entries(type);
           if (entTypes.length > 0) {
             r = entTypes.reduce((accV, currV) => {
-              if (accV === false) return false; //si algún type no se cumplió, inhabilita la reducción
+              if (accV === false) return false; // Si algún type no se cumplió, corta
               const [key, typesForObjProp] = currV;
               const subAnyValue = anyValue[key];
-              const r = this.isValueType(
+              const subResult = this.isValueType(
                 subAnyValue,
                 typesForObjProp as any,
                 op,
               );
-              return r;
+              return subResult;
             }, true);
           }
         }
       } else if (type === "array" || isTypeArray) {
-        r = this.isArray(anyValue, allowArrayEmpty);
+        // Comportamiento implícito: Un arreglo '[]' vacío en types permite CUALQUIER arreglo (vacío o no).
+        const isTypeArrayEmpty =
+          isTypeArray && (type as any as any[]).length === 0;
+
+        r = this.isArray(anyValue, isTypeArrayEmpty);
+
         if (
           r &&
-          !allowArrayEmpty &&
+          !isTypeArrayEmpty &&
           isTypeArray &&
-          (type as any as any[]).length > 0 //❗type puede contener un array de type❗
+          (type as any as any[]).length > 0
         ) {
           if ((anyValue as any[]).length > 0) {
-            //verificar si dentro de type existe mas de un elemento array (posible tuple)
+            // Verificar si dentro de type existe más de un elemento array (posible tupla)
             let aIdxSubArrayType: number[] = [];
             for (let idx = 0; idx < (types as any[]).length; idx++) {
               if (this.isArray(types[idx], true)) aIdxSubArrayType.push(idx);
@@ -4515,17 +5088,17 @@ export class UtilNative {
             const maxLimitArray = 1;
             if (aIdxSubArrayType.length <= maxLimitArray && !tupleSize) {
               r = (anyValue as any[]).reduce((accV, currV, idx) => {
-                if (accV === false) return accV; //si algún type no se cumplió, inhabilita la reducción
+                if (accV === false) return accV;
                 const subAnyValue = anyValue[idx];
-                const r = this.isValueType(
+                const subResult = this.isValueType(
                   subAnyValue,
-                  type as any as any[], //❗type puede contener un array de type❗
+                  type as any as any[],
                   op,
                 );
-                return r;
+                return subResult;
               }, true);
             } else {
-              //verificador de tupla especial
+              // Verificador de tupla especial
               const logicTupleSize =
                 this.isNumber(op.tupleSize) || this.isTuple(op.tupleSize, 2)
                   ? op.tupleSize
@@ -4536,8 +5109,8 @@ export class UtilNative {
                   if (accV === false) return accV;
                   const subAnyValue = anyValue[idx];
                   const subTType = types[idxSAT] as any[];
-                  const r = this.isValueType(subAnyValue, subTType, op);
-                  return r;
+                  const subResult = this.isValueType(subAnyValue, subTType, op);
+                  return subResult;
                 }, r as boolean);
               }
             }
@@ -4890,8 +5463,9 @@ export class UtilNative {
     //comparar caso especial string a number
     else if (
       isCompareStringToNumber &&
-      this.isNumber(valueBase, true) &&
-      this.isNumber(valueToCompare, true)
+      //cualquiera puede ser numeric string o ambos
+      (this.isStringAsNumber(valueBase) || this.isNumber(valueBase)) &&
+      (this.isStringAsNumber(valueToCompare) || this.isNumber(valueToCompare))
     ) {
       isEquivalent =
         this.stringToNumber(valueBase) === this.stringToNumber(valueToCompare);
@@ -5395,8 +5969,10 @@ export class UtilNative {
     }
     //comparar caso especial string a number
     else if (
-      this.isNumber(valueBase, isCompareStringToNumber) &&
-      this.isNumber(valueToCompare, isCompareStringToNumber)
+      isCompareStringToNumber &&
+      //cualquiera puede ser numeric string o ambos
+      (this.isStringAsNumber(valueBase) || this.isNumber(valueBase)) &&
+      (this.isStringAsNumber(valueToCompare) || this.isNumber(valueToCompare))
     ) {
       const modulus =
         this.stringToNumber(valueBase) - this.stringToNumber(valueToCompare);
@@ -5425,12 +6001,12 @@ export class UtilNative {
       } else if (this.isBoolean(valueBase)) {
         isGreater =
           this.isUndefined(valueToCompare) || this.isNull(valueToCompare);
-      } else if (this.isNumber(valueBase, false)) {
+      } else if (this.isNumber(valueBase)) {
         isGreater =
           this.isUndefined(valueToCompare) ||
           this.isNull(valueToCompare) ||
           this.isBoolean(valueToCompare);
-      } else if (this.isBigint(valueBase, false)) {
+      } else if (this.isBigint(valueBase)) {
         isGreater =
           this.isUndefined(valueToCompare) ||
           this.isNull(valueToCompare) ||
@@ -5984,8 +6560,10 @@ export class UtilNative {
     }
     //comparar caso especial string a number
     else if (
-      this.isNumber(valueBase, isCompareStringToNumber) &&
-      this.isNumber(valueToCompare, isCompareStringToNumber)
+      isCompareStringToNumber &&
+      //cualquiera puede ser numeric string o ambos
+      (this.isStringAsNumber(valueBase) || this.isNumber(valueBase)) &&
+      (this.isStringAsNumber(valueToCompare) || this.isNumber(valueToCompare))
     ) {
       const modulus =
         this.stringToNumber(valueBase) - this.stringToNumber(valueToCompare);
@@ -6014,12 +6592,12 @@ export class UtilNative {
       } else if (this.isBoolean(valueBase)) {
         isLesser =
           !this.isUndefined(valueToCompare) && !this.isNull(valueToCompare);
-      } else if (this.isNumber(valueBase, false)) {
+      } else if (this.isNumber(valueBase)) {
         isLesser =
           !this.isUndefined(valueToCompare) &&
           !this.isNull(valueToCompare) &&
           !this.isBoolean(valueToCompare);
-      } else if (this.isBigint(valueBase, false)) {
+      } else if (this.isBigint(valueBase)) {
         isLesser =
           !this.isUndefined(valueToCompare) &&
           !this.isNull(valueToCompare) &&

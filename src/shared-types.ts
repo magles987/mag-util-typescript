@@ -25,6 +25,13 @@ export type TRoundType = "round" | "floor" | "ceil";
 interface IRecursiveObjectForTypes {
   [key: string]: TAExtValueType;
 }
+/**tipado para las opciones de limpieza y formateo de un potencial numeric string */
+export type TStringToNumberFormatCleanOption = {
+  /** `= true` determina si el numeric string es decimal y requiere ser formateado como un potencial número con decimales*/
+  isDecimalPoint: boolean;
+  /** `= "."` el caracter con que se identifica la separación de decimales*/
+  charDecimalPoint?: "." | ",";
+};
 /**tipado base para recursividad de tipos en el método isValueType */
 export type TExtValueType =
   | TExtPrimitiveTypes
@@ -34,22 +41,14 @@ export type TExtValueType =
 export type TAExtValueType = Array<TExtValueType>;
 /**opciones para evaluar tipo en grupo */
 export interface IValueTypeOption {
-  /** `allowNumber_String = false`: Permite que un string numérico sea validado como un número (por ejemplo, `"123"` siendo string, se permite analizar y validar como número). */
-  allowNumber_String?: boolean;
-  /** `allowBigint_String = false`: Permite que un string numérico gigante sea validado como un bigint. */
-  allowBigint_String?: boolean;
   /** `allowStringEmpty = false`: Permite que un string vacío ( `""` ) sea considerado válido. */
   allowStringEmpty?: boolean;
-  /** `allowObjectEmpty = false`: Permite que un string vacío ( `{}` ) sea considerado válido. */
-  allowObjectEmpty?: boolean;
-  /** `allowArrayEmpty = false`: Permite que un string vacío ( `[]` ) sea considerado válido.*/
-  allowArrayEmpty?: boolean;
   /**`tupleSize = undefined`: Define el tamaño esperado de una tupla. Puede ser un número (tamaño fijo)
    * o un array de dos números `[min, max]` (tamaño variable).
    *
    * ❗este argumento es indispensable en caso que en algún nivel del esquema de `types` se verifique
-   * el tipo `"tuple"` (asi explicitamente en texto), por el contrario si la verificacion de la
-   * tupla se hace implicitamente (con varios items array), este argumento es opcional, pero si
+   * el tipo `"tuple"` (asi explícitamente en texto), por el contrario si la verificacion de la
+   * tupla se hace implícitamente (con varios items array), este argumento es opcional, pero si
    * se asigna tendrá prioridad de verificación❗.
    *
    */
@@ -147,7 +146,7 @@ export interface IOptionEqGtLt {
   /**
    * Predefinido en `false`
    *
-   * permite comparacion de valores entre un numero y un string
+   * permite comparación de valores entre un numero y un string
    * siempre y cuando el string pueda transformarse en numero
    *
    * */
@@ -156,13 +155,13 @@ export interface IOptionEqGtLt {
    * Predefinido en `true`
    *
    * Determina si es case sensitive (solo para
-   * elementos string), si lo es la comparacion
+   * elementos string), si lo es la comparación
    * es estricta
    * ````
    */
   isCaseSensitiveForString?: boolean;
 }
-/**Utilidad exclusiva de Typescript para capitzalizar la primera letra
+/**Utilidad exclusiva de Typescript para capitalizar la primera letra
  *
  * ejemplo:
  * ````

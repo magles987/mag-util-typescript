@@ -18,6 +18,7 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
+    "removeComments": true,
 
     /* Linting */
     //"strict": true, //es demasiado extricto
