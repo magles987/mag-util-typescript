@@ -1,14 +1,13 @@
 {
-  "compilerOptions": {
+"compilerOptions": {
     "target": "ES2020",
     "useDefineForClassFields": true,
-    "module": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "types": ["node"],
     "skipLibCheck": true,
 
-    /* Bundler mode */
-    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": false,
 
@@ -21,7 +20,6 @@
     "removeComments": true,
 
     /* Linting */
-    //"strict": true, //es demasiado extricto
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true
