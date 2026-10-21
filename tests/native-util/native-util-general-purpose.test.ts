@@ -168,6 +168,22 @@ describe("Util Native context: [General Purpose]", async () => {
         .not //no puede ser igual porque received no es una instancia (no se clonaron las funciones)
         .toStrictEqual(expected);
     });
+    it("case: clone instance by customDeepClone)", async () => {
+      class ClassA {
+        private p2 = 10;
+        constructor(public p1: string) {}
+        public doAny(): boolean {
+          //el método debe traspasare al clon
+          return true;
+        }
+      }
+      const data = new ClassA("hola");
+      const expected = new ClassA("hola");
+      const received = util.clone(data, "customDeepClone");
+      expect(received).toStrictEqual(expected);
+      //comprobación adicional del método traspasado del original al clon
+      expect(received.doAny()).toBe(data.doAny());
+    });
   });
   describe("method: isValueType", async () => {
     it("case: exception is not types array valid", async () => {

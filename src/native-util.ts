@@ -1588,22 +1588,22 @@ export class UtilNative {
     if (!this.isString(caseType))
       throw new Error(`${caseType} is not case convertion type valid`);
     //adapta casos especial como snake o kebab
-    const adaptCasesWithSeparateChart = (
+    const adaptCasesWithSeparateChartFn = (
       type: Extract<TStrCase, "Snake" | "Kebab" | "Constant" | "Dot">,
       str: string,
       reOtherCase: RegExp,
       sp: string,
     ) => {
-      str = str.replace(reOtherCase, sp); //reemplaza todos los caracteres de otros case
-      const reUpper = /([A-ZÑ])/g;
-      str = str.replace(reUpper, (char) => `${sp}${char.toLocaleLowerCase()}`); //reemplaza mayusculas por minusculas y antepone el `sp`
+      str = str.replace(/([a-z0-9])([A-ZÑ])/g, `$1${sp}$2`);
+      str = str.replace(reOtherCase, sp);
       return str
         .split(sp)
-        .filter((word) => word !== "")
-        .join(sp);
+        .filter((word) => word.trim() !== "")
+        .join(sp)
+        .toLowerCase();
     };
     //adapta caso especiales de camel y Pascal
-    const adaptCasesWithoutSeparateChart = (
+    const adaptCasesWithoutSeparateChartFn = (
       type: Extract<TStrCase, "Camel" | "Pascal">,
       str: string,
     ) => {
@@ -1638,7 +1638,7 @@ export class UtilNative {
     switch (caseType) {
       //convertir a snakeCase
       case "Snake":
-        str = adaptCasesWithSeparateChart(
+        str = adaptCasesWithSeparateChartFn(
           "Snake",
           str,
           /[\s.:,;#*/><\-]/g,
@@ -1648,22 +1648,27 @@ export class UtilNative {
         break;
 
       case "Kebab":
-        str = adaptCasesWithSeparateChart("Kebab", str, /[\s.:,;#*/><_]/g, "-");
+        str = adaptCasesWithSeparateChartFn(
+          "Kebab",
+          str,
+          /[\s.:,;#*/><_]/g,
+          "-",
+        );
         return str;
         break;
 
       case "Camel":
-        str = adaptCasesWithoutSeparateChart("Camel", str);
+        str = adaptCasesWithoutSeparateChartFn("Camel", str);
         return str;
         break;
 
       case "Pascal":
-        str = str = adaptCasesWithoutSeparateChart("Pascal", str);
+        str = str = adaptCasesWithoutSeparateChartFn("Pascal", str);
         return str;
         break;
       //convertir a CONSTANT_CASE
       case "Constant":
-        str = adaptCasesWithSeparateChart(
+        str = adaptCasesWithSeparateChartFn(
           "Constant",
           str,
           /[\s.:,;#*/><\-]/g,
@@ -1673,7 +1678,12 @@ export class UtilNative {
         break;
       //convertir a dot.case
       case "Dot":
-        str = adaptCasesWithSeparateChart("Dot", str, /[\s.:,;#*/><\-_]/g, ".");
+        str = adaptCasesWithSeparateChartFn(
+          "Dot",
+          str,
+          /[\s.:,;#*/><\-_]/g,
+          ".",
+        );
         return str.toLowerCase(); // Convertimos todo a minúsculas
         break;
       default:
@@ -4715,24 +4725,191 @@ export class UtilNative {
   }
   //████ Generales ████████████████████████████████████████████████████
   /**
-   * Realiza la clonación de objetos JSON o Arrays de JSONs a diferentes niveles de profundidad.
+   * Método interno para clonar objetos profundos de forma iterativa (evita Stack Overflow),
+   * incluyendo instancias de clase, preservando prototipos (herencia), métodos, símbolos y referencias circulares.
    *
-   * ⚠ **NO** se puede clonar instancias de clase ⚠
+   * @param {T} rootObj El objeto o valor a clonar.
+   * @returns {T} El valor clonado.
+   */
+  protected _deepCloneNative<T>(rootObj: T): T {
+    // Si es un valor primitivo o función, se devuelve tal cual (array tratados como objetos)
+    if (typeof rootObj !== "object" || this.isNull(rootObj)) {
+      return rootObj;
+    }
+    //Manejo de tipos integrados especiales en la raíz
+    if (rootObj instanceof Date) return new Date(rootObj.getTime()) as any;
+    if (rootObj instanceof RegExp)
+      return new RegExp(rootObj.source, rootObj.flags) as any;
+    //Mapa para gestionar referencias circulares y objetos ya clonados
+    const clones = new WeakMap<object, object>();
+    //Crear el clon de la raíz según su tipo
+    const rootClone = Array.isArray(rootObj)
+      ? []
+      : Object.create(Object.getPrototypeOf(rootObj));
+    clones.set(rootObj as object, rootClone);
+    // Pila de tareas para la clonación iterativa (Heap en lugar de Call Stack)
+    type TCloneTask = {
+      source: any;
+      target: any;
+    };
+    const stack: TCloneTask[] = [{ source: rootObj, target: rootClone }];
+    while (stack.length > 0) {
+      const { source, target } = stack.pop()!;
+      // A. Manejo de Map
+      if (source instanceof Map) {
+        source.forEach((value, key) => {
+          let clonedKey = key;
+          let clonedValue = value;
+          if (typeof key === "object" && !this.isNull(key)) {
+            if (!clones.has(key)) {
+              const newKeyClone = Array.isArray(key)
+                ? []
+                : Object.create(Object.getPrototypeOf(key));
+              clones.set(key, newKeyClone);
+              stack.push({ source: key, target: newKeyClone });
+            }
+            clonedKey = clones.get(key);
+          }
+          if (typeof value === "object" && !this.isNull(value)) {
+            if (!clones.has(value)) {
+              const newValueClone = Array.isArray(value)
+                ? []
+                : Object.create(Object.getPrototypeOf(value));
+              clones.set(value, newValueClone);
+              stack.push({ source: value, target: newValueClone });
+            }
+            clonedValue = clones.get(value);
+          }
+          target.set(clonedKey, clonedValue);
+        });
+        continue;
+      }
+      // B. Manejo de Set
+      if (source instanceof Set) {
+        source.forEach((value) => {
+          let clonedValue = value;
+          if (typeof value === "object" && !this.isNull(value)) {
+            if (!clones.has(value)) {
+              const newValueClone = Array.isArray(value)
+                ? []
+                : Object.create(Object.getPrototypeOf(value));
+              clones.set(value, newValueClone);
+              stack.push({ source: value, target: newValueClone });
+            }
+            clonedValue = clones.get(value);
+          }
+          target.add(clonedValue);
+        });
+        continue;
+      }
+      // C. Copia de propiedades en Objetos/Arrays/Instancias
+      const keys = Reflect.ownKeys(source);
+      for (const key of keys) {
+        const descriptor = Object.getOwnPropertyDescriptor(source, key);
+        const value = source[key];
+        // Primitivos o Funciones: asignación directa
+        if (
+          typeof value !== "object" ||
+          this.isNull(value) ||
+          typeof value === "function"
+        ) {
+          if (descriptor && (descriptor.get || descriptor.set)) {
+            Object.defineProperty(target, key, descriptor);
+          } else {
+            target[key] = value;
+          }
+          continue;
+        }
+        // Manejo de Date y RegExp anidados
+        if (value instanceof Date) {
+          target[key] = new Date(value.getTime());
+          continue;
+        }
+        if (value instanceof RegExp) {
+          target[key] = new RegExp(value.source, value.flags);
+          continue;
+        }
+        // Manejo de objetos/arrays/instancias anidados
+        let subClone = clones.get(value);
+        if (!subClone) {
+          subClone = Array.isArray(value)
+            ? []
+            : value instanceof Map
+              ? new Map()
+              : value instanceof Set
+                ? new Set()
+                : Object.create(Object.getPrototypeOf(value));
+          clones.set(value, subClone as any);
+          stack.push({ source: value, target: subClone });
+        }
+        if (descriptor && (descriptor.get || descriptor.set)) {
+          Object.defineProperty(target, key, {
+            ...descriptor,
+            value: subClone,
+          });
+        } else {
+          target[key] = subClone;
+        }
+      }
+    }
+    return rootClone as T;
+  }
+  /**
+   * Realiza la clonación de objetos JSON, Arrays o Instancias de Clases a diferentes niveles de profundidad.
    *
-   * @param {T} objOrArray El objeto a clonar. El tipo `T` se asume implícitamente al enviar el parámetro.
-   * @param {"stringify" | "structuredClone"} driver `= "structuredClone"` el driver o librería para hacer clonación.
-   * @returns {T} Retorna el objeto (o array) clonado. Si no es un objeto (o array), el retorno es el mismo valor.
+   * @description
+   * El comportamiento depende del driver seleccionado:
+   *
+   * - **`"customDeepClone"` (Predefinido)**:
+   *   Algoritmo iterativo (*Anti-Stack Overflow*) basado en memoria Heap.
+   *   - **Soporte de Clases e Herencia**: Preserva la cadena de prototipos (`Object.getPrototypeOf`),
+   *     métodos de clase, getters, setters y propiedades con `Symbol` o no enumerables.
+   *   - **Tipos Especiales Soportados**: `Date`, `RegExp`, `Map`, `Set` y referencias circulares.
+   *   - **Funciones**: Se asignan por referencia para preservar sus clausuras y contexto de ejecución.
+   *
+   * - **`"structuredClone"`**:
+   *   Utiliza la API nativa de JavaScript. Es ultrarrápida para estructuras de datos planas o complejas,
+   *   pero **no soporta funciones** (lanza `DataCloneError`) y **destruye los prototipos de clases personalizadas**
+   *   (las convierte en objetos planos `Object`).
+   *
+   * - **`"stringify"`**:
+   *   Clonación básica basada en `JSON.parse(JSON.stringify(obj))`.
+   *   Omite funciones, propiedades `undefined`, `Symbol` y destruye métodos y prototipos de clases.
+   *
+   * ⚠ **Advertencias de Clonación (`customDeepClone`)**:
+   * - **Tipos no clonables por diseño**: `WeakMap` y `WeakSet` no son iterables por especificación de ECMAScript,
+   *   por lo que se mantendrán por referencia.
+   * - **Entornos del Navegador**: Nodos del DOM (`Element`) o flujos de datos (`FormData`, `File`)
+   *   tienen mecanismos propios de clonación (`cloneNode`) y no deben clonarse mediante esta utilidad.
+   *
+   * @template T Tipo del objeto o valor a clonar.
+   * @param {T} objOrArray El objeto, array o instancia que se desea clonar.
+   * @param {"customDeepClone" | "structuredClone" | "stringify"} [driver="customDeepClone"] Driver a utilizar para la clonación.
+   * @returns {T} Retorna una copia profunda del valor proporcionado. Si no es un objeto (o es `null`), se devuelve sin cambios.
    *
    * @example
    * ```typescript
-   * const obj = { a: 1, b: 2 };
-   * const clonedObj = clone(obj);
-   * console.log(clonedObj); // salida: { a: 1, b: 2 }
+   * // Clonación de objetos planos o arrays
+   * const obj = { a: 1, b: { c: 2 } };
+   * const clonedObj = util.clone(obj);
+   *
+   * // Clonación de instancias de clase conservando métodos y prototipo
+   * class Person {
+   *   constructor(public name: string) {}
+   *   greet() { return `Hola, soy ${this.name}`; }
+   * }
+   * const person = new Person("Alan");
+   * const clonedPerson = util.clone(person);
+   * console.log(clonedPerson instanceof Person); // true
+   * console.log(clonedPerson.greet()); // "Hola, soy Alan"
    * ```
    */
   public clone<T>(
     objOrArray: T,
-    driver: "stringify" | "structuredClone" = "structuredClone",
+    driver:
+      | "stringify"
+      | "structuredClone"
+      | "customDeepClone" = "customDeepClone",
   ): T {
     if (
       typeof objOrArray != "object" || //❗solo clona los objetos (incluye array)❗
@@ -4745,6 +4922,8 @@ export class UtilNative {
       dataCopia = JSON.parse(JSON.stringify(objOrArray)); //método antiguo
     } else if (driver === "structuredClone") {
       dataCopia = structuredClone(objOrArray); //Se implementará en typescript ^4.7.x
+    } else if (driver === "customDeepClone") {
+      dataCopia = this._deepCloneNative(objOrArray);
     } else {
       throw new Error(`${driver} does not driver valid`);
     }

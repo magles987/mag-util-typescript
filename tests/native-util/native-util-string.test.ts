@@ -297,6 +297,18 @@ describe("Util Native context: [String]", async () => {
       const received = util.convertStringToCase(data, "Snake");
       expect(received).toBe(expected);
     });
+    it("case: Snake (v2 acentos)", async () => {
+      const data = "_Hola como-Estás";
+      const expected = "hola_como_estás"; //se respetan los acentos
+      const received = util.convertStringToCase(data, "Snake");
+      expect(received).toBe(expected);
+    });
+    it("case: Snake (v3 number)", async () => {
+      const data = "_Hola como123";
+      const expected = "hola_como123"; // ❗los segmentos numéricos NO deben ser considerados como palabras independientes❗
+      const received = util.convertStringToCase(data, "Snake");
+      expect(received).toBe(expected);
+    });
     it("case: Kebab", async () => {
       const data = "-Hola como_-_Estas--que..bien-";
       const expected = "hola-como-estas-que-bien"; //⚠ No puede iniciar ni terminar con "-"
