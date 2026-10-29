@@ -5195,8 +5195,7 @@ export class UtilNative {
           : (undefined as any),
     };
     const { tupleSize } = op;
-    // Eliminación básica de duplicados (❗No toma en cuenta arrays ni objetos❗)
-    types = [...new Set(types)];
+
     // Si no hay tipos se asume que se permite cualquier valor
     if (types.length === 0) return true;
     let r = false;
@@ -5206,7 +5205,15 @@ export class UtilNative {
       const isTypeObject = this.isObject(type, true);
       const isTypeArray = this.isArray(type, true);
 
-      if (type === "undefined") {
+      if (this.isFunction(type)) {
+        //value personalizado con callback
+        const result = (type as Function)(anyValue);
+        if (!this.isBoolean(result))
+          throw new Error(
+            `${type} is not custom callback validator valid (must return boolean)`,
+          );
+        r = result;
+      } else if (type === "undefined") {
         r = this.isUndefined(anyValue);
       } else if (type === "null") {
         r = this.isNull(anyValue);

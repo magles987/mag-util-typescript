@@ -404,9 +404,19 @@ describe("Util Native context: [General Purpose]", async () => {
       expect(received).toBe(expected);
     });
     it("case: is function", async () => {
-      const data = () => console.log("lo que sea");
+      const data = () => console.log("lo que sea"); //se verifica si es un tipo function
       const expected = true;
       const received = util.isValueType(data, ["function"]);
+      expect(received).toBe(expected);
+    });
+    it("case: is custom callback", async () => {
+      const data = "hola"; //se requiere validar si es especificamente tipo "hola" o es null
+      const customFn = (v: any) => {
+        const r = v === "hola";
+        return r;
+      };
+      const expected = true;
+      const received = util.isValueType(data, ["null", customFn]);
       expect(received).toBe(expected);
     });
   });

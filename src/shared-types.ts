@@ -34,8 +34,9 @@ export type TStringToNumberFormatCleanOption = {
 };
 /**tipado base para recursividad de tipos en el método isValueType */
 export type TExtValueType =
-  | TExtPrimitiveTypes
-  | IRecursiveObjectForTypes
+  | TExtPrimitiveTypes //primitivos standar
+  | IRecursiveObjectForTypes //objetos con recursividad para los tipos
+  | ((v: any) => boolean) //callback para validación personalizada
   | TAExtValueType;
 /**tipado para agrupación de tipos  */
 export type TAExtValueType = Array<TExtValueType>;
