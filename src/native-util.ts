@@ -5004,6 +5004,9 @@ export class UtilNative {
    *              `"array"`,
    *              `"tuple"`
    *
+   *              *callback personalizado de tipo:*
+   *              `(value:any)=>boolean;`
+   *
    *              *Estructuras complejas*
    *              como objetos y arrays anidados que definen esquemas de validación.
    *              - Si `types` es un array vacío (`[]`), se asume que cualquier valor es válido.
@@ -5092,6 +5095,11 @@ export class UtilNative {
    * v = null;
    * r = util.isValueType(v, ["undefined", "null", "string"]);
    * console.log(r); // Salida: true, al menos es nulo
+   *
+   * v = "adios";
+   * cb = (value:any)=> value==="hola"; se va a evaluar si es de tipo especifico "hola"
+   * r = util.isValueType(v, ["undefined", "null", cb]);
+   * console.log(r); // Salida: false, no es ni undefined, ni null, ni "hola"
    *
    * // Agrupaciones (Objetos y Arrays)
    *
